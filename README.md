@@ -1,1 +1,1 @@
-# Himalayan-Water-Security
+# Himalayan Water Security
