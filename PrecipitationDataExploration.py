@@ -6,6 +6,7 @@ import xarray as xr
 import cartopy.crs as ccrs
 import pandas as pd
 import cartopy.feature as cf
+import matplotlib.ticker as tck
 
 # open data
 
@@ -17,7 +18,6 @@ tp_da = tp.tp
 
 
 # Create a feature for UIB
-
 """
 karakoram = cf.NaturalEarthFeature(
         category='physical',
@@ -30,8 +30,8 @@ UIB = tp_da.sel(latitude=slice(37.0, 28.0), longitude=slice(71.0, 82.0))
 
 # Map of annual average for 1979
 
-UIB_1979 = UIB.sel(time=slice('1979-01-16T12:00:00', '1980-01-16T12:00:00'))
-UIB_1979_sum = UIB_1979.sum(dim='time')
+UIB_1979 = UIB.sel(time=slice('1979-01-16T12:00:00', '1980-01-01T12:00:00'))
+UIB_1979_sum = UIB_1979.sum(dim='time') * 30.42 # 30.42 is the average number of days in a month.
 vmax = UIB_1979_sum.max()
 vmin = UIB_1979_sum.min()
 
@@ -50,27 +50,36 @@ plt.show()
 
 # Maps of average annual change from 1979 to 1989, 1999, 2009 and 2019
 
-UIB_1989 = UIB.sel(time=slice('1989-01-16T12:00:00', '1990-01-16T12:00:00'))
-UIB_1989_sum = UIB_1989.sum(dim='time')
-UIB_1989_change = UIB_1989_sum/ UIB_1979_sum
+UIB_1989 = UIB.sel(time=slice('1989-01-01T12:00:00', '1990-01-01T12:00:00'))
+UIB_1989_sum = UIB_1989.sum(dim='time')* 30.42
+UIB_1989_change = UIB_1989_sum/ UIB_1979_sum - 1 
 
-UIB_1999 = UIB.sel(time=slice('1999-01-16T12:00:00', '2000-01-16T12:00:00'))
-UIB_1999_sum = UIB_1999.sum(dim='time')
-UIB_1999_change = UIB_1999_sum/ UIB_1979_sum
+UIB_1999 = UIB.sel(time=slice('1999-01-01T12:00:00', '2000-01-01T12:00:00'))
+UIB_1999_sum = UIB_1999.sum(dim='time')* 30.42
+UIB_1999_change = UIB_1999_sum/ UIB_1979_sum - 1
 
-UIB_2009 = UIB.sel(time=slice('2009-01-16T12:00:00', '2010-01-16T12:00:00'))
-UIB_2009_sum = UIB_2009.sum(dim='time')
-UIB_2009_change = UIB_2009_sum/ UIB_1979_sum
+UIB_2009 = UIB.sel(time=slice('2009-01-01T12:00:00', '2010-01-01T12:00:00'))
+UIB_2009_sum = UIB_2009.sum(dim='time')* 30.42
+UIB_2009_change = UIB_2009_sum/ UIB_1979_sum - 1
 
-UIB_2019 = UIB.sel(time=slice('2019-01-16T12:00:00', '2020-01-16T12:00:00'))
-UIB_2019_sum = UIB_2019.sum(dim='time')
-UIB_2019_change = UIB_2019_sum/ UIB_1979_sum
+UIB_2019 = UIB.sel(time=slice('2019-01-01T12:00:00', '2020-01-01T12:00:00'))
+UIB_2019_sum = UIB_2019.sum(dim='time')*30
+UIB_2019_change = UIB_2019_sum/ UIB_1979_sum - 1
 
-fig, ax = plt.subplots(2, 2)
-UIB_1989_change.plot(cmap='magma_r', ax=ax[0,0], cbar_kwargs={'label': '\n Total precipitation [m]'})
-UIB_1999_change.plot(cmap='magma_r', ax=ax[0,1], cbar_kwargs={'label': '\n Total precipitation [m]'})
-UIB_2009_change.plot(cmap='magma_r', ax=ax[1,0], cbar_kwargs={'label': '\n Total precipitation [m]'})
-UIB_2019_change.plot(cmap='magma_r', ax=ax[1,1], cbar_kwargs={'label': '\n Total precipitation [m]'})
+UIB_changes = xr.concat([UIB_1989_change, UIB_1999_change, UIB_2009_change, UIB_2019_change],
+                        pd.Index(['1989', '1999', '2009', '2019'], name='year'))
+
+g= UIB_changes.plot(x='longitude', y='latitude', col='year', col_wrap=2,
+                    subplot_kws={'projection': ccrs.PlateCarree()},
+                    cbar_kwargs={'label': 'Precipitation change', 'format': tck.PercentFormatter(xmax=1.0)})
+
+for ax in g.axes.flat:
+    ax.coastlines()
+    ax.gridlines()
+    ax.set_extent([55, 95, 15, 45])
+    ax.add_feature(cf.BORDERS)
+
+plt.show()
 
 
 
