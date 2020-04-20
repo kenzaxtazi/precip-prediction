@@ -1,3 +1,4 @@
+
 # Precipitation Data Exploration
 
 import numpy as np
@@ -7,38 +8,39 @@ import cartopy.crs as ccrs
 import pandas as pd
 import cartopy.feature as cf
 import matplotlib.ticker as tck
+import matplotlib.cm as cm
 
 # open data
 
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
-mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc.download'
+mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
+mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 tp= xr.open_dataset(tp_filepath)
 tp_da = tp.tp
 
+mask = xr.open_dataset(mask_filepath)
+mask_da = mask.overlap
 
 # Create a feature for UIB
-"""
-karakoram = cf.NaturalEarthFeature(
-        category='physical',
-        name='geography_regions_polys',
-        scale='110m',
-        facecolor='red')
-"""
-UIB = tp_da.sel(latitude=slice(37.0, 28.0), longitude=slice(71.0, 82.0))
 
+#UIB = tp_da.sel(latitude=slice(37.0, 28.0), longitude=slice(71.0, 82.0))
+UIB = tp.da.where(mask_da > 0, drop=True)
+
+vmax = UIB.max()
+vmin = UIB.min()
 
 # Map of annual average for 1979
 
 UIB_1979 = UIB.sel(time=slice('1979-01-16T12:00:00', '1980-01-01T12:00:00'))
-UIB_1979_sum = UIB_1979.sum(dim='time') * 30.42 # 30.42 is the average number of days in a month.
-vmax = UIB_1979_sum.max()
-vmin = UIB_1979_sum.min()
+UIB_1979_sum = UIB_1979.sum(dim='time') * 30.42  #TODO
+
 
 plt.figure()
 ax = plt.subplot(projection=ccrs.PlateCarree())
 ax.set_extent([55, 95, 15, 45])
-UIB_1979_sum.plot(cmap='magma_r',  cbar_kwargs={'label': '\n Total precipitation [m]'})
+g = UIB_1979_sum.plot(cmap='magma_r', vmin=0.01, cbar_kwargs={'label': '\n Total precipitation [m]', 'extend':'neither'})
+g.cmap.set_under('white')
 ax.add_feature(cf.BORDERS)
 ax.coastlines()
 ax.gridlines(draw_labels=True)
@@ -80,7 +82,6 @@ for ax in g.axes.flat:
     ax.add_feature(cf.BORDERS)
 
 plt.show()
-
 
 
 # Time series for Gilgit, Skardu and Leh
