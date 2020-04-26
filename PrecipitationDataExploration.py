@@ -12,23 +12,26 @@ import matplotlib.cm as cm
 import calendar
 
 # open data
-
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
-tp= xr.open_dataset(tp_filepath)
-tp_da = tp.tp
 
-
-
-def apply_mask(mask_filepath, tp_da):
-    "Applies mask to data array"
+def apply_mask(tp_filepath, mask_filepath):
+    """
+    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 precipitation data.
+    Inputs:
+        Data filepath, NetCDF
+        Mask filepath, NetCDF
+    Return:
+        A Data Array
+    """
+    tp = xr.open_dataset(tp_filepath)
+    tp_da = tp.tp
 
     mask = xr.open_dataset(mask_filepath)
     mask_da = mask.overlap 
 
-    #UIB = tp_da.sel(latitude=slice(37.0, 28.0), longitude=slice(71.0, 82.0))
     UIB = tp_da.where(mask_da > 0)
 
     return UIB
@@ -118,6 +121,7 @@ def timeseries(tp_da):
 
 
 def cumulative_montly(da):
+    """ Multiplies monthly averages by the number of day in each month """
     times = np.datetime_as_string(da.time.values)
     days_in_month = []
     for t in times:
@@ -131,10 +135,14 @@ def cumulative_montly(da):
     return da * dim_mesh
 
 
-def zeros_in_data(da, mask_filepath):
-
-    UIB_sum = (da.sum(dim='time'))
-    UIB_outline = UIB_sum.where(UIB_sum<0, -1).
+def zeros_in_data(da):
+    """ 
+    Map and bar chart of the zeros points in a data set.
+    Input:
+        Data Array
+    Returns:
+        Two Matplotlib figures
+    """
 
     df = da.to_dataframe('Precipitation')
     
@@ -167,18 +175,22 @@ def zeros_in_data(da, mask_filepath):
     df_pv = df_pv.droplevel(0, axis=1)
     reduced_da2 = xr.DataArray(data=df_pv)
 
+    """
     # make sure all the zeros are within the mask
     mask = xr.open_dataset(mask_filepath)
     mask_da = mask.overlap
     UIB_zeros = reduced_da2.where(mask_da > 0)
+    """
 
+    UIB_sum = (da.sum(dim='time'))
+    UIB_outline = UIB_sum.where(UIB_sum<0, -1)
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([70, 83, 30, 38])
     g = UIB_outline.plot(cmap='Blues_r', vmax=-0.5, vmin=-5, add_colorbar=False)
     g.cmap.set_over('white')
-    a= UIB_zeros.plot.contourf(cmap='magma_r', vmin=1, 
+    a= reduced_da2.plot.contourf(cmap='magma_r', vmin=1, 
                                  cbar_kwargs={'label': '\n Number of zero points', 'extend':'neither'})
     a.cmap.set_under('white')
 
