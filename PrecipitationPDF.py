@@ -15,10 +15,7 @@ tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
-tp= xr.open_dataset(tp_filepath)
-tp_da = tp.tp
-
-UIB = pde.apply_mask(mask_filepath, tp_da)
+UIB = pde.apply_mask(tp_filepath, mask_filepath)
 UIB_cum = pde.cumulative_montly(UIB)
 
 UIB_df = UIB_cum.to_dataframe('Precipitation')
