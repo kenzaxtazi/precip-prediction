@@ -32,7 +32,8 @@ def apply_mask(tp_filepath, mask_filepath):
     mask = xr.open_dataset(mask_filepath)
     mask_da = mask.overlap 
 
-    UIB = tp_da.where(mask_da > 0)
+    sliced_tp_da = tp_da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
+    UIB = sliced_tp_da.where(mask_da > 0, drop=True)
 
     return UIB
 
