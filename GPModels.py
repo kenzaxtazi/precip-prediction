@@ -5,12 +5,15 @@ import PrecipitationDataExploration as pde
 
 import gpflow
 import tensorflow as tf
-
 from gpflow.utilities import print_summary
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ExpSineSquared
 from sklearn.model_selection import train_test_split
+
+import torch
+import gpytorch
+import os
 
 
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
@@ -20,11 +23,12 @@ mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
 
-# Simple Gaussian Process Model
+x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
 
-def sklearn_gp(da):
-    """ Returns trained model """
 
+def data_preparation(da):
+    """ Outputs test and training data from DataArray """
+    
     version_da = da.sel(expver=1) 
     std_da = version_da.std(dim='number')
     mean_da = version_da.mean(dim='number')
@@ -45,95 +49,157 @@ def sklearn_gp(da):
     y = df_mean_clean['Precipitation'].values*1000
     dy = df_std_clean['Precipitation'].values*1000
 
-    X_prime = df_mean_clean['time'].values.reshape(-1, 1)
-    X = (X_prime - X_prime[0])/ (1e9*60*60*24*365)
-    X_train = X[0:400]
-    # X_test = X[400:-1]
+    x_prime = df_mean_clean['time'].values.reshape(-1, 1)
+    x = (x_prime - x_prime[0])/ (1e9*60*60*24*365)
+    x_train = X[0:120]
+    x_test = X[400:-1]
 
-    y_train = y[0:400]
-    dy_train = dy[0:400]
-    # y_test = y[400:-1]
-    # train_test_split(X, y, test_size=0.5, random_state=42)
+    y_train = y[0:120]
+    dy_train = dy[0:120]
+    y_test = y[400:-1]
+
+    return x_train, y_train, dy_train, x_test, y_test, dy_test
+
+
+def sklearn_gp(x_train, y_train, dy_train):
+    """ Returns model and plot of GP model using sklearn """
 
     kernel = ExpSineSquared(length_scale=1, periodicity=1)
-    gpr = GaussianProcessRegressor(kernel=kernel, alpha=dy_train**2, random_state=0).fit(X_train, y_train)
-    #print('R2 score = ', gpr.score(X_test, y_test))
-
-    
-    X_predictions = np.linspace(0,41,1000)
-    X_plot = X_predictions.reshape(-1, 1)
-    y_gpr, y_std = gpr.predict(X_plot, return_std=True)
+    gpr = GaussianProcessRegressor(kernel=kernel, alpha=dy_train**2, random_state=0).fit(x_train, y_train)
+    #print('R2 score = ', gpr.score(x_test, y_test))
+  
+    x_predictions = np.linspace(0,41,1000)
+    x_plot = x_predictions.reshape(-1, 1)
+    y_gpr, y_std = gpr.predict(x_plot, return_std=True)
     
     plt.figure()
     plt.title('GP fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.errorbar(X_train + 1981, y_train, dy_train, fmt='r.', markersize=10, label='ERA5')
-    plt.plot(X_predictions + 1981, y_gpr, 'b-', label='Prediction')
-    plt.fill_between(X_predictions + 1981, y_gpr - 1.9600 * y_std, y_gpr + 1.9600 * y_std,
+    plt.errorbar(x_train + 1981, y_train, dy_train, fmt='r.', markersize=10, label='ERA5')
+    plt.plot(x_predictions + 1981, y_gpr, 'b-', label='Prediction')
+    plt.fill_between(x_predictions + 1981, y_gpr - 1.9600 * y_std, y_gpr + 1.9600 * y_std,
              alpha=.5, fc='b', ec='None', label='95% confidence interval')
     plt.legend()
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
     plt.show()
 
+    return gpr
 
-def simple_gp(da):
 
-    version_da = da.sel(expver=1) 
-    std_da = version_da.std(dim='number')
-    mean_da = version_da.mean(dim='number')
 
-    gilgit_mean = mean_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    gilgit_std = std_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-
-    multi_index_df_mean = gilgit_mean.to_dataframe('Precipitation')
-    df_mean= multi_index_df_mean.reset_index()
-    df_mean_clean = df_mean.dropna()
-    df_mean_clean['time'] = df_mean_clean['time'].astype('int')
-
-    multi_index_df_std = gilgit_std.to_dataframe('Precipitation')
-    df_std = multi_index_df_std.reset_index()
-    df_std_clean = df_std.dropna()
-    df_std_clean['time'] = df_std_clean['time'].astype('int')
-
-    y = df_mean_clean['Precipitation'].values*1000
-    dy = df_std_clean['Precipitation'].values*1000
-
-    X_prime = df_mean_clean['time'].values.reshape(-1, 1)
-    X = (X_prime - X_prime[0])/ (1e9*60*60*24*365)
-    X_train = X[0:120]
-    # X_test = X[400:-1]
-
-    y_train = y[0:120]
-    dy_train = dy[0:120]
-    # y_test = y[400:-1]
-    # train_test_split(X, y, test_size=0.5, random_state=42)
+def gpflow_gp(x_train, y_train):
+    """ Returns model and plot of GP model using sklearn """
 
     # model construction
     k1= gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=0.3, variance=6))
-    m = gpflow.models.GPR(data=(X_train, y_train.reshape(-1,1)), kernel=k, mean_function=None)  
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k, mean_function=None)  
     
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
     print_summary(m)
 
-    X_predictions = np.linspace(0,10,1000)
-    X_plot = X_predictions.reshape(-1, 1)
-    y_gpr, y_std = m.predict_y(X_plot)
+    x_predictions = np.linspace(0,10,1000)
+    x_plot = x_predictions.reshape(-1, 1)
+    y_gpr, y_std = m.predict_y(x_plot)
 
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
-    samples = m.predict_f_samples(X_plot, 10)  # shape (10, 100, 1)
+    samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
 
     plt.figure()
     plt.title('GP fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.errorbar(X_train + 1981, y_train, dy_train, fmt='r.', markersize=10, label='ERA5')
-    plt.plot(X_predictions + 1981, y_gpr[:, 0], 'b-', label='Prediction')
-    plt.fill_between(X_predictions + 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+    plt.errorbar(x_train + 1981, y_train, dy_train, fmt='r.', markersize=10, label='ERA5')
+    plt.plot(x_predictions + 1981, y_gpr[:, 0], 'b-', label='Prediction')
+    plt.fill_between(x_predictions + 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
              alpha=.2, color='b', label='95% confidence interval')
-    #plt.plot(X_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    #plt.plot(x_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
     plt.legend()
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
     plt.show()
 
+    return m 
+
+
+def gpytorch_gp(x_train, y_train):
+    
+    smoke_test = ('CI' in os.environ)
+    training_iter = 2 if smoke_test else 50
+
+    x_train = torch.from_numpy(x_train[0:120].astype(float))
+    y_train = torch.from_numpy(y_train[0:120].astype(float))
+
+    # Initialize likelihood and model
+    likelihood = gpytorch.likelihoods.GaussianLikelihood()
+    model = ExactGPModel(x_train, y_train, likelihood)
+    
+    # Find optimal model hyperparameters
+    model.train()
+    likelihood.train()
+
+    # Use the adam optimizer
+    optimizer = torch.optim.Adam([{'params': model.parameters()}], # Includes GaussianLikelihood parameters
+                                 lr=0.1)
+
+    # "Loss" for GPs - the marginal log likelihood
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    for i in range(training_iter):
+        # Zero gradients from previous iteration
+        optimizer.zero_grad()
+        # Output from model
+        output = model(x_train)
+        # Calc loss and backprop gradients
+        loss = -mll(output, y_train)
+        loss.backward()
+        print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
+            i + 1, training_iter, loss.item(),
+            model.covar_module.base_kernel.lengthscale.item(),
+            model.likelihood.noise.item()))
+        optimizer.step()
+
+    # Get into evaluation (predictive posterior) mode
+    model.eval()
+    likelihood.eval()
+
+    # Test points are regularly spaced along [0,1]
+    # Make predictions by feeding model through likelihood
+    with torch.no_grad(), gpytorch.settings.fast_pred_var():
+        test_x = torch.linspace(0, 10, 1000).type(torch.DoubleTensor)
+        observed_pred = likelihood(model(test_x))
+
+    #### Plot ####
+
+    with torch.no_grad():
+        # Initialize plot
+        f, ax = plt.subplots(1, 1, figsize=(10, 3))
+        plt.title('GP fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
+
+        # Get upper and lower confidence bounds
+        lower, upper = observed_pred.confidence_region()
+        # Plot training data as black stars
+        ax.plot(x_train.numpy(), y_train.numpy(), 'k+')
+        # Plot predictive means as blue line
+        ax.plot(test_x.numpy(), observed_pred.mean.numpy(), 'b')
+        # Shade between the lower and upper confidence bounds
+        ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.2)
+        ax.legend(['Observed Data', 'Mean', 'Confidence'])
+
+        plt.ylabel('Precipitation [mm/day]')
+        plt.xlabel('Year')
+        plt.show()
+
+        return model
+
+
+class ExactGPModel(gpytorch.models.ExactGP):
+    def __init__(self, train_x, train_y, likelihood):
+        super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
+        self.mean_module = gpytorch.means.ConstantMean()
+        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+
+    def forward(self, x):
+        mean_x = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
