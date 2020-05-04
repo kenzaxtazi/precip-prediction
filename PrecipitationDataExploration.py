@@ -172,9 +172,16 @@ def zeros_in_data(da):
     sum_df.index = pd.MultiIndex.from_tuples(sum_df.index, names=['latitude', 'longitude'])
     sum_df = sum_df.reset_index()
 
-    df_pv = sum_df.pivot(index='latitude', columns='longitude')
-    df_pv = df_pv.droplevel(0, axis=1)
-    reduced_da2 = xr.DataArray(data=df_pv)
+    East = sum_df[sum_df['longitude']> 75]
+    West = sum_df[sum_df['longitude']< 75]
+
+    East_pv = East.pivot(index='latitude', columns='longitude')
+    East_pv = East_pv.droplevel(0, axis=1)
+    East_da = xr.DataArray(data=East_pv)
+
+    West_pv = West.pivot(index='latitude', columns='longitude')
+    West_pv = West_pv.droplevel(0, axis=1)
+    West_da = xr.DataArray(data=West_pv)
 
     """
     # make sure all the zeros are within the mask
@@ -184,17 +191,18 @@ def zeros_in_data(da):
     """
 
     UIB_sum = (da.sum(dim='time'))
-    UIB_outline = UIB_sum.where(UIB_sum<0, -1)
+    UIB_outline = UIB_sum.where(UIB_sum <=0, -1)
+    UIB_borders = UIB_sum.where(UIB_sum >0, -10)
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([70, 83, 30, 38])
     g = UIB_outline.plot(cmap='Blues_r', vmax=-0.5, vmin=-5, add_colorbar=False)
     g.cmap.set_over('white')
-    a= reduced_da2.plot.contourf(cmap='magma_r', vmin=1, 
-                                 cbar_kwargs={'label': '\n Number of zero points', 'extend':'neither'})
-    a.cmap.set_under('white')
-
+    w= West_da.plot(cmap='magma_r', vmin=1.00, cbar_kwargs={'label': '\n Number of zero points', 'extend':'neither'})
+    w.cmap.set_under('white')
+    e= East_da.plot(cmap='magma_r', vmin=1.00, add_colorbar=False)
+    e.cmap.set_under('white')
     ax.add_feature(cf.BORDERS)
     ax.coastlines()
     ax.gridlines(draw_labels=True)
@@ -203,12 +211,3 @@ def zeros_in_data(da):
     plt.title('Zero points \n \n')
     plt.show()
 
-
-
-
-
-
-
-    
-
-        
