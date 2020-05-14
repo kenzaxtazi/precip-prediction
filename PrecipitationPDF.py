@@ -39,7 +39,7 @@ month_dict = {0:'January', 1:'February', 2:'March', 3:'April', 4:'May', 5:'June'
 
 # PDF for each month
 
-plt.figure()
+'''
 fig, axs = plt.subplots(4, 3, sharex=True, sharey=True)
 
 for i in range(12):
@@ -50,17 +50,35 @@ for i in range(12):
     axs[x,y].set_title(month_dict[i])
     axs[x,y].set_xlabel('Total precipation [m]')
     axs[x,y].set_ylabel('Probaility density')
+    axs[x,y].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1)
+'''
 
+fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
 
+for i in range(12):
+    x= (i)%3
+    y= int(i/3)
+    axs[x,y].hist(grouped_dfs[i], bins=50, density=True)
+    axs[x,y].set_title(month_dict[i])
+    axs[x,y].set_title(month_dict[i])
+    axs[x,y].xaxis.set_tick_params(which='both', labelbottom=True)
+    axs[x,y].yaxis.set_tick_params(which='both', labelbottom=True)
+    axs[x,y].set_xlabel('Total precipation [m]')
+    axs[x,y].set_ylabel('Probability density')
+    axs[x,y].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1, label='95th percentile')
 
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.30))
 
+'''
+fig, axs = plt.subplots(12, 1, sharex=True, sharey=True, figsize=(5, 50))
 
+for i in range(12):
+    axs[i].hist(grouped_dfs[i], bins=50, density=True)
+    axs[i].set_title(month_dict[i])
+    axs[i].set_title(month_dict[i])
+    axs[i].set_xlabel('Total precipation [m]')
+    axs[i].set_ylabel('Probability density')
+    axs[i].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1)
+'''
 
-
-
-
-
-
-
-
-
+plt.show() 
