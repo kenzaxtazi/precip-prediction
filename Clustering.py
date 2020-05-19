@@ -278,7 +278,6 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=False):
     plt.show()
 
 
-
 def soft_clustering_weights(data, cluster_centres, **kwargs):
     
     """
