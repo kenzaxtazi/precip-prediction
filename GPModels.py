@@ -23,9 +23,6 @@ mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
 
-x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
-
-
 def data_preparation(da):
     """ Outputs test and training data from DataArray """
     
@@ -51,14 +48,19 @@ def data_preparation(da):
 
     x_prime = df_mean_clean['time'].values.reshape(-1, 1)
     x = (x_prime - x_prime[0])/ (1e9*60*60*24*365)
-    x_train = X[0:120]
-    x_test = X[400:-1]
+    
+    x_train = x[0:400]
+    y_train = y[0:400]
+    dy_train = dy[0:400]
 
-    y_train = y[0:120]
-    dy_train = dy[0:120]
-    y_test = y[400:-1]
+    x_test = x[400:-2]
+    y_test = y[400:-2]
+    dy_test = dy[400:-2]
 
     return x_train, y_train, dy_train, x_test, y_test, dy_test
+
+
+x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
 
 
 def sklearn_gp(x_train, y_train, dy_train):
@@ -84,7 +86,6 @@ def sklearn_gp(x_train, y_train, dy_train):
     plt.show()
 
     return gpr
-
 
 
 def gpflow_gp(x_train, y_train):
@@ -121,16 +122,16 @@ def gpflow_gp(x_train, y_train):
     return m 
 
 
-def gpytorch_gp(x_train, y_train):
+def gpytorch_gp(xtrain, ytrain, xtest, ytest):
     
     smoke_test = ('CI' in os.environ)
     training_iter = 2 if smoke_test else 50
 
-    x_train = torch.from_numpy(x_train[0:120].astype(float))
-    y_train = torch.from_numpy(y_train[0:120].astype(float))
+    x_train = torch.from_numpy(xtrain.astype(float))
+    y_train = torch.from_numpy(ytrain.astype(float))
 
     # Initialize likelihood and model
-    likelihood = gpytorch.likelihoods.GaussianLikelihood()
+    likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=gpytorch.priors.GammaPrior(.001, 100))
     model = ExactGPModel(x_train, y_train, likelihood)
     
     # Find optimal model hyperparameters
@@ -165,8 +166,8 @@ def gpytorch_gp(x_train, y_train):
     # Test points are regularly spaced along [0,1]
     # Make predictions by feeding model through likelihood
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
-        test_x = torch.linspace(0, 10, 1000).type(torch.DoubleTensor)
-        observed_pred = likelihood(model(test_x))
+        x_plot = torch.linspace(0, 40, 5000).type(torch.DoubleTensor)
+        observed_pred = likelihood(model(x_plot))
 
     #### Plot ####
 
@@ -177,13 +178,19 @@ def gpytorch_gp(x_train, y_train):
 
         # Get upper and lower confidence bounds
         lower, upper = observed_pred.confidence_region()
+        
         # Plot training data as black stars
-        ax.plot(x_train.numpy(), y_train.numpy(), 'k+')
+        ax.scatter(xtrain + 1979, ytrain, color='darkblue', marker='+', label='ERA5 training data')
+        ax.scatter(xtest + 1979, ytest, color='maroon', marker='+', label='ERA5 test data')
+        
         # Plot predictive means as blue line
-        ax.plot(test_x.numpy(), observed_pred.mean.numpy(), 'b')
+        ax.plot(x_plot + 1979, observed_pred.mean.numpy(), 'b', label='Prediction')
+        #ax.plot(xtest + 1979, observed_pred.mean.numpy(), 'b')
+
         # Shade between the lower and upper confidence bounds
-        ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.2)
-        ax.legend(['Observed Data', 'Mean', 'Confidence'])
+        # ax.fill_between(xtrain.flatten() + 1979, lower.numpy(), upper.numpy(), alpha=0.2)
+        ax.fill_between(x_plot.flatten() + 1979, lower.numpy(), upper.numpy(), alpha=0.2, label='2$\sigma$ confidence')
+        ax.legend()
 
         plt.ylabel('Precipitation [mm/day]')
         plt.xlabel('Year')
@@ -196,7 +203,19 @@ class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PeriodicKernel
+                (period_length_prior=gpytorch.priors.NormalPrior(1, .001),
+                lengthscale_prior=gpytorch.priors.NormalPrior(0.05, .001)),
+                outputscale_prior= gpytorch.priors.NormalPrior(20, 20))
+        
+        # gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(lengthscale_prior=gpytorch.priors.NormalPrior(0.05, .001)))
+
+        '''
+        gpytorch.kernels.ScaleKernel(gpytorch.kernels.PeriodicKernel
+                (period_length_prior=gpytorch.priors.NormalPrior(1, .001),
+                lengthscale_prior=gpytorch.priors.NormalPrior(0.05, .001)),
+                outputscale_prior= gpytorch.priors.NormalPrior(2, 5))
+        '''
 
     def forward(self, x):
         mean_x = self.mean_module(x)
