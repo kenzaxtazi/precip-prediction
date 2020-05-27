@@ -10,6 +10,9 @@ import cartopy.feature as cf
 import matplotlib.ticker as tck
 import matplotlib.cm as cm
 import calendar
+import datetime
+import os
+import urllib
 
 # open data
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
@@ -36,6 +39,37 @@ def apply_mask(tp_filepath, mask_filepath):
     UIB = sliced_tp_da.where(mask_da > 0, drop=True)
 
     return UIB
+
+
+def save_csv_from_url(url, saving_path):
+	""" Downloads data from a url and saves it to a specified path. """
+	response = urllib.request.urlopen(url)
+	with open(saving_path, 'wb') as f:
+		f.write(response.read())
+
+
+def update_data(url, file, name):
+    """ Import the dataset """
+    
+    # Only download CSV if not present locally
+    if not os.path.exists(file):
+        save_csv_from_url(url, file)
+    
+    # create and format DataFrame 
+    df = pd.read_csv(file)
+    df_split = df[list(df)[0]].str.split(expand=True)
+    df_long = pd.melt(df_split, id_vars=[0], value_vars=np.arange(1,13), var_name='month', value_name=name)
+    
+    # Create a datetime column
+    df_long['date'] = df_long[0].astype(str) + '-' + df_long['month'].astype(str)
+    df_long['date'] = pd.to_datetime(df_long['date'], errors='coerce') 
+    
+    # Clean
+    df_clean = df_long.dropna()
+    df_sorted = df_clean.sort_values(by=['date'])
+    df_final = df_sorted.set_index('date')
+
+    return pd.DataFrame(df_final[name])
 
 
 def map_1979(UIB):
