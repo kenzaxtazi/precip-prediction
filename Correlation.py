@@ -13,12 +13,11 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
 import PrecipitationDataExploration as pde
-import FileDowloader as fd
+import FileDownloader as fd
 import Clustering as cl
 
-
-
-# Clusters
+# Filepaths and URLs
+mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 
 # Front indices
@@ -36,21 +35,30 @@ n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 n4_file = filepath + 'n4-' + now.strftime("%m-%Y") + '.csv'
 
 ## open as dataframe 
-nao_df = fd.update_data(nao_url, nao_file, 'NAO')
-n34_df = fd.update_data(n34_url, n34_file, 'N34')
-n4_df = fd.update_data(n4_url, n4_file, 'N4')
+nao_df = fd.update_url_data(nao_url, nao_file, 'NAO')
+n34_df = fd.update_url_data(n34_url, n34_file, 'N34')
+n4_df = fd.update_url_data(n4_url, n4_file, 'N4')
+
+ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
 
 
-# Orography and humidity
+# Orography, humidity and precipitation
+cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
+                                              'orography', 'slope_of_sub_gridscale_orography', 
+                                              'total_column_water_vapour', 'total_precipitation'])
 
+masked_da = pde.apply_mask(cds_filepath, mask_filepath)
+multiindex_df = masked_da.to_dataframe()
+cds_df = multiindex_df.reset_index()
 
 
 # Concatonate pds together
-df = precipitation_df.join([nao_df, n34_df, n4_df])
-df=df.astype('float64')
+df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
+df = df_combined.drop(columns=['expver']) 
+df_clean = df.dropna()
 
 # Correlation matrix
-corr = df.corr()  
+corr = df_clean.corr()  
 
 
 # Plot
