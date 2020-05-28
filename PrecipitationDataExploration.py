@@ -17,23 +17,25 @@ mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 
-def apply_mask(tp_filepath, mask_filepath):
+def apply_mask(data_filepath, mask_filepath):
     """
-    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 precipitation data.
+    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
     Inputs:
         Data filepath, NetCDF
         Mask filepath, NetCDF
     Return:
         A Data Array
     """
-    tp = xr.open_dataset(tp_filepath)
-    tp_da = tp.tp
+    da = xr.open_dataset(data_filepath)
+    da_prime = da.sel(expver=1)
 
     mask = xr.open_dataset(mask_filepath)
-    mask_da = mask.overlap 
+    mask_da = mask.overlap
 
-    sliced_tp_da = tp_da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
-    UIB = sliced_tp_da.where(mask_da > 0, drop=True)
+    # slice in case step has not been performed at download stage
+    sliced_da = da_prime.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
+    
+    UIB = sliced_da.where(mask_da > 0, drop=True)
 
     return UIB
 
