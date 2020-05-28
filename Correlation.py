@@ -1,15 +1,21 @@
+import datetime
+import urllib
 
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
-import urllib
-import PrecipitationDataExploration as pde
-from sklearn.cluster import KMeans
-import cartopy.crs as ccrs
-import cartopy.feature as cf
 import pandas as pd
 import seaborn as sns
-import datetime
+import cartopy.crs as ccrs
+import cartopy.feature as cf
+import matplotlib.pyplot as plt
+
+
+from sklearn.cluster import KMeans
+
+import PrecipitationDataExploration as pde
+import FileDowloader as fd
+import Clustering as cl
+
 
 
 # Clusters
@@ -30,9 +36,9 @@ n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 n4_file = filepath + 'n4-' + now.strftime("%m-%Y") + '.csv'
 
 ## open as dataframe 
-nao_df = pde.update_data(nao_url, nao_file, 'NAO')
-n34_df = pde.update_data(n34_url, n34_file, 'N34')
-n4_df = pde.update_data(n4_url, n4_file, 'N4')
+nao_df = fd.update_data(nao_url, nao_file, 'NAO')
+n34_df = fd.update_data(n34_url, n34_file, 'N34')
+n4_df = fd.update_data(n4_url, n4_file, 'N4')
 
 
 # Orography and humidity
