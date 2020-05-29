@@ -28,8 +28,8 @@ def apply_mask(data_filepath, mask_filepath):
         A Data Array
     """
     da = xr.open_dataset(data_filepath)
-
-    if 'expver' in list(da):
+    if 'expver' in list(da.dims):
+        print('expver found')
         da = da.sel(expver=1)
 
     mask = xr.open_dataset(mask_filepath)
