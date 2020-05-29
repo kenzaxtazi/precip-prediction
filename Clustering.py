@@ -278,9 +278,22 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=False):
     plt.show()
 
 
-def gp_clusters(tp_da, N=3):
+def gp_clusters(tp_da, N=3, filter=0.7, plot=False):
 
-    """ Returns cluster masks for data separation """
+    """ 
+    Returns cluster masks for data separation.
+    
+    Inputs:
+        tp_da: total precipitation data array
+        N: number of clusters
+        filter: soft k-means filtering threshold, float btw 0 (no filtering) and 1
+        plot: boolean for plotting
+    
+    Returns:
+        List of cluster masks as data arrays
+
+
+    """
 
     multi_index_df = tp_da.to_dataframe()
     df= multi_index_df.reset_index()
@@ -288,15 +301,9 @@ def gp_clusters(tp_da, N=3):
     table = pd.pivot_table(df_clean, values='tp', index=['latitude', 'longitude'], columns=['time'])
     X = table.interpolate()
     
-    # K-means
+    # Soft k-means
     kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
-            
-    if filter == False:
-        X['Labels'] = kmeans.labels_
-        filtered_df = X
-
-    else:
-        filtered_df = filtering(X, kmeans)
+    filtered_df = filtering(X, kmeans, thresh=filter)
 
     # Seperate labels and append as DataArray
     reset_df = filtered_df.reset_index()[['Labels', 'latitude', 'longitude']]
@@ -308,6 +315,22 @@ def gp_clusters(tp_da, N=3):
         df_pv = df_pv.droplevel(0, axis=1)
         cluster_da = xr.DataArray(data=df_pv, name=str(i))
         clusters.append(cluster_da)
+
+    if plot == True:
+        
+        df_pv = reset_df.pivot(index='latitude', columns='longitude')
+        df_pv = df_pv.droplevel(0, axis=1)
+        da = xr.DataArray(data=df_pv, name='\n Clusters')
+
+        #Plot
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        g= da.plot(x='longitude', y='latitude', add_colorbar= True, ax=ax, levels=N+1,
+                   cmap='Paired' ,cbar_kwargs={'ticks':[0,1,2], 'pad':0.10})
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
 
     return clusters
 
