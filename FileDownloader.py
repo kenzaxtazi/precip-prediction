@@ -16,9 +16,13 @@ def save_csv_from_url(url, saving_path):
 		f.write(response.read())
 
 
-def update_url_data(url, file, name):
+def update_url_data(url, name):
     """ Import the most recent dataset from URL and return it as pandas DataFrame """
     
+    filepath = '/Users/kenzatazi/Downloads/'
+    now = datetime.datetime.now()
+    file = filepath + name + '-' + now.strftime("%m-%Y") + '.csv'
+
     # Only download CSV if not present locally
     if not os.path.exists(file):
         save_csv_from_url(url, file)

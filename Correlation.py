@@ -17,32 +17,25 @@ import FileDownloader as fd
 import Clustering as cl
 
 # Filepaths and URLs
+
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
+
+nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
+n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
+n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 
 
 # Front indices
 
-filepath = '/Users/kenzatazi/Downloads/'
-now = datetime.datetime.now()
-
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-nao_file = filepath + 'nao-' + now.strftime("%m-%Y") + '.csv'
-
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n34_file = filepath + 'n34-' + now.strftime("%m-%Y") + '.csv'
-
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
-n4_file = filepath + 'n4-' + now.strftime("%m-%Y") + '.csv'
-
-## open as dataframe 
-nao_df = fd.update_url_data(nao_url, nao_file, 'NAO')
-n34_df = fd.update_url_data(n34_url, n34_file, 'N34')
-n4_df = fd.update_url_data(n4_url, n4_file, 'N4')
+nao_df = fd.update_url_data(nao_url, 'NAO')
+n34_df = fd.update_url_data(n34_url, 'N34')
+n4_df = fd.update_url_data(n4_url, 'N4')
 
 ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
 
 
 # Orography, humidity and precipitation
+
 cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
                                               'orography', 'slope_of_sub_gridscale_orography', 
                                               'total_column_water_vapour', 'total_precipitation'])
@@ -51,11 +44,14 @@ masked_da = pde.apply_mask(cds_filepath, mask_filepath)
 multiindex_df = masked_da.to_dataframe()
 cds_df = multiindex_df.reset_index()
 
+## Create clustered dataframes
 
-# Concatonate pds together
+
+## Concatonate dataframes together
 df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
-df = df_combined.drop(columns=['expver']) 
+df = df_combined.drop(columns=['expver'])
 df_clean = df.dropna()
+
 
 # Correlation matrix
 corr = df_clean.corr()  
