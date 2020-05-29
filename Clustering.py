@@ -278,6 +278,40 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=False):
     plt.show()
 
 
+def gp_clusters(tp_da, N=3):
+
+    """ Returns cluster masks for data separation """
+
+    multi_index_df = tp_da.to_dataframe()
+    df= multi_index_df.reset_index()
+    df_clean = df[df['tp']>0]
+    table = pd.pivot_table(df_clean, values='tp', index=['latitude', 'longitude'], columns=['time'])
+    X = table.interpolate()
+    
+    # K-means
+    kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
+            
+    if filter == False:
+        X['Labels'] = kmeans.labels_
+        filtered_df = X
+
+    else:
+        filtered_df = filtering(X, kmeans)
+
+    # Seperate labels and append as DataArray
+    reset_df = filtered_df.reset_index()[['Labels', 'latitude', 'longitude']]
+    clusters = []
+
+    for i in range(N):
+        cluster_df = reset_df[reset_df['Labels']== i]
+        df_pv = cluster_df.pivot(index='latitude', columns='longitude')
+        df_pv = df_pv.droplevel(0, axis=1)
+        cluster_da = xr.DataArray(data=df_pv, name=str(i))
+        clusters.append(cluster_da)
+
+    return clusters
+
+
 def soft_clustering_weights(data, cluster_centres, **kwargs):
     
     """
