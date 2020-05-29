@@ -44,18 +44,15 @@ masked_da = pde.apply_mask(cds_filepath, mask_filepath)
 multiindex_df = masked_da.to_dataframe()
 cds_df = multiindex_df.reset_index()
 
-## Create clustered dataframes
 
+# UIB correlation plot
 
-## Concatonate dataframes together
 df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
 df = df_combined.drop(columns=['expver'])
 df_clean = df.dropna()
 
-
 # Correlation matrix
 corr = df_clean.corr()  
-
 
 # Plot
 sns.set(style="white")
@@ -68,5 +65,41 @@ mask = np.triu(np.ones_like(corr, dtype=np.bool))  # generate a mask for the upp
 sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
-plt.title('Correlation plot')
+plt.title('Correlation plot for Upper Indus Basin')
+
+
+
+## Cluster corelation plot 
+
+n_clusters = 3
+
+cds_da_clusters = cl.gp_clusters(masked_da.tp, N=n_clusters, filter=0.7, plot=True)
+
+for i in range(n_clusters):
+    cluster_da = masked_da.where(cds_da_clusters[i] >= 0)
+    multiindex_df = cluster_da.to_dataframe()
+    cluster_df = multiindex_df.reset_index()
+   
+    df_combined = pd.merge_ordered(cluster_df, ind_df, on='time')  
+    df = df_combined.drop(columns=['expver'])
+    df_clean = df.dropna()
+
+    # Correlation matrix
+    corr = df_clean.corr()  
+
+    # Plot
+    sns.set(style="white")
+
+    f, ax = plt.subplots(figsize=(11, 9))
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    mask = np.triu(np.ones_like(corr, dtype=np.bool))  # generate a mask for the upper triangle
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+
+    plt.title('Cluster '+ str(i))
+
+
 plt.show()
+
