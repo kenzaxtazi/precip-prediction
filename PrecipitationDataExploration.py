@@ -9,6 +9,7 @@ import pandas as pd
 import cartopy.feature as cf
 import matplotlib.ticker as tck
 import matplotlib.cm as cm
+import calendar
 
 
 # open data
@@ -27,13 +28,15 @@ def apply_mask(data_filepath, mask_filepath):
         A Data Array
     """
     da = xr.open_dataset(data_filepath)
-    da_prime = da.sel(expver=1)
+
+    if 'expver' in list(da):
+        da = da.sel(expver=1)
 
     mask = xr.open_dataset(mask_filepath)
     mask_da = mask.overlap
 
     # slice in case step has not been performed at download stage
-    sliced_da = da_prime.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
+    sliced_da = da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
     
     UIB = sliced_da.where(mask_da > 0, drop=True)
 
