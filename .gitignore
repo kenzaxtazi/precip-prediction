@@ -1,3 +1,5 @@
 .DS_Store
 __pycache__/PrecipitationDataExploration.cpython-37.pyc
 credentials.txt
+__pycache__/Clustering.cpython-37.pyc
+__pycache__/FileDownloader.cpython-37.pyc
