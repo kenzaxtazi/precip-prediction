@@ -98,7 +98,7 @@ for i in range(n_clusters):
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
-    plt.title('Cluster '+ str(i))
+    plt.title('Cluster '+ str(i) + '\n')
 
 
 plt.show()
