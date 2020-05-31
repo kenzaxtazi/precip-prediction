@@ -26,25 +26,24 @@ da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
 def data_preparation(da):
     """ Outputs test and training data from DataArray """
     
-    version_da = da.sel(expver=1) 
-    std_da = version_da.std(dim='number')
-    mean_da = version_da.mean(dim='number')
+    std_da = da.std(dim='number')
+    mean_da = da.mean(dim='number')
 
     gilgit_mean = mean_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
     gilgit_std = std_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
 
-    multi_index_df_mean = gilgit_mean.to_dataframe('Precipitation')
+    multi_index_df_mean = gilgit_mean.to_dataframe()
     df_mean= multi_index_df_mean.reset_index()
     df_mean_clean = df_mean.dropna()
     df_mean_clean['time'] = df_mean_clean['time'].astype('int')
 
-    multi_index_df_std = gilgit_std.to_dataframe('Precipitation')
+    multi_index_df_std = gilgit_std.to_dataframe()
     df_std = multi_index_df_std.reset_index()
     df_std_clean = df_std.dropna()
     df_std_clean['time'] = df_std_clean['time'].astype('int')
 
-    y = df_mean_clean['Precipitation'].values*1000
-    dy = df_std_clean['Precipitation'].values*1000
+    y = df_mean_clean['tp'].values*1000
+    dy = df_std_clean['tp'].values*1000
 
     x_prime = df_mean_clean['time'].values.reshape(-1, 1)
     x = (x_prime - x_prime[0])/ (1e9*60*60*24*365)
@@ -88,13 +87,17 @@ def sklearn_gp(x_train, y_train, dy_train):
     return gpr
 
 
-def gpflow_gp(x_train, y_train):
+def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     """ Returns model and plot of GP model using sklearn """
 
     # model construction
     k1= gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=0.3, variance=6))
-    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k, mean_function=None)  
-    
+   
+    mean_function = gpflow.mean_functions.Linear(A=None, b=None)
+
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k1, mean_function=mean_function)
+    #m.likelihood.variance = gpflow.likelihoods.Gaussian(dy_train[:]**2)
+
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
     print_summary(m)
