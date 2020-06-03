@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 import PrecipitationDataExploration as pde
+import DataPreparation as dp 
 import FileDownloader as fd
 import Clustering as cl
 
@@ -25,96 +25,21 @@ import os
     
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
-
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
-mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 
 
-da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
+# Single point GP preparation
+# da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
+# x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
 
-def data_preparation(da):
-    """ Outputs test and training data from DataArray """
-    
-    std_da = da.std(dim='number')
-    mean_da = da.mean(dim='number')
+# Single point multivariate GP preparation
+# x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
 
-    gilgit_mean = mean_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    gilgit_std = std_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-
-    multi_index_df_mean = gilgit_mean.to_dataframe()
-    df_mean= multi_index_df_mean.reset_index()
-    df_mean_clean = df_mean.dropna()
-    df_mean_clean['time'] = df_mean_clean['time'].astype('int')
-
-    multi_index_df_std = gilgit_std.to_dataframe()
-    df_std = multi_index_df_std.reset_index()
-    df_std_clean = df_std.dropna()
-    df_std_clean['time'] = df_std_clean['time'].astype('int')
-
-    y = df_mean_clean['tp'].values*1000
-    dy = df_std_clean['tp'].values*1000
-
-    x_prime = df_mean_clean['time'].values.reshape(-1, 1)
-    x = (x_prime - x_prime[0])/ (1e9*60*60*24*365)
-    
-    x_train = x[0:400]
-    y_train = y[0:400]
-    dy_train = dy[0:400]
-
-    x_test = x[400:-2]
-    y_test = y[400:-2]
-    dy_test = dy[400:-2]
-
-    return x_train, y_train, dy_train, x_test, y_test, dy_test
-
-
-x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
-
-
-def multi_data_prep():
-    
-    # Front indices
-    nao_df = fd.update_url_data(nao_url, 'NAO')
-    n34_df = fd.update_url_data(n34_url, 'N34')
-    n4_df = fd.update_url_data(n4_url, 'N4')
-    ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
-
-
-    # Orography, humidity and precipitation
-    cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                                'orography', 'slope_of_sub_gridscale_orography', 
-                                                'total_column_water_vapour', 'total_precipitation'])
-    masked_da = pde.apply_mask(cds_filepath, mask_filepath)
-    gilgit = masked_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    multiindex_df = gilgit.to_dataframe()
-    cds_df = multiindex_df.reset_index()
-
-    # Combine
-    df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
-    df = df_combined.drop(columns=['expver', 'longitude', 'latitude'])
-    df['time'] = df['time'].astype('int')
-    df_clean = df.dropna()
-
-    # Seperate y and x
-    y = df_clean['tp'].values*1000
-
-    x1 = df_clean.drop(columns=['tp'])
-    x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
-    x = x1.values.reshape(-1, 9)
-    
-    x_train = x[0:400]
-    y_train = y[0:400]
-
-    x_test = x[400:-2]
-    y_test = y[400:-2]
-
-    return x_train, y_train, x_test, y_test
-
-x_train, y_train, x_test, y_test = multi_data_prep()
+# Area multivariate GP preparation
+tp_da = pde.apply_mask(tp_filepath, mask_filepath)
+clusters = cl.gp_clusters(tp_da, N=3, filter=0.7)
+x_train, y_train, x_test, y_test = dp.area_data_prep(clusters[0])
 
 
 def sklearn_gp(x_train, y_train, dy_train):
@@ -143,6 +68,99 @@ def sklearn_gp(x_train, y_train, dy_train):
 
 
 ## GPflow 
+
+def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
+    """ Returns model and plot of GP model using GPflow """
+
+    # model construction
+    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=0.3, variance=8, active_dims=[0]))
+    k2 = gpflow.kernels.RBF(lengthscales=0.03, variance=1)
+    k = k1 + k2
+
+    mean_function = gpflow.mean_functions.Linear(A=None, b=None)
+
+    #likelihood = gpflow.likelihoods.Gaussian(variance_lower_bound= 0.5)
+
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k1, mean_function=mean_function)
+    # m.likelihood.variance.set_trainable(False)
+
+    opt = gpflow.optimizers.Scipy()
+    opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
+    print_summary(m)
+
+    x_predictions = np.linspace(0,40,2000)
+    x_plot = x_predictions.reshape(-1, 1)
+    y_gpr, y_std = m.predict_y(x_plot)
+
+
+    ## generate 10 samples from posterior
+    tf.random.set_seed(1)  # for reproducibility
+    samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
+
+    plt.figure()
+    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
+    plt.errorbar(x_train + 1981, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
+    plt.errorbar(x_test + 1981, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
+    plt.plot(x_predictions + 1981, y_gpr[:, 0], color='orange', linestyle='-', label='Prediction')
+    plt.fill_between(x_predictions + 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+             alpha=.2, label='95% confidence interval')
+    #plt.plot(x_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    plt.legend()
+    plt.ylabel('Precipitation [mm/day]')
+    plt.xlabel('Year')
+    plt.show()
+
+    return m 
+
+
+def area_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
+    """ Returns model and plot of GP model using GPflow for a given area"""
+
+    # model construction
+    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales= 0.3,  variance=6, active_dims=[0]))
+    k2 = gpflow.kernels.RBF()
+    k = k1 + k2 
+
+    mean_function = gpflow.mean_functions.Linear(A=np.ones((11,1)), b=[1])
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k2, mean_function=mean_function)
+
+    opt = gpflow.optimizers.Scipy()
+    opt_logs = opt.minimize(m.training_loss, m.trainable_variables, options=dict(maxiter=100))
+
+    x_plot = np.concatenate((x_train, x_test))
+    y_plot = np.concatenate((y_train, y_test))
+    y_gpr, y_std = m.predict_y(x_plot)
+
+    ## generate 10 samples from posterior
+    tf.random.set_seed(1)  # for reproducibility
+    samples = m.predict_f_samples(x_test, 10)  # shape (10, 100, 1)
+
+    ## Take mean accross latitude and longitude
+
+    x_df = pd.DataFrame(x_plot[:, 0:3], columns=['latitude', 'longitude', 'time'])
+    y_df = pd.DataFrame(y_plot, columns=['tp true'])
+    y_pred_df = pd.DataFrame(np.array(y_gpr), columns=['tp pred'])
+    std_pred_df = pd.DataFrame(np.array(y_std), columns=['std pred'])
+
+    results_df = pd.concat([x_df, y_df, y_pred_df, std_pred_df], axis=1)
+    plot_df = results_df.groupby(['time']).mean()
+
+    ## Figure 
+    plt.figure()
+    plt.title('Cluster 0 fit')
+    # plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
+    # plt.errorbar(x_test[:,0] + 1979, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
+    plt.scatter(plot_df.index + 1979, plot_df['tp true'])
+    plt.plot(plot_df.index + 1979, plot_df['tp pred'], color='orange', linestyle='-', label='Prediction')
+    plt.fill_between(plot_df.index + 1979, plot_df['tp pred'] - 1.9600 * plot_df['std pred'], plot_df['tp pred'] + 1.9600 * plot_df['std pred'],
+             alpha=.2, label='95% confidence interval')
+    #plt.plot(x_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    plt.legend()
+    plt.ylabel('Precipitation [mm/day]')
+    plt.xlabel('Year')
+    plt.show()
+
+    return m
 
 def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     """ Returns model and plot of GP model using sklearn """
@@ -188,51 +206,6 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     plt.show()
 
     return m
-
-
-def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
-    """ Returns model and plot of GP model using GPflow """
-
-    # model construction
-    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=0.3, variance=8, active_dims=[0]))
-    k2 = gpflow.kernels.RBF(lengthscales=0.03, variance=1)
-    k = k1 + k2
-
-    mean_function = gpflow.mean_functions.Linear(A=None, b=None)
-
-    #likelihood = gpflow.likelihoods.Gaussian(variance_lower_bound= 0.5)
-
-    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k1, mean_function=mean_function)
-    # m.likelihood.variance.set_trainable(False)
-
-    opt = gpflow.optimizers.Scipy()
-    opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
-    print_summary(m)
-
-    x_predictions = np.linspace(0,40,2000)
-    x_plot = x_predictions.reshape(-1, 1)
-    y_gpr, y_std = m.predict_y(x_plot)
-
-
-    ## generate 10 samples from posterior
-    tf.random.set_seed(1)  # for reproducibility
-    samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
-
-    plt.figure()
-    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.errorbar(x_train + 1981, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
-    plt.errorbar(x_test + 1981, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
-    plt.plot(x_predictions + 1981, y_gpr[:, 0], color='orange', linestyle='-', label='Prediction')
-    plt.fill_between(x_predictions + 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
-             alpha=.2, label='95% confidence interval')
-    #plt.plot(x_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
-    plt.legend()
-    plt.ylabel('Precipitation [mm/day]')
-    plt.xlabel('Year')
-    plt.show()
-
-    return m 
-
 
 ## GPyTorch
 
