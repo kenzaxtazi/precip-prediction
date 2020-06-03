@@ -158,7 +158,8 @@ def area_data_prep(mask_da):
                                                 'orography', 'slope_of_sub_gridscale_orography', 
                                                 'total_column_water_vapour', 'total_precipitation'])
     masked_da = pde.apply_mask(cds_filepath, mask_filepath)
-    multiindex_df = masked_da.to_dataframe()
+    cluster_da = masked_da.where(mask_da >= 0)
+    multiindex_df = cluster_da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
     # Combine
@@ -172,12 +173,12 @@ def area_data_prep(mask_da):
 
     x1 = df_clean.drop(columns=['tp'])
     x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
-    x = x1.values.reshape(-1, 9)
+    x = x1.values.reshape(-1, 11)
     
-    x_train = x[0:400]
-    y_train = y[0:400]
+    x_train = x[0:40000]
+    y_train = y[0:40000]
 
-    x_test = x[400:-2]
-    y_test = y[400:-2]
+    x_test = x[40000:50000]
+    y_test = y[40000:50000]
 
     return x_train, y_train, x_test, y_test
