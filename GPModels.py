@@ -170,18 +170,6 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     x_plot = np.concatenate((x_train, x_test))
     y_gpr, y_std = m.predict_y(x_plot)
 
-    y_test_pred, y_test_std_pred = m.predict_y(x_test)
-    RMSE_test = mean_squared_error(y_test, y_test_pred)
-    R2 = r2_score (y_test, y_test_pred)
-    print('Test RMSE = ', RMSE_test)
-    print('Test R2 = ', R2)
-
-    y_train_pred, y_train_std_pred = m.predict_y(x_train)
-    RMSE_train = mean_squared_error(y_train, y_train_pred)
-    R2 = r2_score (y_train, y_train_pred)
-    print('Training RMSE = ', RMSE_train)
-    print('Training R2 = ', R2)
-
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
     samples = m.predict_f_samples(x_test, 10)  # shape (10, 100, 1)
@@ -225,17 +213,6 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     x_plot = x_predictions.reshape(-1, 1)
     y_gpr, y_std = m.predict_y(x_plot)
 
-    y_test_pred, y_test_std_pred = m.predict_y(x_test)
-    RMSE_test = mean_squared_error(y_test, y_test_pred)
-    R2 = r2_score (y_test, y_test_pred)
-    print('Test RMSE = ', RMSE_test)
-    print('Test R2 = ', R2)
-
-    y_train_pred, y_train_std_pred = m.predict_y(x_train)
-    RMSE_train = mean_squared_error(y_train, y_train_pred)
-    R2 = r2_score (y_train, y_train_pred)
-    print('Training RMSE = ', RMSE_train)
-    print('Training R2 = ', R2)
 
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
