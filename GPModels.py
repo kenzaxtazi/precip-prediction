@@ -15,6 +15,7 @@ from gpflow.utilities import print_summary
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ExpSineSquared
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 
 import torch
 import gpytorch
@@ -71,7 +72,7 @@ def data_preparation(da):
     return x_train, y_train, dy_train, x_test, y_test, dy_test
 
 
-#x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
+x_train, y_train, dy_train, x_test, y_test, dy_test = data_preparation(da)
 
 
 def multi_data_prep():
@@ -141,6 +142,8 @@ def sklearn_gp(x_train, y_train, dy_train):
     return gpr
 
 
+## GPflow 
+
 def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     """ Returns model and plot of GP model using sklearn """
 
@@ -148,7 +151,7 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales= 0.3,  variance=6, active_dims=[0]))
     k2 = gpflow.kernels.RBF()
   
-    k = #k1 + k2 
+    k = k1 + k2 
 
     mean_function = gpflow.mean_functions.Linear(A=np.ones((9,1)), b=[1])
 
@@ -167,6 +170,18 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     x_plot = np.concatenate((x_train, x_test))
     y_gpr, y_std = m.predict_y(x_plot)
 
+    y_test_pred, y_test_std_pred = m.predict_y(x_test)
+    RMSE_test = mean_squared_error(y_test, y_test_pred)
+    R2 = r2_score (y_test, y_test_pred)
+    print('Test RMSE = ', RMSE_test)
+    print('Test R2 = ', R2)
+
+    y_train_pred, y_train_std_pred = m.predict_y(x_train)
+    RMSE_train = mean_squared_error(y_train, y_train_pred)
+    R2 = r2_score (y_train, y_train_pred)
+    print('Training RMSE = ', RMSE_train)
+    print('Training R2 = ', R2)
+
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
     samples = m.predict_f_samples(x_test, 10)  # shape (10, 100, 1)
@@ -184,7 +199,7 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     plt.xlabel('Year')
     plt.show()
 
-    return m 
+    return m
 
 
 def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
@@ -210,6 +225,18 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     x_plot = x_predictions.reshape(-1, 1)
     y_gpr, y_std = m.predict_y(x_plot)
 
+    y_test_pred, y_test_std_pred = m.predict_y(x_test)
+    RMSE_test = mean_squared_error(y_test, y_test_pred)
+    R2 = r2_score (y_test, y_test_pred)
+    print('Test RMSE = ', RMSE_test)
+    print('Test R2 = ', R2)
+
+    y_train_pred, y_train_std_pred = m.predict_y(x_train)
+    RMSE_train = mean_squared_error(y_train, y_train_pred)
+    R2 = r2_score (y_train, y_train_pred)
+    print('Training RMSE = ', RMSE_train)
+    print('Training R2 = ', R2)
+
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
     samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
@@ -228,6 +255,9 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     plt.show()
 
     return m 
+
+
+## GPyTorch
 
 def gpytorch_gp(xtrain, ytrain, xtest, ytest):
     
