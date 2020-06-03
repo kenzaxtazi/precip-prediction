@@ -157,10 +157,10 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
 
     #likelihood = gpflow.likelihoods.Gaussian(variance_lower_bound= 0.5)
 
-    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k, mean_function=mean_function)
-    print_summary(m)
-    print(m.training_loss)
-    print(m.trainable_variables)
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k2, mean_function=mean_function)
+    # print_summary(m)
+    # print(m.training_loss)
+    # print(m.trainable_variables)
     # m.likelihood.variance.set_trainable(False)
 
     opt = gpflow.optimizers.Scipy()
