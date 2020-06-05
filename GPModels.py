@@ -28,14 +28,14 @@ mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
 
-
+'''
 # Single point GP preparation
-# da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
-# x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
+da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
+x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
 
 # Single point multivariate GP preparation
-# x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
-
+x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
+'''
 # Area multivariate GP preparation
 tp_da = pde.apply_mask(tp_filepath, mask_filepath)
 clusters = cl.gp_clusters(tp_da, N=3, filter=0.7)
@@ -113,7 +113,7 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     return m 
 
 
-def area_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
+def area_gpflow_gp(x_train, y_train, x_test, y_test):
     """ Returns model and plot of GP model using GPflow for a given area"""
 
     # model construction
@@ -175,7 +175,7 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
 
     #likelihood = gpflow.likelihoods.Gaussian(variance_lower_bound= 0.5)
 
-    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k2, mean_function=mean_function)
+    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k, mean_function=mean_function)
     # print_summary(m)
     # print(m.training_loss)
     # print(m.trainable_variables)
