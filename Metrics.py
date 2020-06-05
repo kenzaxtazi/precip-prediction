@@ -42,7 +42,6 @@ def plot_vs_truth(x_train, y_train, x_test, y_test, m):
     y_train_pred, y_train_std_pred = m.predict_y(x_train)
 
     plt.figure()
-    plt.title('Residuals')
     plt.plot([0,8],[0,8], linestyle='--', c='black')
     plt.scatter(y_train, y_train_pred, c='blue', alpha=0.5, label='ERA5 training data')
     plt.scatter(y_test, y_test_pred, c='green', label='ERA5 validation data')
