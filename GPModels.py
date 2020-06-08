@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import PrecipitationDataExploration as pde
+import DataExploration as de
 import DataPreparation as dp 
 import FileDownloader as fd
 import Clustering as cl
@@ -30,14 +30,14 @@ tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-15879875
 
 '''
 # Single point GP preparation
-da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
+da = pe.apply_mask(tp_ensemble_filepath, mask_filepath)
 x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
 
 # Single point multivariate GP preparation
 x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
 '''
 # Area multivariate GP preparation
-tp_da = pde.apply_mask(tp_filepath, mask_filepath)
+tp_da = de.apply_mask(tp_filepath, mask_filepath)
 clusters = cl.gp_clusters(tp_da, N=3, filter=0.7)
 x_train, y_train, x_test, y_test = dp.area_data_prep(clusters[0])
 
