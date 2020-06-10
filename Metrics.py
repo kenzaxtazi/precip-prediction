@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import PrecipitationDataExploration as pde
+import DataExploration as de
 import FileDownloader as fd
 import Clustering as cl
 import GPModels as gpm
