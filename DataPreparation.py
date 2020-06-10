@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from sklearn import preprocessing
 
 import FileDownloader as fd
-import Clustering as cl
 
 
 # Filepaths and URLs
