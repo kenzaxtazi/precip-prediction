@@ -162,6 +162,7 @@ def area_gpflow_gp(x_train, y_train, x_test, y_test):
 
     return m
 
+
 def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     """ Returns model and plot of GP model using sklearn """
 
@@ -207,6 +208,8 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     plt.show()
 
     return m
+
+
 
 ## GPyTorch
 
