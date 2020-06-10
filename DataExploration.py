@@ -11,12 +11,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 
 import FileDownloader as fd
+import DataPreparation as dp
 
-import calendar
 
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
+
 
 data_filepath = fd.update_cds_data()
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
@@ -26,44 +24,31 @@ tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 '''
 
-def apply_mask(data_filepath, mask_filepath):
-    """
-    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
-    Inputs:
-        Data filepath, NetCDF
-        Mask filepath, NetCDF
-    Return:
-        A Data Array
-    """
-    da = xr.open_dataset(data_filepath)
-    if 'expver' in list(da.dims):
-        print('expver found')
-        da = da.sel(expver=1)
 
-    mask = xr.open_dataset(mask_filepath)
-    mask_da = mask.overlap
-
-    # slice in case step has not been performed at download stage
-    sliced_da = da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
-    
-    UIB = sliced_da.where(mask_da > 0, drop=True)
-
-    return UIB
-
-
-def map_1979(UIB):
+def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     """ Map of cumulative precipitation for 1979 """
 
-    UIB_cum = cumulative_montly(UIB)
-    UIB_1979 = UIB_cum.sel(time=slice('1979-01-16T12:00:00', '1980-01-01T12:00:00'))
-    UIB_1979_sum = UIB_1979.sum(dim='time')
+    da = dp.apply_mask(data_filepath, mask_filepath)
+    da_var = da[variable]
+    da_year = da_var.sel(time=slice(str(year)+'-01-16T12:00:00', str(year+1)+'-01-01T12:00:00'))
+
+    if cumulative is True:
+        da_processed= dp.cumulative_montly(da_year)
+        da_final = da_processed.sum(dim='time')
+    else:
+        da_final = da_year.mean(dim='time')
+   
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([55, 95, 15, 45])
-    g = UIB_1979_sum.plot(cmap='magma_r', vmin=0.01, cbar_kwargs={'label': '\n Total precipitation [m]', 'extend':'neither'})
+    g = da_final.plot(cmap='magma_r', vmin=0.01, cbar_kwargs={'label': '\n Total precipitation [m]', 'extend':'neither'})
     g.cmap.set_under('white')
     ax.add_feature(cf.BORDERS)
+    ax.text(64, 27, 'PAKISTAN')
+    ax.text(63, 33, 'AFGHANISTAN')
+    ax.text(80, 36, 'CHINA')
+    ax.text(74, 28, 'INDIA')
     ax.coastlines()
     ax.gridlines(draw_labels=True)
     ax.set_xlabel('Longitude')
@@ -107,7 +92,7 @@ def change_maps(UIB, UIB_1979_sum):
     plt.show()
 
 
-def timeseries(data_filepath, variable):
+def sample_timeseries(data_filepath, variable='tp', longname='Total precipitation [m/day]'):
     """ Timeseries for Gilgit, Skardu and Leh"""
 
     da = xr.open_dataset(data_filepath)
@@ -141,10 +126,14 @@ def timeseries(data_filepath, variable):
     plt.show()
 
 
+def nans_in_data(): # TODO
+    """ Returns number of nans in data with plots for UIB """
+
+
 def averaged_timeseries(data_filepath, mask_filepath, variable='tp', longname='Total precipitation [m/day]'):
     """ Timeseries for the Upper Indus Basin"""
 
-    da = apply_mask(data_filepath, mask_filepath)
+    da = dp.apply_mask(data_filepath, mask_filepath)
 
     ds = da[variable]
     ds_timeseries = ds.groupby('time').mean()
@@ -156,20 +145,6 @@ def averaged_timeseries(data_filepath, mask_filepath, variable='tp', longname='T
     plt.grid(True)
 
     plt.show()
-
-def cumulative_montly(da):
-    """ Multiplies monthly averages by the number of day in each month """
-    times = np.datetime_as_string(da.time.values)
-    days_in_month = []
-    for t in times:
-        year = t[0:4]
-        month = t[5:7]
-        days = calendar.monthrange(int(year), int(month))[1]
-        days_in_month.append(days)
-    dim = np.array(days_in_month)
-    dim_mesh = np.repeat(dim, 25*39).reshape(488,25,39) 
-        
-    return da * dim_mesh
 
 
 def zeros_in_data(da):
@@ -247,3 +222,70 @@ def zeros_in_data(da):
     plt.title('Zero points \n \n')
     plt.show()
 
+
+def spatial_autocorr(): # TODO
+    """ Plots spatial autocorrelation """
+
+
+def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total precipitation [m/day]'): # TODO
+    """ Plots temporal autocorrelation """
+    
+    da = xr.open_dataset(data_filepath)
+    if 'expver' in list(da.dims):
+        print('expver found')
+        da = da.sel(expver=1)
+
+    ds = da[variable]
+    
+    gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
+    skardu = ds.interp(coords={'longitude':75.5550, 'latitude':35.3197 }, method='nearest')
+    leh = ds.interp(coords={'longitude':77.5706, 'latitude':34.1536 }, method='nearest')
+
+    gilgit_df = gilgit.to_dataframe().dropna()
+    skardu_df = skardu.to_dataframe().dropna()
+    leh_df = leh.to_dataframe().dropna()
+
+    fig, axs = plt.subplots(3, sharex=True, sharey=True)
+
+    axs[0].acorr(gilgit_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    axs[0].set_title('Gilgit (35.8884°N, 74.4584°E, 1500m)')
+    axs[0].set_xlabel(' ')
+    axs[0].grid(True)
+
+    axs[1].acorr(skardu_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    axs[1].set_title('Skardu (35.3197°N, 75.5550°E, 2228m)')
+    axs[1].set_xlabel(' ')
+    axs[1].grid(True)
+
+    a = axs[2].acorr(leh_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    axs[2].set_title('Leh (34.1536°N, 77.5706°E, 3500m)')
+    axs[2].set_xlabel('Year')
+    axs[2].grid(True)
+
+    plt.show()
+
+    print(leh_df[variable])
+
+    return a
+
+
+def indus_map():
+    """ Returns a map of the Indus river """
+
+    rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')
+
+    plt.figure()
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([55, 95, 15, 45])
+    ax.add_feature(cf.BORDERS)
+    ax.add_feature(rivers, linewidth=1)
+    ax.coastlines()
+    ax.gridlines(draw_labels=True)
+    ax.text(64, 27, 'PAKISTAN')
+    ax.text(63, 33, 'AFGHANISTAN')
+    ax.text(80, 36, 'CHINA')
+    ax.text(74, 28, 'INDIA')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    plt.title('Indus River \n \n')
+    plt.show()
