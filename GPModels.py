@@ -30,17 +30,17 @@ tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-15879875
 
 '''
 # Single point GP preparation
-da = pe.apply_mask(tp_ensemble_filepath, mask_filepath)
+da = dp.apply_mask(tp_ensemble_filepath, mask_filepath)
 x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
 
 # Single point multivariate GP preparation
 x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
-'''
+
 # Area multivariate GP preparation
 tp_da = de.apply_mask(tp_filepath, mask_filepath)
 clusters = cl.gp_clusters(tp_da, N=3, filter=0.7)
 x_train, y_train, x_test, y_test = dp.area_data_prep(clusters[0])
-
+'''
 
 def sklearn_gp(x_train, y_train, dy_train):
     """ Returns model and plot of GP model using sklearn """
@@ -168,8 +168,9 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     # model construction
     k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales= 0.3,  variance=6, active_dims=[0]))
     k2 = gpflow.kernels.RBF()
+    # k3 = gpflow.kernels.White()
   
-    k = k1 + k2 
+    k = k1 + k2  #+k3
 
     mean_function = gpflow.mean_functions.Linear(A=np.ones((9,1)), b=[1])
 
@@ -276,7 +277,7 @@ def gpytorch_gp(xtrain, ytrain, xtest, ytest):
 
         # Shade between the lower and upper confidence bounds
         # ax.fill_between(xtrain.flatten() + 1979, lower.numpy(), upper.numpy(), alpha=0.2)
-        ax.fill_between(x_plot.flatten() + 1979, lower.numpy(), upper.numpy(), alpha=0.2, label='2$\sigma$ confidence')
+        ax.fill_between(x_plot.flatten() + 1979, lower.numpy(), upper.numpy(), alpha=0.2, label=r'2$\sigma$ confidence')
         ax.legend()
 
         plt.ylabel('Precipitation [mm/day]')
