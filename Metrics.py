@@ -21,7 +21,10 @@ def RMSE(model, x, y):
     RMSE = mean_squared_error(y, y_pred)
     return RMSE
 
-def plot_predictions(x_train, y_train, dy_train, x_test, y_test, dy_test): 
+def plot_predictions(model, x_train, y_train, dy_train, x_test, y_test, dy_test):
+
+    x_plot = np.concatenate((x_train, x_test))
+    y_gpr, y_std = model.predict_y(x_plot)
     
     plt.figure()
     plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
