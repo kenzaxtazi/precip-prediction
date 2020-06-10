@@ -1,12 +1,15 @@
 # Model Data Preparation
 
 import os
+import xarray as xr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import calendar
 
+from sklearn import preprocessing
 
-import PrecipitationDataExploration as pde
+import DataExploration as de
 import FileDownloader as fd
 import Clustering as cl
 
@@ -23,12 +26,52 @@ tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
 tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
 mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 
+
 # Apply mask
-da = pde.apply_mask(tp_ensemble_filepath, mask_filepath)
+
+def apply_mask(data_filepath, mask_filepath):
+    """
+    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
+    Inputs:
+        Data filepath, NetCDF
+        Mask filepath, NetCDF
+    Return:
+        A Data Array
+    """
+    da = xr.open_dataset(data_filepath)
+    if 'expver' in list(da.dims):
+        print('expver found')
+        da = da.sel(expver=1)
+
+    mask = xr.open_dataset(mask_filepath)
+    mask_da = mask.overlap
+
+    # slice in case step has not been performed at download stage
+    sliced_da = da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))    
+    
+    UIB = sliced_da.where(mask_da > 0, drop=True)
+
+    return UIB
 
 
 
-def point_data_prep(da): # TODO Link to CDS API
+def cumulative_monthly(da):
+    """ Multiplies monthly averages by the number of day in each month """
+    print(len(da.values))
+    times = np.datetime_as_string(da.time.values)
+    days_in_month = []
+    for t in times:
+        year = t[0:4]
+        month = t[5:7]
+        days = calendar.monthrange(int(year), int(month))[1]
+        days_in_month.append(days)
+    dim = np.array(days_in_month)
+    dim_mesh = np.repeat(dim, 25*39).reshape(488,25,39) 
+        
+    return da * dim_mesh
+
+
+def point_data_prep(da): # TODO Link to CDS API, currently broken
     """ 
     Outputs test and training data for total precipitation as a function of time from an ensemble of models for a single location
 
@@ -44,6 +87,27 @@ def point_data_prep(da): # TODO Link to CDS API
         dy_test: testing standard deviation vector, numpy array
 
     """
+    # Front indices
+    nao_df = fd.update_url_data(nao_url, 'NAO')
+    n34_df = fd.update_url_data(n34_url, 'N34')
+    n4_df = fd.update_url_data(n4_url, 'N4')
+    ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
+
+
+    # Orography, humidity and precipitation
+    cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
+                                                'orography', 'slope_of_sub_gridscale_orography', 
+                                                'total_column_water_vapour', 'total_precipitation'])
+    masked_da = apply_mask(cds_filepath, mask_filepath)
+    gilgit = masked_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
+    multiindex_df = gilgit.to_dataframe()
+    cds_df = multiindex_df.reset_index()
+
+    # Combine
+    df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
+    df = df_combined.drop(columns=['expver', 'longitude', 'latitude'])
+    df['time'] = df['time'].astype('int')
+    df_clean = df.dropna()
     
     std_da = da.std(dim='number')
     mean_da = da.mean(dim='number')
@@ -104,7 +168,7 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
     cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
                                                 'orography', 'slope_of_sub_gridscale_orography', 
                                                 'total_column_water_vapour', 'total_precipitation'])
-    masked_da = pde.apply_mask(cds_filepath, mask_filepath)
+    masked_da = apply_mask(cds_filepath, mask_filepath)
     gilgit = masked_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
     multiindex_df = gilgit.to_dataframe()
     cds_df = multiindex_df.reset_index()
@@ -113,7 +177,8 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
     df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
     df = df_combined.drop(columns=['expver', 'longitude', 'latitude'])
     df['time'] = df['time'].astype('int')
-    df_clean = df.dropna()
+    df_normalised = normalise(df)
+    df_clean = df_normalised.dropna()
 
     # Seperate y and x
     y = df_clean['tp'].values*1000
@@ -131,7 +196,7 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
     return x_train, y_train, x_test, y_test
 
 
-def area_data_prep(mask_da):
+def gp_area_prep(mask_filepath):
     """ 
     Outputs test and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -146,30 +211,16 @@ def area_data_prep(mask_da):
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-    # Front indices
-    nao_df = fd.update_url_data(nao_url, 'NAO')
-    n34_df = fd.update_url_data(n34_url, 'N34')
-    n4_df = fd.update_url_data(n4_url, 'N4')
-    ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
 
-
-    # Orography, humidity and precipitation
-    cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                                'orography', 'slope_of_sub_gridscale_orography', 
-                                                'total_column_water_vapour', 'total_precipitation'])
-    masked_da = pde.apply_mask(cds_filepath, mask_filepath)
-    cluster_da = masked_da.where(mask_da >= 0)
-    multiindex_df = cluster_da.to_dataframe()
-    cds_df = multiindex_df.reset_index()
-
-    # Combine
-    df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
+    df_combined = fd.download_data(mask_filepath)
+    
     df = df_combined.drop(columns=['expver'])
     df['time'] = df['time'].astype('int')
-    df_clean = df.dropna()
+    df_normalised = normalise(df)
+    df_clean = df_normalised.dropna()
 
     # Seperate y and x
-    y = df_clean['tp'].values*1000
+    y = df_clean['tp'].values*1000  # to mm
 
     x1 = df_clean.drop(columns=['tp'])
     x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
@@ -182,3 +233,16 @@ def area_data_prep(mask_da):
     y_test = y[40000:50000]
 
     return x_train, y_train, x_test, y_test
+
+
+def normalise(df):
+    """ Normalise dataframe """
+
+    features = list(df)
+    for f in features:
+        df[f] = df[f]/df[f].max()
+
+    return df
+
+
+da = apply_mask(tp_ensemble_filepath, mask_filepath)
