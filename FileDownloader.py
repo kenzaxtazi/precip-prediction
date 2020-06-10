@@ -6,9 +6,7 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 import ftplib
-import cdsapi
-
-import DataPreparation as dp 
+import cdsapi 
 
 
 def save_csv_from_url(url, saving_path):
