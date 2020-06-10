@@ -11,11 +11,6 @@ import cdsapi
 import DataPreparation as dp 
 
 
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
-
-
 def save_csv_from_url(url, saving_path):
 	""" Downloads data from a url and saves it to a specified path. """
 	response = urllib.request.urlopen(url)
@@ -50,14 +45,7 @@ def update_url_data(url, name):
 
     return pd.DataFrame(df_final[name])
 
-
-def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means',
-                    product_type= 'monthly_averaged_reanalysis',
-                    variables = ['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                 'orography', 'slope_of_sub_gridscale_orography', 
-                                 'total_column_water_vapour', 'total_precipitation'],
-                    area = [40, 70, 30, 85],
-                    path = '/Users/kenzatazi/Downloads/'):
+def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means', product_type='monthly_averaged_reanalysis', variables = ['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 'orography', 'slope_of_sub_gridscale_orography', 'total_column_water_vapour', 'total_precipitation'], area = [40, 70, 30, 85], path = '/Users/kenzatazi/Downloads/'):
     """
     Imports the most recent version of the given ERA5 dataset as a netcdf from the CDS API.
     
@@ -95,46 +83,5 @@ def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means',
                     filepath)
     
     return filepath
-
-
-def download_data(mask_filepath): # TODO include variables in pathname 
-
-    """ Returns dataframe of data"""
-
-    nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-    n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-    n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
-
-    path = '/Users/kenzatazi/Downloads/'
-
-    now = datetime.datetime.now()
-    filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.nc' 
-
-    filepath = path + filename
-    print(filepath)
-
-    if not os.path.exists(filepath):
-
-        # Indices
-        nao_df = update_url_data(nao_url, 'NAO')
-        n34_df = update_url_data(n34_url, 'N34')
-        n4_df = update_url_data(n4_url, 'N4')
-        ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
-
-        # Orography, humidity and precipitation
-        cds_filepath = update_cds_data()
-        masked_da = dp.apply_mask(cds_filepath, mask_filepath)
-        multiindex_df = masked_da.to_dataframe()
-        cds_df = multiindex_df.reset_index()
-
-        # Combine
-        df_combined = pd.merge_ordered(cds_df, ind_df, on='time')
-        df_combined.to_csv(filepath)
-
-        return df_combined
-    
-    else:
-        df = pd.read_csv(filepath)
-        return df
 
     
