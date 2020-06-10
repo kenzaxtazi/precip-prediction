@@ -1,14 +1,16 @@
 
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
-import PrecipitationDataExploration as pde
-from sklearn.cluster import KMeans
-import cartopy.crs as ccrs
-import cartopy.feature as cf
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cf
 
+from sklearn.cluster import KMeans
+
+import DataExploration as de
+import DataPreparation as dp
 
 # Filepaths 
 tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
@@ -23,8 +25,8 @@ sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
 
 # Precipitation Data
-da = pde.apply_mask(tp_filepath, mask_filepath)
-UIB_cum = pde.cumulative_montly(da)*1000
+da = dp.apply_mask(tp_filepath, mask_filepath)
+UIB_cum = dp.cumulative_montly(da)*1000
 
 
 # Decades segmentation
