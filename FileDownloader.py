@@ -124,7 +124,7 @@ def download_data(mask_filepath): # TODO include variables in pathname
         # Orography, humidity and precipitation
         cds_filepath = update_cds_data()
         masked_da = dp.apply_mask(cds_filepath, mask_filepath)
-        multiindex_df = masked.to_dataframe()
+        multiindex_df = masked_da.to_dataframe()
         cds_df = multiindex_df.reset_index()
 
         # Combine
