@@ -8,6 +8,8 @@ import pandas as pd
 import ftplib
 import cdsapi
 
+import DataPreparation as dp 
+
 
 nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
 n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
@@ -51,7 +53,9 @@ def update_url_data(url, name):
 
 def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means',
                     product_type= 'monthly_averaged_reanalysis',
-                    variables = 'total_precipitation',
+                    variables = ['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
+                                 'orography', 'slope_of_sub_gridscale_orography', 
+                                 'total_column_water_vapour', 'total_precipitation'],
                     area = [40, 70, 30, 85],
                     path = '/Users/kenzatazi/Downloads/'):
     """
@@ -93,27 +97,44 @@ def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means',
     return filepath
 
 
-def update_to_dataframe():
+def download_data(mask_filepath): # TODO include variables in pathname 
 
-    # indices
-    nao_df = fd.update_url_data(nao_url, 'NAO')
-    n34_df = fd.update_url_data(n34_url, 'N34')
-    n4_df = fd.update_url_data(n4_url, 'N4')
-    ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
+    """ Returns dataframe of data"""
 
+    nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
+    n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
+    n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 
-    # Orography, humidity and precipitation
-    cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                                'orography', 'slope_of_sub_gridscale_orography', 
-                                                'total_column_water_vapour', 'total_precipitation'])
-    masked_da = pde.apply_mask(cds_filepath, mask_filepath)
-    gilgit = masked_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    multiindex_df = gilgit.to_dataframe()
-    cds_df = multiindex_df.reset_index()
+    path = '/Users/kenzatazi/Downloads/'
 
-    # Combine
-    df_combined = pd.merge_ordered(cds_df, ind_df, on='time') 
+    now = datetime.datetime.now()
+    filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.nc' 
 
-    return
+    filepath = path + filename
+    print(filepath)
+
+    if not os.path.exists(filepath):
+
+        # Indices
+        nao_df = update_url_data(nao_url, 'NAO')
+        n34_df = update_url_data(n34_url, 'N34')
+        n4_df = update_url_data(n4_url, 'N4')
+        ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
+
+        # Orography, humidity and precipitation
+        cds_filepath = update_cds_data()
+        masked_da = dp.apply_mask(cds_filepath, mask_filepath)
+        multiindex_df = masked.to_dataframe()
+        cds_df = multiindex_df.reset_index()
+
+        # Combine
+        df_combined = pd.merge_ordered(cds_df, ind_df, on='time')
+        df_combined.to_csv(filepath)
+
+        return df_combined
+    
+    else:
+        df = pd.read_csv(filepath)
+        return df
 
     
