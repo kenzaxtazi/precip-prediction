@@ -2,7 +2,7 @@
 
 import os
 import calendar
-import datatime
+import datetime
 import xarray as xr
 import numpy as np
 import pandas as pd
