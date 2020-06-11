@@ -94,7 +94,7 @@ def apply_mask(data_filepath, mask_filepath):
 
 def cumulative_monthly(da):
     """ Multiplies monthly averages by the number of day in each month """
-    print(len(da.values))
+    x, y, z = np.shape(da.values)
     times = np.datetime_as_string(da.time.values)
     days_in_month = []
     for t in times:
@@ -103,7 +103,7 @@ def cumulative_monthly(da):
         days = calendar.monthrange(int(year), int(month))[1]
         days_in_month.append(days)
     dim = np.array(days_in_month)
-    dim_mesh = np.repeat(dim, 25*39).reshape(488,25,39) 
+    dim_mesh = np.repeat(dim, y*z).reshape(x, y, z) 
         
     return da * dim_mesh
 
