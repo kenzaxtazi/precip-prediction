@@ -12,43 +12,44 @@ import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
 
-import PrecipitationDataExploration as pde
+import DataExploration as de
+import DataPreparation as dp
 import FileDownloader as fd
 import Clustering as cl
 
-# Filepaths and URLs
 
+### Filepaths
 mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
-
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
+data_filepath = fd.update_cds_data()
 
 
-# Front indices
+### Upper Indus Basin correlation plot 
 
-nao_df = fd.update_url_data(nao_url, 'NAO')
-n34_df = fd.update_url_data(n34_url, 'N34')
-n4_df = fd.update_url_data(n4_url, 'N4')
+df = dp.download_data(mask_filepath)
 
-ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
+# create lags
+df['NAO+1'] = df['NAO'].shift(periods=-1)
+df['NAO+2'] = df['NAO'].shift(periods=-2)
+df['NAO+3'] = df['NAO'].shift(periods=-3)
+df['NAO+4'] = df['NAO'].shift(periods=-4)
+df['NAO+5'] = df['NAO'].shift(periods=-5)
+df['NAO+6'] = df['NAO'].shift(periods=-6)
 
+df['N34+1'] = df['N34'].shift(periods=-1)
+df['N34+2'] = df['N34'].shift(periods=-2)
+df['N34+3'] = df['N34'].shift(periods=-3)
+df['N34+4'] = df['N34'].shift(periods=-4)
+df['N34+5'] = df['N34'].shift(periods=-5)
+df['N34+6'] = df['N34'].shift(periods=-6)
 
-# Orography, humidity and precipitation
+df['N4+1'] = df['N4'].shift(periods=-1)
+df['N4+2'] = df['N4'].shift(periods=-2)
+df['N4+3'] = df['N4'].shift(periods=-3)
+df['N4+4'] = df['N4'].shift(periods=-4)
+df['N4+5'] = df['N4'].shift(periods=-5)
+df['N4+6'] = df['N4'].shift(periods=-6)
 
-cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                              'orography', 'slope_of_sub_gridscale_orography', 
-                                              'total_column_water_vapour', 'total_precipitation'])
-
-masked_da = pde.apply_mask(cds_filepath, mask_filepath)
-multiindex_df = masked_da.to_dataframe()
-cds_df = multiindex_df.reset_index()
-
-
-# UIB correlation plot
-
-df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
-df = df_combined.drop(columns=['expver'])
+df = df.drop(columns=['expver', 'Unnamed: 0'])
 df_clean = df.dropna()
 
 # Correlation matrix
@@ -66,12 +67,14 @@ sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
 plt.title('Correlation plot for Upper Indus Basin')
+plt.show()
 
 
-
-## Cluster corelation plot 
+'''
+### Cluster correlation plot 
 
 n_clusters = 3
+masked_da = dp.apply_mask(data_filepath, mask_filepath) # TODO fix to work with download_data()
 
 cds_da_clusters = cl.gp_clusters(masked_da.tp, N=n_clusters, filter=0.7, plot=True)
 
@@ -99,7 +102,11 @@ for i in range(n_clusters):
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
     plt.title('Cluster '+ str(i) + '\n')
-
+'''
 
 plt.show()
+
+
+def detrend():  #TODO
+    return 1
 
