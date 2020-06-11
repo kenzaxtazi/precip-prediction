@@ -10,10 +10,11 @@ import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 
+from cartopy.io import shapereader
+from cartopy import config
+
 import FileDownloader as fd
 import DataPreparation as dp
-
-
 
 
 data_filepath = fd.update_cds_data()
@@ -33,10 +34,10 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     da_year = da_var.sel(time=slice(str(year)+'-01-16T12:00:00', str(year+1)+'-01-01T12:00:00'))
 
     if cumulative is True:
-        da_processed= dp.cumulative_montly(da_year)
+        da_processed= dp.cumulative_monthly(da_year)
         da_final = da_processed.sum(dim='time')
     else:
-        da_final = da_year.mean(dim='time')
+        da_final = da_year.mean(dim='time') # TODO weighted mean
    
 
     plt.figure()
@@ -53,7 +54,7 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     ax.gridlines(draw_labels=True)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    plt.title('Upper Indus Basin Total Precipitation (1979) \n \n')
+    plt.title('Upper Indus Basin Total Precipitation ' + str(year) + '\n \n')
     plt.show()
 
 
@@ -272,15 +273,23 @@ def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total p
 def indus_map():
     """ Returns a map of the Indus river """
 
-    rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')
+    fpath = '/Users/kenzatazi/Downloads/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
+    as_shp = shapereader.Reader(fpath)
+
+    #rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([55, 95, 15, 45])
     ax.add_feature(cf.BORDERS)
-    ax.add_feature(rivers, linewidth=1)
+    
+    # ax.add_feature(rivers)
+    for rec in as_shp.records():
+        if rec.attributes['name'] == 'Indus':
+            ax.add_geometries([rec.geometry], ccrs.PlateCarree(), edgecolor='lightblue', facecolor='None')
+        pass
+
     ax.coastlines()
-    ax.gridlines(draw_labels=True)
     ax.text(64, 27, 'PAKISTAN')
     ax.text(63, 33, 'AFGHANISTAN')
     ax.text(80, 36, 'CHINA')
