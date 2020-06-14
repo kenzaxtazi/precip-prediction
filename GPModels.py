@@ -192,16 +192,16 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
 
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
-    samples = m.predict_f_samples(x_test, 10)  # shape (10, 100, 1)
+    samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
 
     plt.figure()
     plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.errorbar(x_train[:,0] + 1981, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
-    plt.errorbar(x_test[:,0] + 1981, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
-    plt.plot(x_plot[:,0] + 1981, y_gpr, color='orange', linestyle='-', label='Prediction')
-    plt.fill_between(x_plot[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+    plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
+    plt.errorbar(x_test[:,0] + 1979, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
+    plt.plot(x_plot[:,0] + 1979, y_gpr, color='orange', linestyle='-', label='Prediction')
+    plt.fill_between(x_plot[:,0]+ 1979, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
              alpha=.2, label='95% confidence interval')
-    #plt.plot(x_predictions + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    plt.plot(x_plot[:,0] + 1979, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
     plt.legend()
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
