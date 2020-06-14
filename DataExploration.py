@@ -131,15 +131,17 @@ def nans_in_data(): # TODO
     """ Returns number of nans in data with plots for UIB """
 
 
-def averaged_timeseries(data_filepath, mask_filepath, variable='tp', longname='Total precipitation [m/day]'):
+def averaged_timeseries(mask_filepath, variable='tp', longname='Total precipitation [m/day]'):
     """ Timeseries for the Upper Indus Basin"""
 
-    da = dp.apply_mask(data_filepath, mask_filepath)
+    df = dp.download_data(mask_filepath)
 
-    ds = da[variable]
-    ds_timeseries = ds.groupby('time').mean()
+    df_var = df[['time',variable]]
 
-    ds_timeseries.plot()
+    df_var['time'] = df_var['time'].astype(np.datetime64)
+    df_mean = df_var.groupby('time').mean()
+
+    df_mean.plot()
     plt.title('Upper Indus Basin')
     plt.ylabel(longname)
     plt.xlabel('Year')
