@@ -26,7 +26,7 @@ tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-15879875
 mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
 
 
-def download_data(mask_filepath): # TODO include variables in pathname 
+def download_data(mask_filepath, xarray=False): # TODO include variables in pathname 
 
     """ Returns dataframe of data"""
 
@@ -37,7 +37,7 @@ def download_data(mask_filepath): # TODO include variables in pathname
     path = '/Users/kenzatazi/Downloads/'
 
     now = datetime.datetime.now()
-    filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.nc' 
+    filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.csv' 
 
     filepath = path + filename
     print(filepath)
@@ -64,7 +64,11 @@ def download_data(mask_filepath): # TODO include variables in pathname
     
     else:
         df = pd.read_csv(filepath)
-        return df
+
+        if xarray == True:
+            return df
+        else:    
+            return df
 
 
 def apply_mask(data_filepath, mask_filepath):
@@ -124,27 +128,6 @@ def point_data_prep(da): # TODO Link to CDS API, currently broken
         dy_test: testing standard deviation vector, numpy array
 
     """
-    # Front indices
-    nao_df = fd.update_url_data(nao_url, 'NAO')
-    n34_df = fd.update_url_data(n34_url, 'N34')
-    n4_df = fd.update_url_data(n4_url, 'N4')
-    ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
-
-
-    # Orography, humidity and precipitation
-    cds_filepath = fd.update_cds_data(variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 
-                                                'orography', 'slope_of_sub_gridscale_orography', 
-                                                'total_column_water_vapour', 'total_precipitation'])
-    masked_da = apply_mask(cds_filepath, mask_filepath)
-    gilgit = masked_da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    multiindex_df = gilgit.to_dataframe()
-    cds_df = multiindex_df.reset_index()
-
-    # Combine
-    df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
-    df = df_combined.drop(columns=['expver', 'longitude', 'latitude'])
-    df['time'] = df['time'].astype('int')
-    df_clean = df.dropna()
     
     std_da = da.std(dim='number')
     mean_da = da.mean(dim='number')
@@ -214,8 +197,8 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
     df_combined = pd.merge_ordered(cds_df, ind_df, on='time')  
     df = df_combined.drop(columns=['expver', 'longitude', 'latitude'])
     df['time'] = df['time'].astype('int')
-    df_normalised = normalise(df)
-    df_clean = df_normalised.dropna()
+    #df_normalised = normalise(df)
+    df_clean = df.dropna()
 
     # Seperate y and x
     y = df_clean['tp'].values*1000
