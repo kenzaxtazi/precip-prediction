@@ -26,7 +26,7 @@ sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
 # Precipitation Data
 da = dp.apply_mask(tp_filepath, mask_filepath)
-UIB_cum = dp.cumulative_montly(da)*1000
+UIB_cum = dp.cumulative_monthly(da.tp)*1000
 
 
 # Decades segmentation
@@ -280,7 +280,7 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=False):
     plt.show()
 
 
-def gp_clusters(tp_da, N=3, filter=0.7, plot=False):
+def gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
 
     """ 
     Returns cluster masks for data separation.
@@ -290,11 +290,12 @@ def gp_clusters(tp_da, N=3, filter=0.7, plot=False):
         N: number of clusters
         filter: soft k-means filtering threshold, float btw 0 (no filtering) and 1
         plot: boolean for plotting
+        confidence_plot: boolean for plotting the k-means weights
     
     Returns:
         List of cluster masks as data arrays
-
-
+        Cluster plot (optional)
+        Confidence plot (optional)
     """
 
     multi_index_df = tp_da.to_dataframe()
@@ -328,12 +329,40 @@ def gp_clusters(tp_da, N=3, filter=0.7, plot=False):
         plt.figure()
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
-        g= da.plot(x='longitude', y='latitude', add_colorbar= True, ax=ax, levels=N+1,
-                   cmap='Paired' ,cbar_kwargs={'ticks':[0,1,2], 'pad':0.10})
+        c = ['#2460A7FF', '#85B3D1FF', '#D9B48FFF']
+        g= da.plot(x='longitude', y='latitude', add_colorbar=False, ax=ax, levels=N+1,
+                   cmap=sns.color_palette(c)) # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
+        cbar = plt.colorbar(g, ticks=[0.4, 1.2, 2], pad=0.10)
+        cbar.ax.set_yticklabels(['Gilgit regime', 'Ngari regime', 'Khyber regime'])
         ax.gridlines(draw_labels=True)
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Latitude')
+        plt.show()
 
+    if confidence_plot == True:
+        df_clean = df[df['tp']>0]
+        table = pd.pivot_table(df_clean, values='tp', index=['latitude', 'longitude'], columns=['time'])
+        X = table.interpolate()
+        # Soft k-means
+        kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
+        unfiltered_df = filtering(X, kmeans, thresh=0)
+
+        conf_df = unfiltered_df.reset_index()[['weights', 'latitude', 'longitude']]
+        df_pv = conf_df.pivot(index='latitude', columns='longitude')
+        df_pv = df_pv.droplevel(0, axis=1)
+        conf_da = xr.DataArray(data=df_pv, name='Confidence')
+
+        #Plot
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        g= conf_da.plot(x='longitude', y='latitude', add_colorbar=True, ax=ax,
+                        vmin=0, vmax=1, cmap='magma', cbar_kwargs={'pad':0.10})
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        plt.show()
+        
     return clusters
 
 
