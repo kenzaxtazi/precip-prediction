@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 import DataExploration as de
 
 import FileDownloader as fd
+import DataPreparation as dp
 
 
 # Open data
@@ -18,19 +19,18 @@ mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
 
 def monthly_PDF(data_filepath, mask_filepath, variable='tp', longname=''):
 
-    da = de.apply_mask(data_filepath, mask_filepath)
-    ds = da[variable]
-    df = ds.to_dataframe()
-    reduced_df = (df.reset_index()).drop(labels = ['latitude', 'longitude'], axis=1)
-    clean_df = reduced_df.dropna()
-    clean_df['time'] = clean_df['time'].astype(str)
+    df = dp.download_data(mask_filepath)
+    clean_df = df.dropna()
+    df_var = clean_df[['time', variable]]
+    reduced_df = df_var.reset_index()
+    reduced_df['time'] = reduced_df['time'].astype(str)
 
     month_labels = ['01', '02', '03', '04', '05', '06',
                     '07', '08', '09', '10', '11', '12']
     grouped_dfs = []
 
     for m in month_labels: 
-        month_df = clean_df[clean_df["time"].str.contains('-'+m+'-')]
+        month_df = reduced_df[reduced_df["time"].str.contains('-'+m+'-')]
         grouped_dfs.append(month_df[variable])
 
     month_dict = {0:'January', 1:'February', 2:'March', 3:'April', 4:'May', 5:'June', 6:'July',
@@ -57,7 +57,7 @@ def monthly_PDF(data_filepath, mask_filepath, variable='tp', longname=''):
     for i in range(12):
         x= (i)%3
         y= int(i/3)
-        axs[x,y].hist(grouped_dfs[i], bins=50, density=True)
+        axs[x,y].hist(grouped_dfs[i], density=True)
         axs[x,y].set_title(month_dict[i])
         axs[x,y].set_title(month_dict[i])
         axs[x,y].xaxis.set_tick_params(which='both', labelbottom=True)
