@@ -209,11 +209,12 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
     gilgit = da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
     multiindex_df = gilgit.to_dataframe()
     df_clean = multiindex_df.reset_index()
+    df = df_clean.drop(columns=['latitude', 'longitude', 'Unnamed: 0'])
 
     # Seperate y and x
-    y = df_clean['tp'].values*1000
+    y = df['tp'].values*1000
 
-    x1 = df_clean.drop(columns=['tp'])
+    x1 = df.drop(columns=['tp'])
     print(x1['time'])
     x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
     x = x1.values.reshape(-1, 9)
