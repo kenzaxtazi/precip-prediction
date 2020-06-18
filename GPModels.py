@@ -31,10 +31,10 @@ tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-15879875
 '''
 # Single point GP preparation
 da = dp.apply_mask(tp_ensemble_filepath, mask_filepath)
-x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep(da)
+x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep()
 
 # Single point multivariate GP preparation
-x_train, y_train, x_test, y_test = dp.multivariate_data_prep()
+x_train, x_val, x_test, y_train, y_val, y_test = dp.multivariate_data_prep()
 
 # Area multivariate GP preparation
 tp_da = de.apply_mask(tp_filepath, mask_filepath)
@@ -173,7 +173,7 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
   
     k = k1 + k2  #+k3
 
-    mean_function = gpflow.mean_functions.Linear(A=np.ones((9,1)), b=[1])
+    mean_function = gpflow.mean_functions.Linear(A=np.ones((8,1)), b=[1])
 
     #likelihood = gpflow.likelihoods.Gaussian(variance_lower_bound= 0.5)
 
@@ -196,8 +196,8 @@ def multi_gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
 
     plt.figure()
     plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
-    plt.errorbar(x_test[:,0] + 1979, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
+    #plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
+    #plt.errorbar(x_test[:,0] + 1979, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
     plt.plot(x_plot[:,0] + 1979, y_gpr, color='orange', linestyle='-', label='Prediction')
     plt.fill_between(x_plot[:,0]+ 1979, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
              alpha=.2, label='95% confidence interval')
