@@ -62,6 +62,15 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         n4_df = fd.update_url_data(n4_url, 'N4')
         ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
 
+        # Temperature
+        temp_filepath = fd.update_cds_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
+        temp_da = xr.open_dataset(temp_filepath)
+        if 'expver' in list(temp_da.dims):
+            temp_da = temp_da.sel(expver=1)
+        temp_mean_da = temp_da.groupby('time').mean()
+        multiindex_df = temp_mean_da.to_dataframe()
+        temp_df = multiindex_df.reset_index()
+
         # Orography, humidity and precipitation
         if ensemble == False:
             cds_filepath = fd.update_cds_data()
@@ -73,27 +82,35 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         cds_df = multiindex_df.reset_index()
 
         # Combine
-        df_combined = pd.merge_ordered(cds_df, ind_df, on='time')
-        df_clean = df_combined.drop(columns= ['expver']).dropna()
+        df_combined1 = pd.merge_ordered(cds_df, ind_df, on='time')
+        df_combined2 = pd.merge_ordered(df_combined1, temp_df, on='time')
+        df_clean = df_combined2.drop(columns=['NAO', 'N4', 'expver_x', 'expver_y']).dropna()
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean.to_csv(filepath)
 
         if xarray == True:
-            df_multi = df_clean.set_index(['time', 'longitude', 'latitude'])
+            if ensemble == True:
+                df_multi = df_clean.set_index(['time', 'longitude', 'latitude', 'number'])
+            else:
+                df_multi = df_clean.set_index(['time', 'longitude', 'latitude'])
             ds = df_multi.to_xarray()
             return ds
         else:    
-            return df_combined
+            return df_clean
     
     else:
         df = pd.read_csv(filepath)
+        df_clean = df.drop(columns=['Unnamed: 0'])
 
         if xarray == True:
-            df_multi = df.set_index(['time', 'longitude', 'latitude'])
+            if ensemble == True:
+                df_multi = df_clean.set_index(['time', 'longitude', 'latitude', 'number'])
+            else:
+                df_multi = df_clean.set_index(['time', 'longitude', 'latitude'])
             ds = df_multi.to_xarray()
             return ds
         else:    
-            return df
+            return df_clean
 
 
 def apply_mask(data_filepath, mask_filepath):
@@ -155,7 +172,6 @@ def point_data_prep(): # TODO Link to CDS API, currently broken
     """
 
     da = download_data(mask_filepath, xarray=True, ensemble=True)
-    print(da)
     
     std_da = da.std(dim='number')
     mean_da = da.mean(dim='number')
@@ -190,7 +206,7 @@ def point_data_prep(): # TODO Link to CDS API, currently broken
     return x_train, y_train, dy_train, x_test, y_test, dy_test
 
 
-def multivariate_data_prep(): # TODO generalise to ensemble data
+def multivariate_data_prep(number=None): # TODO generalise to ensemble data
     """ 
     Outputs test and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -205,19 +221,23 @@ def multivariate_data_prep(): # TODO generalise to ensemble data
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-    da = download_data(mask_filepath, xarray=True)
+    if number == None:
+        da = download_data(mask_filepath, xarray=True)
+    else:
+        da = download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da.sel(number=number).drop('number')
+
     gilgit = da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
     multiindex_df = gilgit.to_dataframe()
     df_clean = multiindex_df.reset_index()
-    df = df_clean.drop(columns=['latitude', 'longitude', 'Unnamed: 0'])
+    df = df_clean.drop(columns=['latitude', 'longitude'])
 
     # Seperate y and x
     y = df['tp'].values*1000
 
     x1 = df.drop(columns=['tp'])
-    print(x1['time'])
     x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
-    x = x1.values.reshape(-1, 9)
+    x = x1.values.reshape(-1, 8)
 
     xtrain, xval, xtest, ytrain, yval, ytest = kfold_split(x, y)
     
