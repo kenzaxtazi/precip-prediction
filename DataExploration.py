@@ -58,23 +58,34 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     plt.show()
 
 
-def change_maps(UIB, UIB_1979_sum):
+def change_maps(variable, year): #TODO fix this 
     """ Maps of average annual change from 1979 to 1989, 1999, 2009 and 2019 """
 
-    UIB_1989 = UIB.sel(time=slice('1989-01-01T12:00:00', '1990-01-01T12:00:00'))
-    UIB_1989_sum = UIB_1989.sum(dim='time')* 30.42
+    da = xr.open_dataset(data_filepath)
+
+    if 'expver' in list(da.dims):
+        print('expver found')
+        da = da.sel(expver=1)
+
+    da_var = da[variable]
+    da_1979 = da_var.sel(time=slice(str(year)+'-01-16T12:00:00', str(year+1)+'-01-01T12:00:00'))
+    da_processed= dp.cumulative_monthly(da_1979)
+    UIB_1979_sum = da_processed.sum(dim='time')
+
+    UIB_1989 = da_var.sel(time=slice('1989-01-01T12:00:00', '1990-01-01T12:00:00'))
+    UIB_1989_sum = dp.cumulative_monthly(UIB_1989).sum(dim='time')
     UIB_1989_change = UIB_1989_sum/ UIB_1979_sum - 1 
 
-    UIB_1999 = UIB.sel(time=slice('1999-01-01T12:00:00', '2000-01-01T12:00:00'))
-    UIB_1999_sum = UIB_1999.sum(dim='time')* 30.42
+    UIB_1999 = da_var.sel(time=slice('1999-01-01T12:00:00', '2000-01-01T12:00:00'))
+    UIB_1999_sum = dp.cumulative_monthly(UIB_1999).sum(dim='time')
     UIB_1999_change = UIB_1999_sum/ UIB_1979_sum - 1
 
-    UIB_2009 = UIB.sel(time=slice('2009-01-01T12:00:00', '2010-01-01T12:00:00'))
-    UIB_2009_sum = UIB_2009.sum(dim='time')* 30.42
+    UIB_2009 = da_var.sel(time=slice('2009-01-01T12:00:00', '2010-01-01T12:00:00'))
+    UIB_2009_sum = dp.cumulative_monthly(UIB_2009).sum(dim='time')
     UIB_2009_change = UIB_2009_sum/ UIB_1979_sum - 1
 
-    UIB_2019 = UIB.sel(time=slice('2019-01-01T12:00:00', '2020-01-01T12:00:00'))
-    UIB_2019_sum = UIB_2019.sum(dim='time')*30
+    UIB_2019 = da_var.sel(time=slice('2019-01-01T12:00:00', '2020-01-01T12:00:00'))
+    UIB_2019_sum = dp.cumulative_monthly(UIB_2019).sum(dim='time')
     UIB_2019_change = UIB_2019_sum/ UIB_1979_sum - 1
 
     UIB_changes = xr.concat([UIB_1989_change, UIB_1999_change, UIB_2009_change, UIB_2019_change],
@@ -299,4 +310,26 @@ def indus_map():
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     plt.title('Indus River \n \n')
+    plt.show()
+
+
+def tp_vs(mask_filepath, variable, longname=''):
+
+    '''
+    df = dp.download_data(mask_filepath)
+    df_var = df[['time','tp', variable]]
+    #df_mean = df_var.groupby('time').mean()
+    '''
+
+    da = dp.download_data(mask_filepath, xarray=True)
+    ds = da[['time','tp', variable]]
+    gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
+    df_var = gilgit.to_dataframe().dropna()
+
+    # Plot    
+    df_var.plot.scatter(x=variable, y='tp', alpha=.2, c='b')
+    plt.title('Upper Indus Basin')
+    plt.ylabel('Total precipitation [m/day]')
+    plt.xlabel(longname)
+    plt.grid(True)
     plt.show()
