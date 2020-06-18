@@ -73,7 +73,7 @@ def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means', 
         c = cdsapi.Client()
         c.retrieve('reanalysis-era5-single-levels-monthly-means',
                 {'format': 'netcdf',
-                    'product_type': 'monthly_averaged_reanalysis',
+                    'product_type': product_type,
                     'variable': variables,
                     'year': years.tolist(),
                     'time': '00:00',
