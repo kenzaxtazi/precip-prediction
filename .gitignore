@@ -6,3 +6,15 @@ __pycache__/FileDownloader.cpython-37.pyc
 __pycache__/GPModels.cpython-37.pyc
 __pycache__/DataPreparation.cpython-37.pyc
 __pycache__/DataExploration.cpython-37.pyc
+N4-06-2020.csv
+N34-06-2020.csv
+reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_06-2020.nc
+reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_06-2020_temp.nc
+reanalysis-era5-single-levels-monthly-means_monthly_averaged_ensemble_members_06-2020.nc
+NAO-06-2020.csv
+ERA5_Upper_Indus_mask.nc
+era5_tp_monthly_1979-2019.nc
+era5_msl_monthly_1979-2019.nc
+elev.0.25-deg.nc
+combi_data_ensemble_06-2020.csv
+combi_data_06-2020.csv
