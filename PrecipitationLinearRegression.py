@@ -12,8 +12,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # Open data
 
-tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
-mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc.download'
+tp_filepath = 'era5_tp_monthly_1979-2019.nc'
+mpl_filepath = 'era5_msl_monthly_1979-2019.nc.download'
 
 tp= xr.open_dataset(tp_filepath)
 tp_da = tp.tp *1000  # convert from m/day to mm/day 

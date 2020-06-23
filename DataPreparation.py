@@ -17,12 +17,12 @@ import FileDownloader as fd
 
 # Filepaths and URLs
   
-mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'ERA5_Upper_Indus_mask.nc'
 
 '''
-tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
-tp_ensemble_filepath ='/Users/kenzatazi/Downloads/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
-mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
+tp_filepath = 'era5_tp_monthly_1979-2019.nc'
+tp_ensemble_filepath ='adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
+mpl_filepath = 'era5_msl_monthly_1979-2019.nc'
 '''
 
 def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include variables in pathname 
@@ -43,7 +43,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
     n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
     n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 
-    path = '/Users/kenzatazi/Downloads/'
+    path = ''
 
     now = datetime.datetime.now()
     if ensemble == False:
