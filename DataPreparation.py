@@ -232,14 +232,22 @@ def multivariate_data_prep(number=None): # TODO generalise to ensemble data
     df_clean = multiindex_df.reset_index()
     df = df_clean.drop(columns=['latitude', 'longitude'])
 
-    # Seperate y and x
-    y = df['tp'].values*1000
+    df['time'] = df['time'].astype('int')
+    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
+    df['tp'] = df['tp']*1000  # to mm
+    df_clean = df.dropna()
 
-    x1 = df.drop(columns=['tp'])
-    x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
-    x = x1.values.reshape(-1, 8)
+    # Remove last 10% of time for testing
+    test_df = df_clean[ df_clean['time']> df_clean['time'].max()*0.9]
+    xtest = test_df.drop(columns=['tp']).values
+    ytest = test_df['tp'].values
 
-    xtrain, xval, xtest, ytrain, yval, ytest = kfold_split(x, y)
+    # Training and validation data
+    tr_df = df_clean[ df_clean['time']< df_clean['time'].max()*0.9]
+    xtr = tr_df.drop(columns=['tp']).values
+    ytr = tr_df['tp'].values
+
+    xtrain, xval, ytrain, yval = kfold_split(x, y)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -264,17 +272,21 @@ def gp_area_prep(mask_filepath):
     
     df = df_combined.drop(columns=['expver'])
     df['time'] = df['time'].astype('int')
-    df_normalised = normalise(df)
-    df_clean = df_normalised.dropna()
+    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
+    df['tp'] = df['tp']*1000  # to mm
+    df_clean = df.dropna()
 
-    # Seperate y and x
-    y = df_clean['tp'].values*1000  # to mm
+    # Remove last 10% of time for testing
+    test_df = df_clean[ df_clean['time']> df_clean['time'].max()*0.9]
+    xtest = test_df.drop(columns=['tp']).values
+    ytest = test_df['tp'].values
 
-    x1 = df_clean.drop(columns=['tp'])
-    x1['time'] = (x1['time'] - x1['time'].min())/ (1e9*60*60*24*365)
-    x = x1.values.reshape(-1, 11)
+    # Training and validation data
+    tr_df = df_clean[ df_clean['time']< df_clean['time'].max()*0.9]
+    xtr = tr_df.drop(columns=['tp']).values
+    ytr = tr_df['tp'].values
     
-    xtrain, xval, xtest, ytrain, yval, ytest = kfold_split(x, y)
+    xtrain, xval, xtest, ytrain, yval, ytest = kfold_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -303,25 +315,21 @@ def kfold_split(x, y, dy=None, folds=5):
     Outputs
         xtrain: feature training set
         xvalidation: feature validation set
-        xtest: feature test set
 
         ytrain: target training set
         yvalidation: target validation set
-        ytest: target test set
 
         dy_train: uncertainty training set
         dy_validation: uncertainty validation set
-        dy_test: uncertainty test set
     """
     # Remove test set without shuffling
-    xtr, xtest, ytr, ytest = train_test_split(x, y, test_size=0.15)
     
     kf = KFold(n_splits=folds)
-    for train_index, test_index in kf.split(xtr):
-        xtrain, xval = xtr[train_index], xtr[test_index]
-        ytrain, yval = ytr[train_index], ytr[test_index]
+    for train_index, test_index in kf.split(x):
+        xtrain, xval = x[train_index], x[test_index]
+        ytrain, yval = y[train_index], y[test_index]
 
-    return  xtrain, xval, xtest, ytrain, yval, ytest
+    return  xtrain, xval, ytrain, yval,
 
 
 
