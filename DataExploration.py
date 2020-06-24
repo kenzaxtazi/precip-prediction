@@ -238,8 +238,9 @@ def zeros_in_data(da):
     plt.show()
 
 def detrend(df, axis):
-    detrended_df = signal.detrend(data=df, axis=axis)
-    return detrended_df
+    detrended_array = signal.detrend(data=df, axis=axis)
+    df.update(detrended_array)
+    return df
 
 def spatial_autocorr(variable, mask_filepath): # TODO
     """ Plots spatial autocorrelation """
@@ -249,11 +250,12 @@ def spatial_autocorr(variable, mask_filepath): # TODO
     table = pd.pivot_table(df, values='tp', index=['latitude', 'longitude'], columns=['time'])
     trans_table = table.T
     detrended_table = detrend(trans_table, axis=0)
-    corr_table = trans_table.corr()
+    corr_table = detrended_table.corr()
+    print(corr_table)
 
-    corr_khyber = corr_table.loc[34.50,73.00]
-    corr_gilgit = corr_table.loc[36.00,75.00]
-    corr_ngari = corr_table.loc[33.50,79.00]
+    corr_khyber = corr_table.loc[(34.5,73.0)]
+    corr_gilgit = corr_table.loc[(36.0,75.0)]
+    corr_ngari = corr_table.loc[(33.5,79.0)]
 
     corr_list = [corr_khyber, corr_gilgit, corr_ngari]
 
