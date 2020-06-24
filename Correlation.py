@@ -21,7 +21,7 @@ import Clustering as cl
 
 
 ### Filepaths
-mask_filepath = 'ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 data_filepath = fd.update_cds_data()
 
 

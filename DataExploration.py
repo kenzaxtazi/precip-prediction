@@ -22,11 +22,11 @@ import DataPreparation as dp
 
 
 data_filepath = fd.update_cds_data()
-mask_filepath = 'ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 '''
-tp_filepath = 'era5_tp_monthly_1979-2019.nc'
-mpl_filepath = 'era5_msl_monthly_1979-2019.nc'
+tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
+mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
 '''
 
 
@@ -328,7 +328,7 @@ def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total p
 def indus_map():
     """ Returns a map of the Indus river """
 
-    fpath = 'ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
+    fpath = 'Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
     as_shp = shapereader.Reader(fpath)
 
     #rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')

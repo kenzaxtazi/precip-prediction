@@ -25,13 +25,13 @@ import os
 
 # Filepaths and URLs
     
-mask_filepath = 'ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 khyber_mask = 'Khyber_mask.nc'
 gilgit_mask = 'Gilgit_mask.nc'
 ngari_mask = 'Ngari_mask.nc'
 
-tp_filepath = 'era5_tp_monthly_1979-2019.nc'
-tp_ensemble_filepath ='adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
+tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
+tp_ensemble_filepath = 'Data/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
 
 '''
 # Single point GP preparation

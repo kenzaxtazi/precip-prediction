@@ -19,12 +19,12 @@ import FileDownloader as fd
 
 # Filepaths and URLs
   
-mask_filepath = 'ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 '''
-tp_filepath = 'era5_tp_monthly_1979-2019.nc'
-tp_ensemble_filepath ='adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
-mpl_filepath = 'era5_msl_monthly_1979-2019.nc'
+tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
+tp_ensemble_filepath = 'Data/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
+mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
 '''
 
 def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include variables in pathname 
@@ -45,7 +45,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
     n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
     n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
 
-    path = ''
+    path = 'Data/Data/'
 
     now = datetime.datetime.now()
     if ensemble == False:
@@ -59,10 +59,10 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
     if not os.path.exists(filepath):
 
         # Indices
-        nao_df = fd.update_url_data(nao_url, 'NAO')
+        #nao_df = fd.update_url_data(nao_url, 'NAO')
         n34_df = fd.update_url_data(n34_url, 'N34')
-        n4_df = fd.update_url_data(n4_url, 'N4')
-        ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
+        #n4_df = fd.update_url_data(n4_url, 'N4')
+        ind_df = nao_df.astype('float64') #.join([n34_df, n4_df])
 
         # Temperature
         temp_filepath = fd.update_cds_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
@@ -86,7 +86,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         # Combine
         df_combined1 = pd.merge_ordered(cds_df, ind_df, on='time')
         df_combined2 = pd.merge_ordered(df_combined1, temp_df, on='time')
-        df_clean = df_combined2.drop(columns=['NAO', 'N4', 'expver_x', 'expver_y']).dropna()
+        df_clean = df_combined2.drop(columns=['expver_x', 'expver_y']).dropna()
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean.to_csv(filepath)
 
@@ -156,7 +156,7 @@ def cumulative_monthly(da):
     return da * dim_mesh
 
 
-def point_data_prep(): # TODO Link to CDS API, currently broken
+def point_data_prep():
     """ 
     Outputs test and training data for total precipitation as a function of time from an ensemble of models for a single location
 
@@ -208,7 +208,7 @@ def point_data_prep(): # TODO Link to CDS API, currently broken
     return x_train, y_train, dy_train, x_test, y_test, dy_test
 
 
-def multivariate_data_prep(number=None): # TODO generalise to ensemble data
+def multivariate_data_prep(number=None):
     """ 
     Outputs test and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -249,12 +249,12 @@ def multivariate_data_prep(number=None): # TODO generalise to ensemble data
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = kfold_split(x, y)
+    xtrain, xval, ytrain, yval = kfold_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def gp_area_prep(mask_filepath):
+def gp_area_prep(mask_filepath, number=None):
     """ 
     Outputs test and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -269,8 +269,12 @@ def gp_area_prep(mask_filepath):
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-
-    df = download_data(mask_filepath)
+    if number == None:
+        df = download_data(mask_filepath)
+    else:
+        df = download_data(mask_filepath, ensemble=True)
+        df = df[df['number']== number].drop('number')
+    
     df['time'] = df['time'].astype('int')
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
     df['tp'] = df['tp']*1000  # to mm

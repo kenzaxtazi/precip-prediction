@@ -15,9 +15,9 @@ import DataExploration as de
 import DataPreparation as dp
 
 # Filepaths 
-tp_filepath = 'era5_tp_monthly_1979-2019.nc'
-mask_filepath = 'ERA5_Upper_Indus_mask.nc'
-dem_filepath = 'elev.0.25-deg.nc'
+tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
+dem_filepath = 'Data/elev.0.25-deg.nc'
 
 
 # Digital Elevation Model
