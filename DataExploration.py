@@ -237,17 +237,41 @@ def zeros_in_data(da):
     plt.show()
 
 
-def spatial_autocorr(variable): # TODO
+def spatial_autocorr(variable, mask_filepath): # TODO
     """ Plots spatial autocorrelation """
     
-    da = xr.open_dataset(data_filepath)
-    if 'expver' in list(da.dims):
-        print('expver found')
-        da = da.sel(expver=1)
+    df = dp.download_data(mask_filepath)
+    # detrend
+    table = pd.pivot_table(df, values='tp', index=['latitude', 'longitude'], columns=['time'])
+    trans_table = table.T
+    corr_table = trans_table.corr()
 
-    da_var = da[variable]
-    da_dot = da_var.isel(longitude=[0], latitude=[0])
-    da_corr = xr.corr(da_dot, da_var, dim='time')  
+    corr_khyber = corr_table.loc[34.50,73.00]
+    corr_gilgit = corr_table.loc[36.00,75.00]
+    corr_ngari = corr_table.loc[33.50,79.00]
+
+    corr_list = [corr_khyber, corr_gilgit, corr_ngari]
+
+    for corr in corr_list:
+
+        df_reset = corr.reset_index().droplevel(1, axis=1)
+        df_ind = df_reset.set_index(['longitude','latitude'])
+        df_pv = df_reset.pivot(index='latitude', columns='longitude')
+        df_pv = df_pv.droplevel(0, axis=1)
+        da = xr.DataArray(data= df_pv, name='corr')
+
+        #Plot
+
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        g= da.plot(x='longitude', y='latitude', add_colorbar=True, ax=ax,
+                        vmin=-1, vmax=1, cmap='coolwarm', cbar_kwargs={'pad':0.10})
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+    
+    plt.show()
 
 
 def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total precipitation [m/day]'): # TODO
