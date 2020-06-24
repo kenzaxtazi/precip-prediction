@@ -12,6 +12,7 @@ import matplotlib.ticker as tck
 
 from cartopy.io import shapereader
 from cartopy import config
+from scipy import signal
 
 import FileDownloader as fd
 import DataPreparation as dp
@@ -236,6 +237,9 @@ def zeros_in_data(da):
     plt.title('Zero points \n \n')
     plt.show()
 
+def detrend(df, axis):
+    detrended_df = signal.detrend(data=df, axis=axis)
+    return detrended_df
 
 def spatial_autocorr(variable, mask_filepath): # TODO
     """ Plots spatial autocorrelation """
@@ -244,6 +248,7 @@ def spatial_autocorr(variable, mask_filepath): # TODO
     # detrend
     table = pd.pivot_table(df, values='tp', index=['latitude', 'longitude'], columns=['time'])
     trans_table = table.T
+    detrended_table = detrend(trans_table, axis=0)
     corr_table = trans_table.corr()
 
     corr_khyber = corr_table.loc[34.50,73.00]
@@ -255,10 +260,9 @@ def spatial_autocorr(variable, mask_filepath): # TODO
     for corr in corr_list:
 
         df_reset = corr.reset_index().droplevel(1, axis=1)
-        df_ind = df_reset.set_index(['longitude','latitude'])
         df_pv = df_reset.pivot(index='latitude', columns='longitude')
         df_pv = df_pv.droplevel(0, axis=1)
-        da = xr.DataArray(data= df_pv, name='corr')
+        da = xr.DataArray(data= df_pv, name='Correlation')
 
         #Plot
 
