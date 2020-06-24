@@ -1,4 +1,6 @@
 # Model Data Preparation
+import matplotlib
+matplotlib.use('agg')
 
 import os
 import calendar

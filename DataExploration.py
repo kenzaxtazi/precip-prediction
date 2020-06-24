@@ -1,6 +1,9 @@
 
 # Precipitation Data Exploration
 
+import matplotlib
+matplotlib.use('agg')
+
 import numpy as np
 import xarray as xr
 import pandas as pd
