@@ -297,6 +297,7 @@ def gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
         Cluster plot (optional)
         Confidence plot (optional)
     """
+    names = {0:'Gilgit', 1:'Ngari', 2:'Khyber'}
 
     multi_index_df = tp_da.to_dataframe()
     df= multi_index_df.reset_index()
@@ -317,6 +318,7 @@ def gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
         df_pv = cluster_df.pivot(index='latitude', columns='longitude')
         df_pv = df_pv.droplevel(0, axis=1)
         cluster_da = xr.DataArray(data=df_pv, name=str(i))
+        cluster_da.to_netcdf(path= names[i]+'_mask.nc')
         clusters.append(cluster_da)
 
     if plot == True:
