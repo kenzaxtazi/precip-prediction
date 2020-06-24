@@ -24,6 +24,9 @@ import os
 # Filepaths and URLs
     
 mask_filepath = 'ERA5_Upper_Indus_mask.nc'
+khyber_mask = 'Khyber_mask.nc'
+gilgit_mask = 'Gilgit_mask.nc'
+ngari_mask = 'Ngari_mask.nc'
 
 tp_filepath = 'era5_tp_monthly_1979-2019.nc'
 tp_ensemble_filepath ='adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
@@ -37,9 +40,7 @@ x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep()
 x_train, x_val, x_test, y_train, y_val, y_test = dp.multivariate_data_prep()
 
 # Area multivariate GP preparation
-tp_da = de.apply_mask(tp_filepath, mask_filepath)
-clusters = cl.gp_clusters(tp_da, N=3, filter=0.7)
-x_train, y_train, x_test, y_test = dp.area_data_prep(clusters[0])
+xtrain, xval, xtest, ytrain, yval, ytest = dp.area_data_prep(khyber_mask)
 '''
 
 def sklearn_gp(x_train, y_train, dy_train):
@@ -113,7 +114,7 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     return m 
 
 
-def area_gpflow_gp(x_train, y_train, x_test, y_test):
+def area_gpflow_gp(xtrain, ytrain, xval, yval, name=None):
     """ Returns model and plot of GP model using GPflow for a given area"""
 
     # model construction
@@ -121,19 +122,19 @@ def area_gpflow_gp(x_train, y_train, x_test, y_test):
     k2 = gpflow.kernels.RBF()
     k = k1 + k2 
 
-    mean_function = gpflow.mean_functions.Linear(A=np.ones((11,1)), b=[1])
-    m = gpflow.models.GPR(data=(x_train, y_train.reshape(-1,1)), kernel=k2, mean_function=mean_function)
+    mean_function = gpflow.mean_functions.Linear(A=np.ones((10,1)), b=[1])
+    m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1,1)), kernel=k2, mean_function=mean_function)
 
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(m.training_loss, m.trainable_variables, options=dict(maxiter=100))
 
-    x_plot = np.concatenate((x_train, x_test))
-    y_plot = np.concatenate((y_train, y_test))
+    x_plot = np.concatenate((xtrain, xval))
+    y_plot = np.concatenate((ytrain, yval))
     y_gpr, y_std = m.predict_y(x_plot)
 
     ## generate 10 samples from posterior
     tf.random.set_seed(1)  # for reproducibility
-    samples = m.predict_f_samples(x_test, 10)  # shape (10, 100, 1)
+    samples = m.predict_f_samples(x_plot, 10)  # shape (10, 100, 1)
 
     ## Take mean accross latitude and longitude
 
@@ -147,7 +148,7 @@ def area_gpflow_gp(x_train, y_train, x_test, y_test):
 
     ## Figure 
     plt.figure()
-    plt.title('Cluster 0 fit')
+    plt.title( name + 'Cluster fit')
     # plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
     # plt.errorbar(x_test[:,0] + 1979, y_test, dy_test, fmt='g.', capsize=2, label='ERA5 testing data')
     plt.scatter(plot_df.index + 1979, plot_df['tp true'])
