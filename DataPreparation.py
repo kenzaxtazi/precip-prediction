@@ -286,7 +286,7 @@ def gp_area_prep(mask_filepath):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
     
-    xtrain, xval, xtest, ytrain, yval, ytest = kfold_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = kfold_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
