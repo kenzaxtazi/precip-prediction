@@ -268,9 +268,7 @@ def gp_area_prep(mask_filepath):
         y_test: testing output vector, numpy array
     """
 
-    df_combined = download_data(mask_filepath)
-    
-    df = df_combined.drop(columns=['expver'])
+    df = download_data(mask_filepath)
     df['time'] = df['time'].astype('int')
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
     df['tp'] = df['tp']*1000  # to mm
