@@ -18,11 +18,11 @@ import DataPreparation as dp
 
 
 data_filepath = fd.update_cds_data()
-mask_filepath = '/Users/kenzatazi/Downloads/ERA5_Upper_Indus_mask.nc'
+mask_filepath = 'ERA5_Upper_Indus_mask.nc'
 
 '''
-tp_filepath = '/Users/kenzatazi/Downloads/era5_tp_monthly_1979-2019.nc'
-mpl_filepath = '/Users/kenzatazi/Downloads/era5_msl_monthly_1979-2019.nc'
+tp_filepath = 'era5_tp_monthly_1979-2019.nc'
+mpl_filepath = 'era5_msl_monthly_1979-2019.nc'
 '''
 
 
@@ -237,8 +237,17 @@ def zeros_in_data(da):
     plt.show()
 
 
-def spatial_autocorr(): # TODO
+def spatial_autocorr(variable): # TODO
     """ Plots spatial autocorrelation """
+    
+    da = xr.open_dataset(data_filepath)
+    if 'expver' in list(da.dims):
+        print('expver found')
+        da = da.sel(expver=1)
+
+    da_var = da[variable]
+    da_dot = da_var.isel(longitude=[0], latitude=[0])
+    da_corr = xr.corr(da_dot, da_var, dim='time')  
 
 
 def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total precipitation [m/day]'): # TODO
@@ -286,7 +295,7 @@ def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total p
 def indus_map():
     """ Returns a map of the Indus river """
 
-    fpath = '/Users/kenzatazi/Downloads/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
+    fpath = 'ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
     as_shp = shapereader.Reader(fpath)
 
     #rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')
