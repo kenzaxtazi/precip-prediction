@@ -1,3 +1,5 @@
+# File Downloader
+
 import calendar
 import datetime
 import os
@@ -19,7 +21,7 @@ def save_csv_from_url(url, saving_path):
 def update_url_data(url, name):
     """ Import the most recent dataset from URL and return it as pandas DataFrame """
     
-    filepath = 'Data/Data/'
+    filepath = 'Data/'
     now = datetime.datetime.now()
     file = filepath + name + '-' + now.strftime("%m-%Y") + '.csv'
 
@@ -44,7 +46,9 @@ def update_url_data(url, name):
     return pd.DataFrame(df_final[name])
 
 
-def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means', product_type='monthly_averaged_reanalysis', variables = ['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 'orography', 'slope_of_sub_gridscale_orography', 'total_column_water_vapour', 'total_precipitation'], area = [40, 70, 30, 85], path = 'Data/Data/', qualifier=None):
+def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means', product_type='monthly_averaged_reanalysis', 
+                    variables=['2m_dewpoint_temperature', 'angle_of_sub_gridscale_orography', 'orography', 'slope_of_sub_gridscale_orography', 'total_column_water_vapour', 'total_precipitation'], 
+                    pressure_level=None, area = [40, 70, 30, 85], path = 'Data/', qualifier=None):
     """
     Imports the most recent version of the given ERA5 dataset as a netcdf from the CDS API.
     
@@ -76,15 +80,29 @@ def update_cds_data(dataset_name='reanalysis-era5-single-levels-monthly-means', 
         months = np.arange(1, 13, 1).astype(str)
 
         c = cdsapi.Client()
-        c.retrieve('reanalysis-era5-single-levels-monthly-means',
-                {'format': 'netcdf',
-                    'product_type': product_type,
-                    'variable': variables,
-                    'year': years.tolist(),
-                    'time': '00:00',
-                    'month': months.tolist(),
-                    'area': area},
-                    filepath)
+        
+        if pressure_level == None:
+            c.retrieve('reanalysis-era5-single-levels-monthly-means',
+                    {'format': 'netcdf',
+                        'product_type': product_type,
+                        'variable': variables,
+                        'year': years.tolist(),
+                        'time': '00:00',
+                        'month': months.tolist(),
+                        'area': area},
+                        filepath)
+        else:
+            c.retrieve('reanalysis-era5-single-levels-monthly-means',
+                    {'format': 'netcdf',
+                        'product_type': product_type,
+                        'variable': variables,
+                        'pressure_level': pressure_level,
+                        'year': years.tolist(),
+                        'time': '00:00',
+                        'month': months.tolist(),
+                        'area': area},
+                        filepath)
+
     
     return filepath
 
