@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import DataExploration as de
 import DataPreparation as dp 
 import FileDownloader as fd
-import Clustering as cl
 import Metrics as me
 
 import gpflow
