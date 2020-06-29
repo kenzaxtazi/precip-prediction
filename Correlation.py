@@ -1,5 +1,4 @@
-import matplotlib
-matplotlib.use('agg')
+# Correlation
 
 import datetime
 import urllib
@@ -30,13 +29,13 @@ data_filepath = fd.update_cds_data()
 df = dp.download_data(mask_filepath)
 
 # create lags
-df['NAO-1'] = df['NAO'].shift(periods=1)
-df['NAO-2'] = df['NAO'].shift(periods=2)
-df['NAO-3'] = df['NAO'].shift(periods=3)
-df['NAO-4'] = df['NAO'].shift(periods=4)
-df['NAO-5'] = df['NAO'].shift(periods=5)
-df['NAO-6'] = df['NAO'].shift(periods=6)
-
+df['CGTI-1'] = df['CGTI'].shift(periods=1)
+df['CGTI-2'] = df['CGTI'].shift(periods=2)
+df['CGTI-3'] = df['CGTI'].shift(periods=3)
+df['CGTI-4'] = df['CGTI'].shift(periods=4)
+df['CGTI-5'] = df['CGTI'].shift(periods=5)
+df['CGTI-6'] = df['CGTI'].shift(periods=6)
+'''
 df['N34-1'] = df['N34'].shift(periods=1)
 df['N34-2'] = df['N34'].shift(periods=2)
 df['N34-3'] = df['N34'].shift(periods=3)
@@ -50,8 +49,8 @@ df['N4-3'] = df['N4'].shift(periods=3)
 df['N4-4'] = df['N4'].shift(periods=4)
 df['N4-5'] = df['N4'].shift(periods=5)
 df['N4-6'] = df['N4'].shift(periods=6)
-
-df = df.drop(columns=['expver', 'Unnamed: 0'])
+'''
+df = df.drop(columns=['expver', 'time'])
 df_clean = df.dropna()
 df_sorted = df_clean.sort_index(axis=1)
 
@@ -77,37 +76,20 @@ plt.show()
 
 ### Cluster correlation plot 
 
-n_clusters = 3
-masked_da = dp.apply_mask(data_filepath, mask_filepath) # TODO fix to work with download_data()
-
-nao_url = 'https://www.psl.noaa.gov/data/correlation/nao.data'
-n34_url =  'https://psl.noaa.gov/data/correlation/nina34.data'
-n4_url =  'https://psl.noaa.gov/data/correlation/nina4.data'
-
-# Indices
-nao_df = fd.update_url_data(nao_url, 'NAO')
-n34_df = fd.update_url_data(n34_url, 'N34')
-n4_df = fd.update_url_data(n4_url, 'N4')
-ind_df = nao_df.join([n34_df, n4_df]).astype('float64')
-
-cds_da_clusters = cl.gp_clusters(masked_da.tp, N=n_clusters, filter=0.7, plot=True)
+cluster_masks = ['Khyber_mask.nc', 'Gilgit_mask.nc', 'Ngari_mask.nc']
 names =['Gilgit regime', 'Ngari regime', 'Khyber regime']
 
-for i in range(n_clusters):
-    cluster_da = masked_da.where(cds_da_clusters[i] >= 0)
-    multiindex_df = cluster_da.to_dataframe()
-    cluster_df = multiindex_df.reset_index()
-   
-    df_combined = pd.merge_ordered(cluster_df, ind_df, on='time')
+for i in range(3):
+    cluster_df = dp.download_data(cluster_masks[i])
 
     # create lags
-    df_combined['NAO-1'] = df_combined['NAO'].shift(periods=1)
-    df_combined['NAO-2'] = df_combined['NAO'].shift(periods=2)
-    df_combined['NAO-3'] = df_combined['NAO'].shift(periods=3)
-    df_combined['NAO-4'] = df_combined['NAO'].shift(periods=4)
-    df_combined['NAO-5'] = df_combined['NAO'].shift(periods=5)
-    df_combined['NAO-6'] = df_combined['NAO'].shift(periods=6)
-
+    cluster_df['CGTI-1'] = cluster_df['CGTI'].shift(periods=1)
+    cluster_df['CGTI-2'] = cluster_df['CGTI'].shift(periods=2)
+    cluster_df['CGTI-3'] = cluster_df['CGTI'].shift(periods=3)
+    cluster_df['CGTI-4'] = cluster_df['CGTI'].shift(periods=4)
+    cluster_df['CGTI-5'] = cluster_df['CGTI'].shift(periods=5)
+    cluster_df['CGTI-6'] = cluster_df['CGTI'].shift(periods=6)
+    ''''
     df_combined['N34-1'] = df_combined['N34'].shift(periods=1)
     df_combined['N34-2'] = df_combined['N34'].shift(periods=2)
     df_combined['N34-3'] = df_combined['N34'].shift(periods=3)
@@ -121,8 +103,8 @@ for i in range(n_clusters):
     df_combined['N4-4'] = df_combined['N4'].shift(periods=4)
     df_combined['N4-5'] = df_combined['N4'].shift(periods=5)
     df_combined['N4-6'] = df_combined['N4'].shift(periods=6)
-
-    df = df_combined.drop(columns=['expver'])
+    '''
+    df = cluster_df(columns=['expver', 'time'])
     df_clean = df.dropna()
     df_sorted = df_clean.sort_index(axis=1)
 

@@ -1,5 +1,4 @@
-import matplotlib
-matplotlib.use('agg')
+# Clustering
 
 import numpy as np
 import xarray as xr
@@ -334,8 +333,7 @@ def gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
         c = ['#2460A7FF', '#85B3D1FF', '#D9B48FFF']
-        g= da.plot(x='longitude', y='latitude', add_colorbar=False, ax=ax, levels=N+1,
-                   cmap=sns.color_palette(c)) # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
+        g= da.plot(x='longitude', y='latitude', add_colorbar=False, ax=ax, levels=N+1) # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
         cbar = plt.colorbar(g, ticks=[0.4, 1.2, 2], pad=0.10)
         cbar.ax.set_yticklabels(['Gilgit regime', 'Ngari regime', 'Khyber regime'])
         ax.gridlines(draw_labels=True)

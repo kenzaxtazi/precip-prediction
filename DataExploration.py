@@ -1,8 +1,4 @@
-
-# Precipitation Data Exploration
-
-import matplotlib
-matplotlib.use('agg')
+# Data Exploration
 
 import numpy as np
 import xarray as xr
@@ -46,14 +42,10 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([55, 95, 15, 45])
+    ax.set_extent([71, 83, 30, 38])
     g = da_final.plot(cmap='magma_r', vmin=0.01, cbar_kwargs={'label': '\n Total precipitation [m]', 'extend':'neither'})
     g.cmap.set_under('white')
     ax.add_feature(cf.BORDERS)
-    ax.text(64, 27, 'PAKISTAN')
-    ax.text(63, 33, 'AFGHANISTAN')
-    ax.text(80, 36, 'CHINA')
-    ax.text(74, 28, 'INDIA')
     ax.coastlines()
     ax.gridlines(draw_labels=True)
     ax.set_xlabel('Longitude')
@@ -102,7 +94,7 @@ def change_maps(variable, year): #TODO fix this
     for ax in g.axes.flat:
         ax.coastlines()
         ax.gridlines()
-        ax.set_extent([55, 95, 15, 45])
+        ax.set_extent([71, 83, 30, 38])
         ax.add_feature(cf.BORDERS)
 
     plt.show()
