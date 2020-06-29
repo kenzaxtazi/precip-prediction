@@ -61,7 +61,8 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         n34_df = fd.update_url_data(n34_url, 'N34')
         #n4_df = fd.update_url_data(n4_url, 'N4')
         ind_df = n34_df.astype('float64') #.join([nao_df, n4_df])
-
+        
+        '''
         # Temperature
         temp_filepath = fd.update_cds_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
         temp_da = xr.open_dataset(temp_filepath)
@@ -81,7 +82,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         multiindex_df = cgti_da.to_dataframe()
         cgti_df = multiindex_df.reset_index()
         cgti_df = cgti_df.rename(columns={"z":"CGTI"})
-        
+        '''
         # Orography, humidity and precipitation
         if ensemble == False:
             cds_filepath = fd.update_cds_data()
@@ -94,9 +95,9 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
 
         # Combine
         df_combined1 = pd.merge_ordered(cds_df, ind_df, on='time')
-        df_combined2 = pd.merge_ordered(df_combined1, temp_df, on='time')
-        df_combined3 = pd.merge_ordered(df_combined2, cgti_df, on='time')
-        df_clean = df_combined2.drop(columns=['expver_x', 'expver_y']).dropna()
+        # df_combined2 = pd.merge_ordered(df_combined1, temp_df, on='time')
+        # df_combined3 = pd.merge_ordered(df_combined2, cgti_df, on='time')
+        df_clean = df_combined1.drop(columns=['expver_x', 'expver_y']).dropna()
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean = df_clean.astype('float64')
         df_clean.to_csv(filepath)
