@@ -38,7 +38,7 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.area_data_prep(khyber_mask)
 
 ## GPflow 
 
-def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
+def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test, save=False):
     """ Returns model and plot of GP model using GPflow """
 
     # model construction
@@ -82,7 +82,7 @@ def gpflow_gp(x_train, y_train, dy_train, x_test, y_test, dy_test):
     return m 
 
 
-def area_gpflow_gp(xtrain, ytrain, xval, yval, name=None):
+def area_gpflow_gp(xtrain, ytrain, xval, yval, save=False):
     """ Returns model and plot of GP model using GPflow for a given area"""
 
     # model construction
@@ -115,6 +115,7 @@ def area_gpflow_gp(xtrain, ytrain, xval, yval, name=None):
     plot_df = results_df.groupby(['time']).mean()
 
     ## Figure 
+    '''
     plt.figure()
     plt.title( name + 'Cluster fit')
     # plt.errorbar(x_train[:,0] + 1979, y_train, dy_train, fmt='k.', capsize=2, label='ERA5 training data')
@@ -128,11 +129,13 @@ def area_gpflow_gp(xtrain, ytrain, xval, yval, name=None):
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
     plt.show()
+    '''
+    print(" {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(me.R2(m, xtrain, ytrain), me.RMSE(m, xtrain, ytrain), me.R2(m, xval, yval), me.RMSE(m, xval, yval), np.mean(y_gpr), np.mean(y_std)))
 
     return m
 
 
-def multi_gpflow_gp(xtrain, xval, ytrain, yval):
+def multi_gpflow_gp(xtrain, xval, ytrain, yval, save=False):
     """ Returns model and plot of GP model using sklearn """
 
     # model construction
@@ -180,3 +183,5 @@ def multi_gpflow_gp(xtrain, xval, ytrain, yval):
     print(" {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(me.R2(m, xtrain, ytrain), me.RMSE(m, xtrain, ytrain), me.R2(m, xval, yval), me.RMSE(m, xval, yval), np.mean(y_gpr), np.mean(y_std)))
     return m
 
+def save_model(model): # TODO
+    
