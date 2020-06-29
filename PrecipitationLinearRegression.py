@@ -4,18 +4,16 @@ import time
 import datetime
 import xarray as xr
 
-import FileDownloader as fd 
+import FileDownloader as fd
+import DataPreparation as dp
 
 from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 
 
 # Open data
-
-tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
-mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc.download'
-
-tp= xr.open_dataset(tp_filepath)
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
+tp= dp.download_data(mask_filepath, xarray=True)
 tp_da = tp.tp *1000  # convert from m/day to mm/day 
 
 # Sklearn model for location timeseries

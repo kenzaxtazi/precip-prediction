@@ -14,7 +14,6 @@ import DataExploration as de
 import DataPreparation as dp
 
 # Filepaths 
-tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 dem_filepath = 'Data/elev.0.25-deg.nc'
 
@@ -26,7 +25,7 @@ sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
 
 # Precipitation Data
-da = dp.apply_mask(tp_filepath, mask_filepath)
+da = dp.download_data(mask_filepath, xarray=True)
 UIB_cum = dp.cumulative_monthly(da.tp)*1000
 
 

@@ -21,12 +21,9 @@ khyber_mask = 'Khyber_mask.nc'
 gilgit_mask = 'Gilgit_mask.nc'
 ngari_mask = 'Ngari_mask.nc'
 
-tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
-tp_ensemble_filepath = 'Data/adaptor.mars.internal-1587987521.7367163-18801-5-5284e7a8-222a-441b-822f-56a2c16614c2.nc'
 
 '''
 # Single point GP preparation
-da = dp.apply_mask(tp_ensemble_filepath, mask_filepath)
 x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep()
 
 # Single point multivariate GP preparation
