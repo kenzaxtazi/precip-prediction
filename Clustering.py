@@ -23,10 +23,9 @@ dem = xr.open_dataset(dem_filepath)
 dem_da = (dem.data).sum(dim='time')
 sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75)) 
 
-if __name__ == "__main__":
-    # Precipitation Data
-    da = dp.download_data(mask_filepath, xarray=True)
-    UIB_cum = dp.cumulative_monthly(da.tp)*1000
+# Precipitation Data
+#da = dp.download_data(mask_filepath, xarray=True)
+#UIB_cum = dp.cumulative_monthly(da.tp)*1000
 
 
 # Decades segmentation
