@@ -184,4 +184,4 @@ def multi_gpflow_gp(xtrain, xval, ytrain, yval, save=False):
     return m
 
 def save_model(model): # TODO
-    
+    return 1
