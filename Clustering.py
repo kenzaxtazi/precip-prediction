@@ -13,31 +13,28 @@ from sklearn.cluster import KMeans
 import DataExploration as de
 import DataPreparation as dp
 
-
-if name in if __name__ == "__main__":
-
-    # Filepaths 
-    tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
-    mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
-    dem_filepath = 'Data/elev.0.25-deg.nc'
+# Filepaths 
+tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
+mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
+dem_filepath = 'Data/elev.0.25-deg.nc'
 
 
-    # Digital Elevation Model
-    dem = xr.open_dataset(dem_filepath)
-    dem_da = (dem.data).sum(dim='time')
-    sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75)) 
+# Digital Elevation Model
+dem = xr.open_dataset(dem_filepath)
+dem_da = (dem.data).sum(dim='time')
+sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75)) 
 
 
-    # Precipitation Data
-    da = dp.apply_mask(tp_filepath, mask_filepath)
-    UIB_cum = dp.cumulative_monthly(da.tp)*1000
+# Precipitation Data
+da = dp.apply_mask(tp_filepath, mask_filepath)
+UIB_cum = dp.cumulative_monthly(da.tp)*1000
 
 
-    # Decades segmentation
-    decades = [1980, 1990, 2000, 2010]
+# Decades segmentation
+decades = [1980, 1990, 2000, 2010]
 
-    # Clusters
-    N = np.arange(2, 11, 1)
+# Clusters
+N = np.arange(2, 11, 1)
 
 
 def seasonal_clusters(UIB_cum, sliced_dem, N, decades):
