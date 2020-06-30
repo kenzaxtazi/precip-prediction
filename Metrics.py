@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 import DataExploration as de
 import DataPreparation as dp
@@ -26,43 +27,66 @@ def RMSE(model, x, y):
     RMSE = mean_squared_error(y, y_pred)
     return RMSE
 
-def plot_predictions(model, mask_filepath, number=None):
+def model_plot(model, number=None):
     """ Returns plot for multivariate GP for a single loation """
+    
     if number == None:
-        da = dp.download_data(mask_filepath, xarray=True)
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=number)
     else:
-        da = dp.download_data(mask_filepath, xarray=True, ensemble=True)
-        da = da.sel(number=number).drop('number')
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 
-    gilgit = da.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    multiindex_df = gilgit.to_dataframe()
-    df_clean = multiindex_df.reset_index()
-    df = df_clean.drop(columns=['latitude', 'longitude'])
-
-    df['time'] = df['time'].astype('int')
-    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
-    df['tp'] = df['tp']*1000  # to mm
-    df_clean = df.dropna()
-
-    # Training and validation data
-    tr_df = df_clean[ df_clean['time']< df_clean['time'].max()*0.9]
-    xtr = tr_df.drop(columns=['tp']).values
-    ytr = tr_df['tp'].values
-
+    xtr = np.concatenate(xtrain, xval)
     y_gpr, y_std = model.predict_y(xtr)
     samples = model.predict_f_samples(xtr, 5)
     
     plt.figure()
-    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
-    plt.scatter(xtr[:,0] + 1981, ytr, label='ERA5 data')
+    
+    plt.scatter(xtrain[:,0] + 1981, ytrain, label='ERA5 training data')
+    plt.scatter(xval[:,0] + 1981, yval, label='ERA5 validation data')
+    
     plt.plot(xtr[:,0] + 1981, y_gpr, color='orange', linestyle='-', label='Prediction')
     plt.fill_between(xtr[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
              alpha=.5, color='lightblue', label='95% confidence interval')
+
     plt.plot(xtr[:,0] + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
-    plt.legend()
+    
+    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
+    plt.legend()
+
     plt.show()
+
+def ensemble_model_plot(models):
+    """ Returns plot for ensemble of multivariate GP for a single loation """
+
+    palette = sns.color_palette("husl", 10)
+
+    plt.figure()  
+
+    for i in range(10):
+
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=i)
+
+        
+        xtr = np.concatenate((xtrain, xval), axis=0)
+        ytr = np.concatenate((ytrain, yval), axis=0)
+
+        y_gpr, y_std = models[i].predict_y(xtr)
+       
+        plt.scatter(xtr[:,0] + 1981, ytr, label='ERA5 data', color=palette[i])
+        
+        plt.plot(xtr[:,0] + 1981, y_gpr, color=palette[i], linestyle='-', label='Prediction')
+        plt.fill_between(xtr[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+             alpha=.2, color=palette[i], label='95% confidence interval')
+    
+    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
+    plt.ylabel('Precipitation [mm/day]')
+    plt.xlabel('Year')
+    plt.legend()
+
+    plt.show()
+
 
 def plot_vs_truth(x_train, y_train, x_test, y_test, m):
     
