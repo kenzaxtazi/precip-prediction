@@ -255,7 +255,7 @@ def multivariate_data_prep(number=None):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = kfold_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = simple_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -296,7 +296,7 @@ def gp_area_prep(mask_filepath, number=None):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
     
-    xtrain, xval, ytrain, yval = kfold_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = simple_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -339,7 +339,12 @@ def kfold_split(x, y, dy=None, folds=5):
         xtrain, xval = x[train_index], x[test_index]
         ytrain, yval = y[train_index], y[test_index]
 
-    return  xtrain, xval, ytrain, yval,
+    return  xtrain, xval, ytrain, yval
+
+def simple_split(x, y):
+    xtrain, xval, ytrain, yval = train_test_split(x, y, test_size=0.30, shuffle=False)
+    return  xtrain, xval, ytrain, yval
+
 
 
 
