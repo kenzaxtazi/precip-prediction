@@ -29,7 +29,7 @@ x_train, y_train, dy_train, x_test, y_test, dy_test = dp.point_data_prep()
 xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 
 # Area multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.area_data_prep(khyber_mask)
+xtrain, xval, xtest, ytrain, yval, ytest = dp.gp_area_prep(khyber_mask)
 '''
 
 ## GPflow 
