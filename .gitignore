@@ -25,3 +25,8 @@ Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_06-
 __pycache__/Metrics.cpython-37.pyc
 ArchivedModels.py
 ktazi@jasmin-login1.ceda.ac.uk
+__pycache__/DataDownloader.cpython-37.pyc
+__pycache__/Sampling.cpython-37.pyc
+Data/combi_data_07-2020.csv
+Data/N34-07-2020.csv
+Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_07-2020.nc
