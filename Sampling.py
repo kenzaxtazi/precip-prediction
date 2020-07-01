@@ -12,11 +12,13 @@ import matplotlib.pyplot as plt
 def random_location_sampler(df):
     """ Returns DataFrame of random location, apply to clean df only """
 
-    i = np.random.randint(len(df), size=1)
     df_squished = df.groupby(['latitude', 'longitude']).sum()
-    df_location = df_squished[i]
-    lat = df_location['latitude']
-    lon = df_location['longitude']
+    df_s_reset = df_squished.reset_index()
+    i = np.random.randint(len(df_s_reset), size=1)
+
+    df_location = df_s_reset.iloc[i]
+    lat = df_location['latitude'].values[0]
+    lon = df_location['longitude'].values[0]
 
     df1 = df[df['latitude']==lat]
     df2 = df1[df1['longitude']==lon]
