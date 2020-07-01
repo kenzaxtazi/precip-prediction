@@ -12,13 +12,13 @@ from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 
+import CrossValidation as cv
 import DataDownloader as dd
 import Sampling as sa
 
 
 # Filepaths and URLs
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
-
 
 
 def cumulative_monthly(da):
@@ -117,7 +117,7 @@ def multivariate_data_prep(number=None, coords=None):
         df = df_location.drop(columns=['latitude', 'longitude'])
     
     else: 
-        da_location = da.interp(coords={'latitude':coords[0], 'longitude':coord[1]}, method='nearest')
+        da_location = da.interp(coords={'latitude':coords[0], 'longitude':coords[1]}, method='nearest')
         multiindex_df = da_location.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=['latitude', 'longitude'])
@@ -136,10 +136,59 @@ def multivariate_data_prep(number=None, coords=None):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = simple_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
+
+def multivariate_cv_data_prep(number=None, coords=None):
+    """ 
+    Outputs test and training data for total precipitation as a function of time, 2m dewpoint temperature, 
+    angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
+    Nino 3.4, Nino 4 and NAO index for a single point.
+
+    Inputs
+        None
+
+    Outputs
+        x_train: training feature vector, numpy array 
+        y_train: training output vector, numpy array
+        x_test: testing feature vector, numpy array
+        y_test: testing output vector, numpy array
+    """
+    if number == None:
+        da = dd.download_data(mask_filepath, xarray=True)
+    else:
+        da = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da.sel(number=number).drop('number')
+
+    if coords == None: 
+        multiindex_df = da.to_dataframe()
+        df_clean = multiindex_df.dropna().reset_index()
+        df_location = sa.random_location_sampler(df_clean)
+        df = df_location.drop(columns=['latitude', 'longitude'])
+    
+    else: 
+        da_location = da.interp(coords={'latitude':coords[0], 'longitude':coords[1]}, method='nearest')
+        multiindex_df = da_location.to_dataframe()
+        df_clean = multiindex_df.dropna().reset_index()
+        df = df_clean.drop(columns=['latitude', 'longitude'])
+
+    df['time'] = df['time'].astype('int')
+    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
+    df['tp'] = df['tp']*1000  # to mm
+    
+    # Remove last 10% of time for testing
+    test_df = df[ df['time']> df['time'].max()*0.9]
+    xtest = test_df.drop(columns=['tp']).values
+    ytest = test_df['tp'].values
+
+    # Training and validation data
+    tr_df = df[ df['time']< df['time'].max()*0.9]
+    xtr = tr_df.drop(columns=['tp']).values
+    ytr = tr_df['tp'].values
+    
+    return xtr, xtest, ytr, ytest
 
 
 def random_multivariate_data_prep(number=None, length=3000, seed=42):
@@ -182,7 +231,7 @@ def random_multivariate_data_prep(number=None, length=3000, seed=42):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = simple_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -223,7 +272,7 @@ def gp_area_prep(mask_filepath, number=None):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
     
-    xtrain, xval, ytrain, yval = simple_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -238,39 +287,6 @@ def normalise(df):
     return df
 
 
-def kfold_split(x, y, dy=None, folds=5):
-    """ 
-    Split values into training, validation and test sets.
-    The training and validation set are prepared for k folding.
-
-    Inputs
-        x: array of features
-        y: array of target values
-        dy: array of uncertainty on target values
-        folds: number of kfolds
-
-    Outputs
-        xtrain: feature training set
-        xvalidation: feature validation set
-
-        ytrain: target training set
-        yvalidation: target validation set
-
-        dy_train: uncertainty training set
-        dy_validation: uncertainty validation set
-    """
-    # Remove test set without shuffling
-    
-    kf = KFold(n_splits=folds)
-    for train_index, test_index in kf.split(x):
-        xtrain, xval = x[train_index], x[test_index]
-        ytrain, yval = y[train_index], y[test_index]
-
-    return  xtrain, xval, ytrain, yval
-
-def simple_split(x, y):
-    xtrain, xval, ytrain, yval = train_test_split(x, y, test_size=0.30, shuffle=False)
-    return  xtrain, xval, ytrain, yval
 
 
 
