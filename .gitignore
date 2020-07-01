@@ -30,3 +30,4 @@ __pycache__/Sampling.cpython-37.pyc
 Data/combi_data_07-2020.csv
 Data/N34-07-2020.csv
 Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_07-2020.nc
+__pycache__/CrossValidation.cpython-37.pyc
