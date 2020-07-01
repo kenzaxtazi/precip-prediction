@@ -15,7 +15,7 @@ from scipy import signal
 
 import FileDownloader as fd
 import DataPreparation as dp
-
+import DataDownloader as dd
 
 data_filepath = fd.update_cds_data()
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
@@ -29,7 +29,7 @@ mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
 def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     """ Map of cumulative precipitation for 1979 """
 
-    da = dp.apply_mask(data_filepath, mask_filepath)
+    da = dd.apply_mask(data_filepath, mask_filepath)
     da_var = da[variable]
     da_year = da_var.sel(time=slice(str(year)+'-01-16T12:00:00', str(year+1)+'-01-01T12:00:00'))
 
@@ -240,7 +240,7 @@ def detrend(df, axis):
 def spatial_autocorr(variable, mask_filepath): # TODO
     """ Plots spatial autocorrelation """
     
-    df = dp.download_data(mask_filepath)
+    df = dd.download_data(mask_filepath)
     # detrend
     table = pd.pivot_table(df, values='tp', index=['latitude', 'longitude'], columns=['time'])
     trans_table = table.T
