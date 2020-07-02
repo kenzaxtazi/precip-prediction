@@ -19,6 +19,7 @@ def random_location_sampler(df):
     df_location = df_s_reset.iloc[i]
     lat = df_location['latitude'].values[0]
     lon = df_location['longitude'].values[0]
+    print('lat='+ str(lat)+', lon='+ str(lon))
 
     df1 = df[df['latitude']==lat]
     df2 = df1[df1['longitude']==lon]
