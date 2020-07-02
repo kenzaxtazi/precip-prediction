@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 import CrossValidation as cv
 import DataDownloader as dd
 import Sampling as sa
+import Clustering as cl
 
 
 # Filepaths and URLs
@@ -165,6 +166,7 @@ def multivariate_cv_data_prep(number=None, coords=None):
     if coords == None: 
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
+        df_clustered = cl.new_gp_clusters(df_clean)
         df_location = sa.random_location_sampler(df_clean)
         df = df_location.drop(columns=['latitude', 'longitude'])
     
