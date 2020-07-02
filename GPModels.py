@@ -133,6 +133,7 @@ def multi_gp_cv(xtr, ytr, save=False, plot=False):
     score = sk.model_selection.cross_validate(gp_estimator, xtr, ytr, scoring=scoring, cv=sk.model_selection.TimeSeriesSplit())
 
     print(score['test_r2'].mean())
+    print(score['test_neg_mean_squared_error'].mean() * -1)
     
     #y_gpr = sk.model_selection.cross_val_predict(gp_estimator, xtr, ytr) cv=sk.model_selection.TimeSeriesSplit())
 
