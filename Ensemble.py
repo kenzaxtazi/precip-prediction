@@ -33,7 +33,7 @@ yval_std_pred_list = []
 
 for i in range(10):
     
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(number=i, length=5000)
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(number=i, length=10000)
 
     ytrain_list.append(ytrain)
     yval_list.append(yval)
