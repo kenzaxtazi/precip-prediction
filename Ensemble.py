@@ -33,11 +33,11 @@ yval_std_pred_list = []
 
 for i in range(10):
     
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=i)
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(number=i, length=5000)
 
     ytrain_list.append(ytrain)
     yval_list.append(yval)
-    
+    '''
     model = gpm.multi_gpflow_gp(xtrain, xval, ytrain, yval)
     model_list.append(model)
 
@@ -48,7 +48,7 @@ for i in range(10):
     yval_pred, yval_std_pred = model.predict_y(xval)
     yval_pred_list.append(yval_pred)
     yval_std_pred_list.append(yval_std_pred)
-
+    '''
 
 ## Ensemble
 
@@ -61,7 +61,7 @@ ytrain_array = np.array(ytrain_list)
 ytrain_df = pd.DataFrame(ytrain_array.reshape(10, -1))
 ytrain_df = ytrain_df.T
 ytrain_df['mean'] = ytrain_df.mean(axis=1)
-
+'''
 yval_pred_array = np.array(yval_pred_list) 
 yval_pred_df = pd.DataFrame(yval_pred_array.reshape(10, -1))
 yval_pred_df = yval_pred_df.T
@@ -90,9 +90,8 @@ R2_val = r2_score(yval_df['mean'], yval_pred_df['mean'])
 
 y_mean = np.concatenate((ytrain_pred_df['mean'], yval_pred_df['mean'])).mean()
 std_mean = np.concatenate((ytrain_std_pred_df['mean'], yval_std_pred_df['mean'])).mean()
-
+'''
 # me.ensemble_model_plot(model_list)
 
 ## Averaged EDA Data
-m_a = gpm.multi_gpflow_gp(xtrain, xval, ytrain_df['mean'].values, yval_df['mean'].values)
-
+m_a = gpm.multi_gp(xtrain, xval, ytrain_df['mean'].values, yval_df['mean'].values)
