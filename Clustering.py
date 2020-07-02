@@ -11,7 +11,7 @@ import cartopy.feature as cf
 from sklearn.cluster import KMeans
 
 import DataExploration as de
-import DataPreparation as dp
+import DataDownloader as dd
 
 # Filepaths 
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
@@ -24,9 +24,7 @@ dem_da = (dem.data).sum(dim='time')
 sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75)) 
 
 # Precipitation Data
-#da = dp.download_data(mask_filepath, xarray=True)
-#UIB_cum = dp.cumulative_monthly(da.tp)*1000
-
+#da = dd.download_data(mask_filepath, xarray=True)
 
 # Decades segmentation
 decades = [1980, 1990, 2000, 2010]
@@ -278,7 +276,7 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=False):
     plt.show()
 
 
-def gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
+def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
 
     """ 
     Returns cluster masks for data separation.
@@ -404,5 +402,23 @@ def filtering (df, kmeans, thresh=0.7):
     df['Labels'] = kmeans.labels_
     filtered_df = df[df['weights']> thresh]
     return filtered_df
+
+
+def new_gp_clusters(df, N=3, filter=0.7):
+
+    df_clean = df[df['tp']>0]
+    table = pd.pivot_table(df_clean, values='tp', index=['latitude', 'longitude'], columns=['time'])
+    X = table.interpolate()
+    
+    # Soft k-means
+    kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
+    filtered_df = filtering(X, kmeans, thresh=filter)
+
+    # Seperate labels and append as DataArray
+    reset_df = filtered_df.reset_index()[['Labels', 'latitude', 'longitude']]
+    df_combined = pd.merge_ordered(df_clean, reset_df, on=['latitude', 'longitude'])
+    clean_df = df_combined.dropna()
+
+    return clean_df
 
 
