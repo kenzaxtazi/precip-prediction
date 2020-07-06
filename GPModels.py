@@ -61,30 +61,6 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     return m
 
-def multi_gp_cv(xtr, ytr, save=False, plot=False):
-
-    """" Returns model and plot of GP model using sklearn with cross valiation """
-
-    # model construction
-    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=0.3,  variance=6, active_dims=[0]))
-    k2 = gpflow.kernels.RBF()
-    # k3 = gpflow.kernels.White()
-  
-    k = k1 + k2  #+k3
-
-    mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtr[0]),1)), b=[1])
-
-    gp_estimator = cv.GP_estimator(kernel=k, mean_function=mean_function)
-
-    scoring = ['r2', 'neg_mean_squared_error']
-    score = sk.model_selection.cross_validate(gp_estimator, xtr, ytr, scoring=scoring, cv=sk.model_selection.TimeSeriesSplit())
-
-    print(score['test_r2'].mean())
-    print(score['test_neg_mean_squared_error'].mean() * -1)
-    
-    #y_gpr = sk.model_selection.cross_val_predict(gp_estimator, xtr, ytr) cv=sk.model_selection.TimeSeriesSplit())
-
-    return score
 
 
 def save_model(model, xval, qualifiers=None): # TODO
