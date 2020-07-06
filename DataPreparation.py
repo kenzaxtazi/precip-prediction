@@ -12,7 +12,6 @@ from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 
-import CrossValidation as cv
 import DataDownloader as dd
 import Sampling as sa
 import Clustering as cl
@@ -38,7 +37,7 @@ def cumulative_monthly(da):
     return da * dim_mesh
 
 
-def multivariate_data_prep(number=None, coords=None):
+def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     """ 
     Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -53,11 +52,14 @@ def multivariate_data_prep(number=None, coords=None):
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-    if number == None:
-        da = dd.download_data(mask_filepath, xarray=True)
+    if number != None:
+        da_ensemble = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da_ensemble.sel(number=number).drop('number')
+    if EDA_average == True:
+        da_ensemble = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da_ensemble.mean(dim='number')
     else:
-        da = dd.download_data(mask_filepath, xarray=True, ensemble=True)
-        da = da.sel(number=number).drop('number')
+        da = dd.download_data(mask_filepath, xarray=True)
 
     if coords == None: 
         multiindex_df = da.to_dataframe()
@@ -85,12 +87,12 @@ def multivariate_data_prep(number=None, coords=None):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = train_test_split(xtr, ytr, test_size=0.30, shuffle=False)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def random_multivariate_data_prep(number=None, length=3000, seed=42):
+def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, seed=42):
     """ 
     Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -108,11 +110,16 @@ def random_multivariate_data_prep(number=None, length=3000, seed=42):
         y_test: testing output vector, numpy array
     """
 
-    if number == None:
-        da = dd.download_data(mask_filepath, xarray=True)
+    if number != None:
+        da_ensemble = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da_ensemble.sel(number=number).drop('number')
+        
+    if EDA_average == True:
+        da_ensemble = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da_ensemble.mean(dim='number')
     else:
-        da = dd.download_data(mask_filepath, xarray=True, ensemble=True)
-        da = da.sel(number=number).drop('number')
+        da = dd.download_data(mask_filepath, xarray=True)
+        
 
     multiindex_df = da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
@@ -133,7 +140,7 @@ def random_multivariate_data_prep(number=None, length=3000, seed=42):
     xtr = tr_df.drop(columns=['tp']).values
     ytr = tr_df['tp'].values
 
-    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
+    xtrain, xval, ytrain, yval = train_test_split(xtr, ytr, test_size=0.30, shuffle=False)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
