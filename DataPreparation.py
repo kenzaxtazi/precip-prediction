@@ -90,6 +90,54 @@ def multivariate_data_prep(number=None, coords=None):
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
+def random_multivariate_data_prep(number=None, length=3000, seed=42):
+    """ 
+    Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature, 
+    angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
+    Nino 3.4 index for given number randomly sampled data points.
+
+    Inputs
+        number, optional: specify desired ensemble run, integer
+        length, optional: specify number of points to sample, integer
+        seed, optional: specify seed, integer
+
+    Outputs
+        x_train: training feature vector, numpy array 
+        y_train: training output vector, numpy array
+        x_test: testing feature vector, numpy array
+        y_test: testing output vector, numpy array
+    """
+
+    if number == None:
+        da = dd.download_data(mask_filepath, xarray=True)
+    else:
+        da = dd.download_data(mask_filepath, xarray=True, ensemble=True)
+        da = da.sel(number=number).drop('number')
+
+    multiindex_df = da.to_dataframe()
+    df_clean = multiindex_df.dropna().reset_index()
+    df_location = sa.random_location_and_time_sampler(df_clean, length=length, seed=seed)
+    df = df_location
+
+    df['time'] = df['time'].astype('int')
+    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
+    df['tp'] = df['tp']*1000  # to mm
+    
+    # Remove last 10% of time for testing
+    test_df = df[ df['time']> df['time'].max()*0.9]
+    xtest = test_df.drop(columns=['tp']).values
+    ytest = test_df['tp'].values
+
+    # Training and validation data
+    tr_df = df[ df['time']< df['time'].max()*0.9]
+    xtr = tr_df.drop(columns=['tp']).values
+    ytr = tr_df['tp'].values
+
+    xtrain, xval, ytrain, yval = cv.simple_split(xtr, ytr)
+    
+    return xtrain, xval, xtest, ytrain, yval, ytest
+
+
 def normalise(df):
     """ Normalise dataframe """
 
