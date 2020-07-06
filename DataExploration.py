@@ -17,7 +17,7 @@ import FileDownloader as fd
 import DataPreparation as dp
 import DataDownloader as dd
 
-data_filepath = fd.update_cds_data()
+data_filepath = fd.update_cds_monthly_data()
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 '''

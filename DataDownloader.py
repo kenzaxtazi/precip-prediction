@@ -57,7 +57,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         
         '''
         # Temperature
-        temp_filepath = fd.update_cds_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
+        temp_filepath = fd.update_cds_monthly_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
         temp_da = xr.open_dataset(temp_filepath)
         if 'expver' in list(temp_da.dims):
             temp_da = temp_da.sel(expver=1)
@@ -67,7 +67,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
 
         # CGTI
         
-        z200_filepath = fd.update_cds_data(variables=['geopotential'], pressure_level='200', area=[40, 60, 35,70], qualifier='z200')
+        z200_filepath = fd.update_cds_monthly_data(variables=['geopotential'], pressure_level='200', area=[40, 60, 35,70], qualifier='z200')
         z200_da = xr.open_dataset(z200_filepath)
         if 'expver' in list(z200_da.dims):
             z200_da = z200_da.sel(expver=1)
@@ -78,9 +78,9 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         '''
         # Orography, humidity and precipitation
         if ensemble == False:
-            cds_filepath = fd.update_cds_data()
+            cds_filepath = fd.update_cds_monthly_data()
         else:
-            cds_filepath = fd.update_cds_data(product_type='monthly_averaged_ensemble_members')
+            cds_filepath = fd.update_cds_monthly_data(product_type='monthly_averaged_ensemble_members')
 
         masked_da = apply_mask(cds_filepath, mask_filepath)
         multiindex_df = masked_da.to_dataframe()

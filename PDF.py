@@ -14,7 +14,7 @@ import DataPreparation as dp
 
 # Open data
 
-data_filepath = fd.update_cds_data()
+data_filepath = fd.update_cds_monthly_data()
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 def monthly_PDF(data_filepath, mask_filepath, variable='tp', longname=''):
