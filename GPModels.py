@@ -89,7 +89,7 @@ def area_gp(xtrain, ytrain, xval, yval, save=False):
     return m
 
 
-def multi_gp(xtrain, xval, ytrain, yval, save=False, plot=False):
+def multi_gp(xtrain, xval, ytrain, yval, save=False):
     """ Returns model and plot of GP model using sklearn """
 
     # model construction
@@ -105,13 +105,17 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False, plot=False):
 
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(m.training_loss, m.trainable_variables, options=dict(maxiter=100))
-    print_summary(m)
+    # print_summary(m)
 
     x_plot = np.concatenate((xtrain, xval))
     y_gpr, y_std = m.predict_y(x_plot)
 
     print(" {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(me.R2(m, xtrain, ytrain), me.RMSE(m, xtrain, ytrain), me.R2(m, xval, yval), me.RMSE(m, xval, yval), np.mean(y_gpr), np.mean(y_std)))
     
+    if save == True:
+        filepath = save_model(m)
+        print(filepath)
+        
     return m
 
 def multi_gp_cv(xtr, ytr, save=False, plot=False):
@@ -140,6 +144,26 @@ def multi_gp_cv(xtr, ytr, save=False, plot=False):
     return score
 
 
+def save_model(model, qualifiers=None): # TODO
+    """ Save the model for future use, returns filepath """
+    
+    frozen_model = gpflow.utilities.freeze(model)
+    
+    module_to_save = tf.Module()
+    predict_fn = tf.function(frozen_model.predict_f, input_signature=[tf.TensorSpec(shape=[None, 1], dtype=tf.float64)])
+    module_to_save.predict = predict_fn
 
-def save_model(model): # TODO
-    return 1
+    samples_input = tf.convert_to_tensor(samples_input, dtype=default_float())
+    original_result = module_to_save.predict(samples_input)
+
+    filename = 'model_' + now.strftime("%Y-%m-%D-%H-%M-%S") + qualifier
+
+    save_dir = 'Models/' + filename
+    tf.saved_model.save(module_to_save, save_dir)
+
+    return save_dir
+
+def restore_model(model_filepath):
+    """ Restore a saved model """
+    loaded_model = tf.saved_model.load(model_filepath)
+    return loaded_model 
