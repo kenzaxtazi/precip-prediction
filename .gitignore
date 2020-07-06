@@ -34,3 +34,4 @@ __pycache__/CrossValidation.cpython-37.pyc
 Data/combi_data_ensemble_07-2020.csv
 Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_ensemble_members_07-2020.nc
 Archive/ArchivedDataPreparation.py
+Archive/CrossValidation.py
