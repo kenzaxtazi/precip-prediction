@@ -98,7 +98,7 @@ def save_model(model, xval, qualifiers=None): # TODO
     predict_fn = tf.function(frozen_model.predict_f, input_signature=[tf.TensorSpec(shape=[None, 1], dtype=tf.float64)])
     module_to_save.predict = predict_fn
 
-    samples_input = tf.convert_to_tensor(samples_input, dtype='float64'))
+    samples_input = tf.convert_to_tensor(samples_input, dtype='float64')
     original_result = module_to_save.predict(samples_input)
 
     filename = 'model_' + now.strftime("%Y-%m-%D-%H-%M-%S") + qualifiers
