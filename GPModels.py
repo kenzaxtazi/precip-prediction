@@ -1,14 +1,14 @@
 # GP models
 
+import datetime
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import sklearn as sk
+import matplotlib.pyplot as plt
 
 import DataExploration as de
 import DataPreparation as dp 
 import FileDownloader as fd
-import CrossValidation as cv
 import Metrics as me
 
 import gpflow
@@ -56,7 +56,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     print(" {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(me.R2(m, xtrain, ytrain), me.RMSE(m, xtrain, ytrain), me.R2(m, xval, yval), me.RMSE(m, xval, yval), np.mean(y_gpr), np.mean(y_std)))
     
     if save == True:
-        filepath = save_model(m)
+        filepath = save_model(m, xval)
         print(filepath)
 
     return m
@@ -90,6 +90,7 @@ def multi_gp_cv(xtr, ytr, save=False, plot=False):
 def save_model(model, xval, qualifiers=None): # TODO
     """ Save the model for future use, returns filepath """
     
+    now = datetime.datetime.now()
     samples_input = xval
 
     frozen_model = gpflow.utilities.freeze(model)

@@ -141,7 +141,7 @@ def nans_in_data(): # TODO
 def averaged_timeseries(mask_filepath, variable='tp', longname='Total precipitation [m/day]'):
     """ Timeseries for the Upper Indus Basin"""
 
-    df = dp.download_data(mask_filepath)
+    df = dd.download_data(mask_filepath)
 
     df_var = df[['time',variable]]
 
@@ -355,7 +355,7 @@ def tp_vs(mask_filepath, variable, longname=''):
     #df_mean = df_var.groupby('time').mean()
     '''
 
-    da = dp.download_data(mask_filepath, xarray=True)
+    da = dd.download_data(mask_filepath, xarray=True)
     ds = da[['time','tp', variable]]
     gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
     df_var = gilgit.to_dataframe().dropna()

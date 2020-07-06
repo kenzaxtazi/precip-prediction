@@ -27,7 +27,7 @@ def random_location_sampler(df):
     return df2
 
 
-def random_location_and_time_sampler(df, length=1000, seed=42): # TODO
+def random_location_and_time_sampler(df, length=1000, seed=42):
     """ Returns DataFrame of random locations and times, apply to clean df only """
     
     np.random.seed(seed)
