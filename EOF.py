@@ -12,7 +12,6 @@ import matplotlib.ticker as tck
 import FileDownloader as fd
 
 from sklearn.decomposition import PCA
-from sklearn.externals import joblib
 
 
 ## Load the data
