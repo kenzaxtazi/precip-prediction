@@ -27,7 +27,7 @@ def RMSE(model, x, y):
     RMSE = mean_squared_error(y, y_pred)
     return np.sqrt(RMSE)
 
-def model_plot(model, number=None):
+def model_plot(model, number=None, coords=None):
     """ Returns plot for multivariate GP for a single loation """
     
     if number == None:
@@ -35,14 +35,14 @@ def model_plot(model, number=None):
     else:
         xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 
-    xtr = np.concatenate(xtrain, xval)
+    xtr = np.concatenate((xtrain, xval), axis=0) 
     y_gpr, y_std = model.predict_y(xtr)
     samples = model.predict_f_samples(xtr, 5)
     
     plt.figure()
     
     plt.scatter(xtrain[:,0] + 1981, ytrain, label='ERA5 training data')
-    plt.scatter(xval[:,0] + 1981, yval, label='ERA5 validation data')
+    plt.scatter(xval[:,0] + 1981, yval, color='orange', label='ERA5 validation data')
     
     plt.plot(xtr[:,0] + 1981, y_gpr, color='orange', linestyle='-', label='Prediction')
     plt.fill_between(xtr[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
@@ -50,7 +50,11 @@ def model_plot(model, number=None):
 
     plt.plot(xtr[:,0] + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
     
-    plt.title('GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)')
+    if coords == None:
+        plt.title('GP fit')
+    else:
+        plt.title('GP fit for '+ str(coords[0])+ '°N ' + str(coords[1])+ '°E')
+    
     plt.ylabel('Precipitation [mm/day]')
     plt.xlabel('Year')
     plt.legend()
