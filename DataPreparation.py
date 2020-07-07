@@ -65,13 +65,13 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df_location = sa.random_location_sampler(df_clean)
-        df = df_location.drop(columns=['latitude', 'longitude'])
+        df = df_location.drop(columns=['latitude', 'longitude', 'slor', 'anor', 'z'])
     
     else: 
         da_location = da.interp(coords={'latitude':coords[0], 'longitude':coords[1]}, method='nearest')
         multiindex_df = da_location.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
-        df = df_clean.drop(columns=['latitude', 'longitude'])
+        df = df_clean.drop(columns=['latitude', 'longitude', 'slor', 'anor', 'z'])
 
     df['time'] = df['time'].astype('int')
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
