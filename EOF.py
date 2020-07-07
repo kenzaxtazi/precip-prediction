@@ -16,7 +16,7 @@ from sklearn.decomposition import PCA
 
 ## Load the data
 z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='200', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z200')
-z200 = xr.open_dataset(z200_filepath)
+z200 = xr.open_dataset(z200_filepath).dropna(dim='time')
 
 EOF_da_list = []
 
