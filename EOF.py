@@ -69,7 +69,7 @@ for y in tqdm(range(40)):
         EOFs = EOFs[1,:]
 
         ## 2D field reconstruction
-        EOF = EOFs.reshape(481, 601) # TODO
+        EOF = EOFs.reshape(721, 1440)
         da = xr.DataArray(data=EOF, coords=[z200.latitude, z200.longitude, start_date], dims=['latitude','longitude', 'time'])
         EOF_da_list.append(da)
 
