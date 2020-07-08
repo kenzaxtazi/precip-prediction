@@ -27,20 +27,20 @@ for y in tqdm(range(40)):
         ## Select subperiod
         
         if m < 9:
-            start_date = str(1979+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1979+y+1) + '-0' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1981+y) + '-0' + str(m) + '-01T12:00:00'
+            end_date = str(1981+y+1) + '-0' +  str(m+1) +'-01T12:00:00'
         
         if m == 9:
-            start_date = str(1979+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1979+y+1) + '-' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1981+y) + '-0' + str(m) + '-01T12:00:00'
+            end_date = str(1981+y+1) + '-' +  str(m+1) +'-01T12:00:00'
         
         if m > 9:
-            start_date = str(1979+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1979+y) + '-' + str(m+1) +'-01T12:00:00'
+            start_date = str(1981+y) + '-' + str(m) + '-01T12:00:00'
+            end_date = str(1981+y) + '-' + str(m+1) +'-01T12:00:00'
         
         if m == 12:
-            start_date = str(1979+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1979+y+1) + '-' +  str(1) +'-01T12:00:00'
+            start_date = str(1981+y) + '-' + str(m) + '-01T12:00:00'
+            end_date = str(1981+y+1) + '-' +  str(1) +'-01T12:00:00'
 
         z200_month = z200.sel(time=slice(start_date, end_date))
 
