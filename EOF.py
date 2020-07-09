@@ -15,34 +15,40 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 ## Load the data
-z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='200', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z200')
+z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='200', path='Data/', qualifier='small_z200')
+
+print('opening file')
 z200_da = xr.open_dataset(z200_filepath)
-z200 = z200_da.sel(expver=1).drop('expver').dropna(dim='time')
+
+print('dropping nans')
+z200 = z200_da.dropna(dim='time')
+
+grouped_da = z200.resample(time="1MS").mean(dim="time")
 
 
 EOF_da_list = []
 
-for y in tqdm(range(37)):
+for y in range(1):
 
-    for m in np.arange(1,13):
+    for m in tqdm(np.arange(1,7)):
         
         ## Select subperiod
         
         if m < 9:
-            start_date = str(1982+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1982+y+1) + '-0' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-0' + str(m) + '-01T12:00:00'
+            end_date = str(1983+y+1) + '-0' +  str(m+1) +'-01T12:00:00'
         
         if m == 9:
-            start_date = str(1982+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1982+y+1) + '-' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-0' + str(m) + '-01T12:00:00'
+            end_date = str(1983+y+1) + '-' +  str(m+1) +'-01T12:00:00'
         
         if m > 9:
-            start_date = str(1982+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1982+y) + '-' + str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-' + str(m) + '-01T12:00:00'
+            end_date = str(1983+y) + '-' + str(m+1) +'-01T12:00:00'
         
         if m == 12:
-            start_date = str(1982+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1982+y+1) + '-' +  str(1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-' + str(m) + '-01T12:00:00'
+            end_date = str(1983+y+1) + '-' +  str(1) +'-01T12:00:00'
 
         z200_month = z200.sel(time=slice(start_date, end_date))
 
@@ -71,19 +77,18 @@ for y in tqdm(range(37)):
         EOFs = EOFs[1,:]
 
         ## 2D field reconstruction
-        EOF = EOFs.reshape(721, 1440, 1)
-        da = xr.DataArray(data=EOF, coords=[z200.latitude, z200.longitude, start_date], dims=['latitude','longitude', 'time'])
+        EOF = EOFs.reshape(1, 721, 1440) * 100
+        da = xr.DataArray(data=EOF, coords=[[start_date], z200.latitude, z200.longitude], dims=['time','latitude', 'longitude'], name='EOF2')
         EOF_da_list.append(da)
 
-EOF2 = xr.DataArray(data=EOF_da_list)
+EOF2 = xr.DataArray(data= EOF_da_list, coords=[grouped_da.time, z200.latitude, z200.longitude], dims=['time', 'latitude', 'longitude'])
 EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc')
 
 
 '''    
 plt.figure()
 ax = plt.subplot(projection=ccrs.PlateCarree())
-ax.set_extent([0, 150, -60, 60])
-g = da.plot(cbar_kwargs={'label': '\n EOF2', 'extend':'neither'})
+g = da.plot(cbar_kwargs={'label': '\n EOF2', 'extend':'neither', 'pad':0.10})
 g.cmap.set_under('white')
 ax.add_feature(cf.BORDERS)
 ax.coastlines()
