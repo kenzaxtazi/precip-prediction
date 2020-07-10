@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 import FileDownloader as fd
 
 # Filepaths and URLs
-mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
+# mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 
 def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include variables in pathname 
