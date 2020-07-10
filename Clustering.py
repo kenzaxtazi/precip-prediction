@@ -312,8 +312,8 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False , confidence_plot=False):
     for i in range(N):
         cluster_df = reset_df[reset_df['Labels']== i]
         df_pv = cluster_df.pivot(index='latitude', columns='longitude')
-        df_pv = df_pv.droplevel(0, axis=1)
-        cluster_da = xr.DataArray(data=df_pv, name=str(i))
+        df_pv = df_pv.droplevel(0, axis=1) + 1
+        cluster_da = xr.DataArray(data=df_pv, name='overlap')
         cluster_da.to_netcdf(path= names[i]+'_mask.nc')
         clusters.append(cluster_da)
 
