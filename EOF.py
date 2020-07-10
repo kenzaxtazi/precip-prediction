@@ -15,7 +15,7 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 ## Load the data
-z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='200', path='Data/', qualifier='small_z200')
+z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='200', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z200')
 
 print('opening file')
 z200_da = xr.open_dataset(z200_filepath)
@@ -25,8 +25,7 @@ z200 = z200_da.dropna(dim='time')
 
 grouped_da = z200.resample(time="1MS").mean(dim="time")
 
-
-EOF_da_list = []
+EOF_ds_list = []
 
 for y in range(1):
 
@@ -78,10 +77,11 @@ for y in range(1):
 
         ## 2D field reconstruction
         EOF = EOFs.reshape(1, 721, 1440) * 100
-        da = xr.DataArray(data=EOF, coords=[[start_date], z200.latitude, z200.longitude], dims=['time','latitude', 'longitude'], name='EOF2')
-        EOF_da_list.append(da)
+        ds = xr.Dataset({'EOF': (('time','latitude','longitude'), EOF)}, 
+                        coords={'time':[start_date], 'latitude':z200.latitude, 'longitude': z200.longitude})
+        EOF_ds_list.append(ds)
 
-EOF2 = xr.DataArray(data= EOF_da_list, coords=[grouped_da.time, z200.latitude, z200.longitude], dims=['time', 'latitude', 'longitude'])
+EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
 EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc')
 
 
