@@ -27,9 +27,9 @@ grouped_da = z200.resample(time="1MS").mean(dim="time")
 
 EOF_ds_list = []
 
-for y in range(1):
+for y in range(36):
 
-    for m in tqdm(np.arange(1,7)):
+    for m in tqdm(np.arange(1,13)):
         
         ## Select subperiod
         
