@@ -18,6 +18,7 @@ import Clustering as cl
 
 
 # Filepaths and URLs
+
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 
 
@@ -92,7 +93,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, seed=42):
+def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, cluster_mask=None, seed=42):
     """ 
     Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature, 
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -119,8 +120,12 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
         da = da_ensemble.mean(dim='number')
     else:
         da = dd.download_data(mask_filepath, xarray=True)
-        
 
+    if cluster_mask != None:
+        mask = xr.open_dataset(cluster_mask)
+        mask_da = mask.overlap
+        da = da.where(mask_da > 0, drop=True)
+        
     multiindex_df = da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
     df_location = sa.random_location_and_time_sampler(df_clean, length=length, seed=seed)
