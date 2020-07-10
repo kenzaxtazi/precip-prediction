@@ -21,7 +21,7 @@ print('opening file')
 z200_da = xr.open_dataset(z200_filepath)
 
 print('dropping nans')
-z200 = z200_da.dropna(dim='time')
+z200 = z200_da.sel(expver=1).drop('expver').dropna(dim='time')
 
 grouped_da = z200.resample(time="1MS").mean(dim="time")
 
