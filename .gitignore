@@ -36,3 +36,5 @@ Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_ensemble_membe
 Archive/ArchivedDataPreparation.py
 Archive/CrossValidation.py
 Data/single-locations-eval-2020-07-07
+Data/z200_small_EOF2.nc
+Data/reanalysis-era5-pressure-levels_reanalysis_07-2020_small_z200.nc
