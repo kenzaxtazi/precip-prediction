@@ -19,9 +19,9 @@ from gpflow.utilities import print_summary
 # Filepaths and URLs
     
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
-khyber_mask = 'Khyber_mask.nc'
-gilgit_mask = 'Gilgit_mask.nc'
-ngari_mask = 'Ngari_mask.nc'
+khyber_mask = 'Data/Khyber_mask.nc'
+gilgit_mask = 'Data/Gilgit_mask.nc'
+ngari_mask = 'Data/Ngari_mask.nc'
 
 
 '''
