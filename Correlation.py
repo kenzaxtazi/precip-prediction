@@ -145,7 +145,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     df_combined = pd.merge_ordered(tp_df, eof_reset, on='time')
     df_clean = df_combined.dropna()
 
-    corr = df_clean.corr()
+    corr = df_clean.corrwith(df_clean['tp'])
 
     corr.to_csv('Data/EOF_corr.csv')
 
