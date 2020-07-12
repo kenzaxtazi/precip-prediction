@@ -146,6 +146,7 @@ def eof_correlation(eof_filepath, mask_filepath):
 
     corr = df_clean.corr()
 
+    corr.to_csv('Data/EOF_corr.csv')
 
 
 
