@@ -91,8 +91,8 @@ def download_data(mask_filepath, xarray=False, ensemble=False): # TODO include v
         # df_combined2 = pd.merge_ordered(df_combined1, temp_df, on='time')
         # df_combined3 = pd.merge_ordered(df_combined2, cgti_df, on='time')
         df_clean = df_combined1.dropna() #columns=['expver_x', 'expver_y']
-        df_clean['time'] = df_clean['time'].astype('int')
-        df_clean = df_clean.astype('float64')
+        # df_clean['time'] = df_clean['time'].astype('int')
+        # df_clean = df_clean.astype('float64')
         df_clean.to_csv(filepath)
 
         if xarray == True:
