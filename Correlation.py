@@ -141,7 +141,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     eof_reset['time'] -= np.timedelta64(12,'h')
 
     print('combining')
-    df_combined = pd.concat(tp_df.astype('float46'), eof_reset.astype('float64'), on='time')
+    df_combined = pd.concat(tp_df.astype('float64'), eof_reset.astype('float64'), on='time')
     df_clean = df_combined.dropna()
 
     corr = df_clean.corr()
