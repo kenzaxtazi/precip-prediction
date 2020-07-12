@@ -129,7 +129,8 @@ def eof_correlation(eof_filepath, mask_filepath):
     print('processing precipitation')
     da = dd.download_data(mask_filepath, xarray=True)
     tp_ds = da.mean(dim=['latitude', 'longitude']).tp
-    tp_df = tp_ds.to_dataframe()
+    tp = tp_ds.assign_coords(time=(tp_ds.time.astype('datetime64')))  
+    tp_df = tp.to_dataframe()
 
     print('processing EOF')
     eof_da = xr.open_dataset(eof_filepath)
@@ -141,7 +142,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     eof_reset['time'] -= np.timedelta64(12,'h')
 
     print('combining')
-    df_combined = pd.concat(tp_df.astype('float64'), eof_reset.astype('float64'), on='time')
+    df_combined = pd.merge_ordered(tp_df, eof_reset, on='time')
     df_clean = df_combined.dropna()
 
     corr = df_clean.corr()
