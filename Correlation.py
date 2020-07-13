@@ -147,7 +147,38 @@ def eof_correlation(eof_filepath, mask_filepath):
 
     corr = df_clean.corrwith(df_clean['tp'])
 
-    corr.to_csv('Data/EOF_corr.csv')
+    filepath = 'Data/EOF_corr.csv'
+    corr.to_csv(filepath)
+
+    return filepath
+
+def eof_correlation_map(corr_filepath):
+    
+    raw_df = pd.read_csv('Data/EOF_corr.csv', names=['coords', 'corr'])
+    corr_df = raw_df[2:]
+
+    corr_array =  corr_df['corr'].values.reshape(721, 1440)
+    lat = np.linspace(-90, 90, 721)
+    lon = np.linspace(-180, 180, 1440)
+
+    da = xr.DataArray(data=corr_array, coords=[('latitude', lat), ('longitude', lon)])
+
+    plt.figure()
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    da.plot(cbar_kwargs={'label': '\n Correlation', 'extend':'neither', 'pad':0.10})
+    ax.add_feature(cf.BORDERS)
+    ax.coastlines()
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    plt.show()
+
+    plt.show()
+
+
+
+
+
 
 
 
