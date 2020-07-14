@@ -154,18 +154,21 @@ def eof_correlation(eof_filepath, mask_filepath):
 
 def eof_correlation_map(corr_filepath):
     
-    raw_df = pd.read_csv('Data/EOF_corr.csv', names=['coords', 'corr'])
+    raw_df = pd.read_csv('Data/EOF_corr.csv', names=['coords', 'corr', 'pvalue'])
     corr_df = raw_df[2:]
 
     corr_array =  corr_df['corr'].values.reshape(721, 1440)
+    pval_array = corr_df['pvalue'].values.reshape(721, 1440)
     lat = np.linspace(-90, 90, 721)
     lon = np.linspace(-180, 180, 1440)
 
-    da = xr.DataArray(data=corr_array, coords=[('latitude', lat), ('longitude', lon)])
+    corr_da = xr.DataArray(data=corr_array, coords=[('latitude', lat), ('longitude', lon)])
+    pval_da = xr.DataArray(data=pval_array, coords=[('latitude', lat), ('longitude', lon)])
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
-    da.plot(cbar_kwargs={'label': '\n Correlation', 'extend':'neither', 'pad':0.10})
+    corr_da.plot(cbar_kwargs={'label': '\n Correlation', 'extend':'neither', 'pad':0.10})
+    pval_da.plot.contour(levels=2)
     ax.add_feature(cf.BORDERS)
     ax.coastlines()
     ax.gridlines(draw_labels=True)
