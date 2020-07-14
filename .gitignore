@@ -39,3 +39,4 @@ Data/single-locations-eval-2020-07-07
 Data/z200_small_EOF2.nc
 Data/reanalysis-era5-pressure-levels_reanalysis_07-2020_small_z200.nc
 Data/EOF_corr.csv
+Data/EOF_corr_pval.csv
