@@ -3,6 +3,7 @@
 import datetime
 import urllib
 
+import scipy as sp
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -12,6 +13,7 @@ import cartopy.feature as cf
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
+from tqdm import tqdm 
 
 import DataExploration as de
 import DataDownloader as dd
@@ -145,20 +147,22 @@ def eof_correlation(eof_filepath, mask_filepath):
     df_combined = pd.merge_ordered(tp_df, eof_reset, on='time')
     df_clean = df_combined.dropna()
 
-    corr = df_clean.corrwith(df_clean['tp'])
+    corr_s = df_clean.corrwith(df_clean['tp'])
+    corr_df = corr_s.to_frame(name='corr')
+    corr_df['pvalue'] = pvalue(df_clean)
 
-    filepath = 'Data/EOF_corr.csv'
-    corr.to_csv(filepath)
+    filepath = 'Data/EOF_corr_pval.csv'
+    corr_df.to_csv(filepath)
 
     return filepath
 
 def eof_correlation_map(corr_filepath):
     
-    raw_df = pd.read_csv('Data/EOF_corr.csv', names=['coords', 'corr', 'pvalue'])
+    raw_df = pd.read_csv(corr_filepath, names=['coords', 'corr', 'pvalue'])
     corr_df = raw_df[2:]
 
-    corr_array =  corr_df['corr'].values.reshape(721, 1440)
-    pval_array = corr_df['pvalue'].values.reshape(721, 1440)
+    corr_array =  corr_df['corr'].values.reshape(721, 1440).astype(float)
+    pval_array = corr_df['pvalue'].values.reshape(721, 1440).astype(float)
     lat = np.linspace(-90, 90, 721)
     lon = np.linspace(-180, 180, 1440)
 
@@ -168,7 +172,7 @@ def eof_correlation_map(corr_filepath):
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     corr_da.plot(cbar_kwargs={'label': '\n Correlation', 'extend':'neither', 'pad':0.10})
-    pval_da.plot.contour(levels=2)
+    pval_da.plot.contour(levels=[0.05])
     ax.add_feature(cf.BORDERS)
     ax.coastlines()
     ax.gridlines(draw_labels=True)
@@ -176,7 +180,17 @@ def eof_correlation_map(corr_filepath):
     ax.set_ylabel('Latitude')
     plt.show()
 
-    plt.show()
+
+def pvalue(df):
+    """ Returns array of pvalues """
+    df1 = df.drop(['time'], axis=1)
+    pval_list = []
+    
+    for c in tqdm(list(df1)):
+        corr, pval = sp.stats.pearsonr(df1[c], df1['tp'])
+        pval_list.append(pval)
+
+    return np.array(pval_list)
 
 
 
