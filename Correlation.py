@@ -24,8 +24,9 @@ import Clustering as cl
 ### Filepaths
 mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 eof_filepath = '/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc'
+corr_filepath = 'Data/EOF_corr_pval.csv'
 
-def correlation_heatmap():
+def correlation_heatmap(local=True, largescale=True):
 
     ### Upper Indus Basin correlation plot 
     df = dd.download_data(mask_filepath)
@@ -72,9 +73,10 @@ def correlation_heatmap():
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
     plt.title('Correlation plot for Upper Indus Basin')
+    plt.show()
     
-    ### Cluster correlation plot 
-
+def cluster_correlation_heatmap(local=True, largescale=True):
+    
     cluster_masks = ['Khyber_mask.nc', 'Gilgit_mask.nc', 'Ngari_mask.nc']
     names =['Gilgit regime', 'Ngari regime', 'Khyber regime']
 
