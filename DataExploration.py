@@ -9,6 +9,8 @@ import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 
+
+from shapely.geometry import Polygon, shape
 from cartopy.io import shapereader
 from cartopy import config
 from scipy import signal
@@ -317,32 +319,67 @@ def temp_autocorr(data_filepath, mask_filepath, variable='tp', longname='Total p
     return a
 
 
-def indus_map():
-    """ Returns a map of the Indus river """
-
-    fpath = 'Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
+def indus_map(mask_filepath):
+    """ Returns two maps: global map with box, zoomed in map of the Indus river """
+    
+    # River shapefiles
+    fpath = '/Users/kenzatazi/Downloads/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp'
     as_shp = shapereader.Reader(fpath)
 
-    #rivers = cf.NaturalEarthFeature(category='physical', name='rivers_lake_centerlines', scale='50m', facecolor='none', edgecolor='lightblue')
+    # UIB shapefile
+    uib_path = '/Users/kenzatazi/Downloads/UpperIndus_HP_shapefile/UpperIndus_HP.shp'
+    uib_shape = shapereader.Reader(uib_path)
 
-    plt.figure()
-    ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([55, 95, 15, 45])
+    # Other phyical features
+    land_50m = cf.NaturalEarthFeature('physical', 'land', '50m', edgecolor='face', facecolor=cf.COLORS['land'])
+    ocean_50m = cf.NaturalEarthFeature('physical', 'ocean', '50m', edgecolor='face', facecolor=cf.COLORS['water'])
+
+    # Regional rectangle
+    pgon = Polygon([[60, 20] ,[60, 40], [85,40], [85,20], [60,20]])
+
+    # Projection for global map 
+    glb_proj = ccrs.NearsidePerspective(central_longitude=70, central_latitude=30)
+
+    plt.figure('Global')
+    ax = plt.subplot(projection=glb_proj)
+    ax.add_feature(ocean_50m)
+    ax.add_feature(land_50m)
+    ax.coastlines('50m')
     ax.add_feature(cf.BORDERS)
+    ax.add_geometries([pgon], crs=ccrs.PlateCarree(), facecolor='red', alpha=0.1)
+
+    plt.figure('Zoomed in')
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([60, 85, 20, 40])
+
+    ax.add_feature(land_50m)
+    ax.add_feature(ocean_50m)
+    ax.add_feature(cf.BORDERS.with_scale('50m'))
+    ax.coastlines('50m')
     
+    for rec in uib_shape.records():
+        ax.add_geometries([rec.geometry], ccrs.AlbersEqualArea(central_longitude=125, central_latitude=-15, standard_parallels=(7,-32)),
+                          edgecolor='red', facecolor='red', alpha=0.1)
+
     # ax.add_feature(rivers)
     for rec in as_shp.records():
         if rec.attributes['name'] == 'Indus':
             ax.add_geometries([rec.geometry], ccrs.PlateCarree(), edgecolor='lightblue', facecolor='None')
         pass
 
-    ax.coastlines()
-    ax.text(64, 27, 'PAKISTAN')
-    ax.text(63, 33, 'AFGHANISTAN')
-    ax.text(80, 36, 'CHINA')
-    ax.text(74, 28, 'INDIA')
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
+
+    ax.text(64.25, 28, 'PAKISTAN')
+    ax.text(62, 33.5, 'AFGHANISTAN')
+    ax.text(80, 37, 'CHINA')
+    ax.text(78, 25, 'INDIA')
+    ax.text(62, 22, 'Arabian Sea', c='darkblue')
+    
+    ax.set_xticks([60, 65, 70, 75, 80, 85])
+    ax.set_xticklabels(['60°E', '65°E', '70°E', '75°E', '80°E', '85°E'])
+
+    ax.set_yticks([20, 25, 30, 35, 40])
+    ax.set_yticklabels(['20°N', '25°N', '30°N', '35°N', '40°N'])
+
     plt.title('Indus River \n \n')
     plt.show()
 
