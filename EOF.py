@@ -34,20 +34,20 @@ for y in range(36):
         ## Select subperiod
         
         if m < 9:
-            start_date = str(1983+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1983+y+1) + '-0' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
+            end_date = str(1983+y+1) + '-0' +  str(m+1) +'-01T00:00:00'
         
         if m == 9:
-            start_date = str(1983+y) + '-0' + str(m) + '-01T12:00:00'
-            end_date = str(1983+y+1) + '-' +  str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
+            end_date = str(1983+y+1) + '-' +  str(m+1) +'-01T00:00:00'
         
         if m > 9:
-            start_date = str(1983+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1983+y) + '-' + str(m+1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
+            end_date = str(1983+y) + '-' + str(m+1) +'-01T00:00:00'
         
         if m == 12:
-            start_date = str(1983+y) + '-' + str(m) + '-01T12:00:00'
-            end_date = str(1983+y+1) + '-' +  str(1) +'-01T12:00:00'
+            start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
+            end_date = str(1983+y+1) + '-' +  str(1) +'-01T00:00:00'
 
         z200_month = z200.sel(time=slice(start_date, end_date))
 
