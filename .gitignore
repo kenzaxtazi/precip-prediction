@@ -41,3 +41,9 @@ Data/reanalysis-era5-pressure-levels_reanalysis_07-2020_small_z200.nc
 Data/EOF_corr.csv
 Data/EOF_corr_pval.csv
 FeatureSelection.py
+Data/all_data_07-2020.csv
+Data/N4-07-2020.csv
+Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_07-2020_temp.nc
+Data/NAO-07-2020.csv
+Data/UIB_z200_EOF2.nc
+Data/reanalysis-era5-single-levels-monthly-means_monthly_averaged_reanalysis_07-2020_z200.nc
