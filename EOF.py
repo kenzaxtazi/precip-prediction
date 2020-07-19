@@ -15,7 +15,7 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 ## Load the data
-z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='500', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z500')
+z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='850', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z850')
 
 print('opening file')
 z200_da = xr.open_dataset(z200_filepath)
@@ -82,7 +82,7 @@ for y in range(36):
         EOF_ds_list.append(ds)
 
 EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
-EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z500_EOF2.nc')
+EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z850_EOF2.nc')
 
 
 '''    
