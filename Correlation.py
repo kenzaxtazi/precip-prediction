@@ -26,56 +26,33 @@ mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
 eof_filepath = '/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc'
 corr_filepath = 'Data/EOF_corr_pval.csv'
 
-def correlation_heatmap(local=True, largescale=True):
+def UIB_correlation_heatmap():
 
-    ### Upper Indus Basin correlation plot 
-    df = dd.download_data(mask_filepath)
+    df = dd.download_data(mask_filepath, all_var=True)
 
-    '''
     # create lags
     df['CGTI-1'] = df['CGTI'].shift(periods=1)
-    df['CGTI-2'] = df['CGTI'].shift(periods=2)
-    df['CGTI-3'] = df['CGTI'].shift(periods=3)
-    df['CGTI-4'] = df['CGTI'].shift(periods=4)
-    df['CGTI-5'] = df['CGTI'].shift(periods=5)
-    df['CGTI-6'] = df['CGTI'].shift(periods=6)
-    
     df['N34-1'] = df['N34'].shift(periods=1)
-    df['N34-2'] = df['N34'].shift(periods=2)
-    df['N34-3'] = df['N34'].shift(periods=3)
-    df['N34-4'] = df['N34'].shift(periods=4)
-    df['N34-5'] = df['N34'].shift(periods=5)
-    df['N34-6'] = df['N34'].shift(periods=6)
-
+    df['NAO-1'] = df['NAO'].shift(periods=1)
     df['N4-1'] = df['N4'].shift(periods=1)
-    df['N4-2'] = df['N4'].shift(periods=2)
-    df['N4-3'] = df['N4'].shift(periods=3)
-    df['N4-4'] = df['N4'].shift(periods=4)
-    df['N4-5'] = df['N4'].shift(periods=5)
-    df['N4-6'] = df['N4'].shift(periods=6)
-    '''
-    df = df.drop(columns=['expver', 'time'])
+
+    df = df.drop(columns=['expver', 'expver_x', 'expver_y', 'time', 'latitude_y', 'longitude_y'])
     df_clean = df.dropna()
     df_sorted = df_clean.sort_index(axis=1)
+    corr = df_sorted.corr()
 
-    # Correlation matrix
-    corr = df_sorted.corr()  
-
-    # Plot
     sns.set(style="white")
-
     f, ax = plt.subplots(figsize=(11, 9))
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
-
-    # Draw the heatmap with the mask and correct aspect ratio
     mask = np.triu(np.ones_like(corr, dtype=np.bool))  # generate a mask for the upper triangle
-    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5})
-
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1, fmt='0.2f',
+                square=True, linewidths=.5, annot=True, annot_kws={'size':7})
     plt.title('Correlation plot for Upper Indus Basin')
-    plt.show()
     
-def cluster_correlation_heatmap(local=True, largescale=True):
+    plt.show()
+
+    
+def cluster_correlation_heatmap():
     
     cluster_masks = ['Khyber_mask.nc', 'Gilgit_mask.nc', 'Ngari_mask.nc']
     names =['Gilgit regime', 'Ngari regime', 'Khyber regime']
@@ -127,6 +104,7 @@ def cluster_correlation_heatmap(local=True, largescale=True):
 
     plt.show()
 
+
 def eof_correlation(eof_filepath, mask_filepath):
     ''' Returns plot and DataArray of areas with p<0.05 '''
     
@@ -157,6 +135,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     corr_df.to_csv(filepath)
 
     return filepath
+
 
 def eof_correlation_map(corr_filepath):
     
