@@ -384,18 +384,24 @@ def indus_map(mask_filepath):
     plt.show()
 
 
-def tp_vs(mask_filepath, variable, longname=''):
+def tp_vs(mask_filepath, variable, cluster_mask=None, longname=''):
 
     '''
     df = dp.download_data(mask_filepath)
     df_var = df[['time','tp', variable]]
     #df_mean = df_var.groupby('time').mean()
     '''
+    
+    if cluster_mask == None:
+        da = dd.download_data(mask_filepath)
+    else:
+        cds_filepath = fd.update_cds_monthly_data()
+        da = dd.apply_mask(cds_filepath, cluster_mask)
+        df = da.to_dataframe().reset_index()
 
-    da = dd.download_data(mask_filepath, xarray=True)
-    ds = da[['time','tp', variable]]
-    gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
-    df_var = gilgit.to_dataframe().dropna()
+    df = df[['time','tp', variable]]
+    #gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
+    df_var = df.dropna()
 
     # Plot    
     df_var.plot.scatter(x=variable, y='tp', alpha=.2, c='b')
