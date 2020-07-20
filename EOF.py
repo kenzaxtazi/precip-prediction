@@ -73,7 +73,7 @@ for y in range(36):
 
         ### The Empirical Orthogonal Functions (EOFs)
         EOFs = skpca.components_
-        EOFs = EOFs[1,:]
+        EOFs = EOFs[0,:]
 
         ## 2D field reconstruction
         EOF = EOFs.reshape(1, 721, 1440) * 100
@@ -82,7 +82,7 @@ for y in range(36):
         EOF_ds_list.append(ds)
 
 EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
-EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z850_EOF2.nc')
+EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z850_EOF1.nc')
 
 
 '''    
