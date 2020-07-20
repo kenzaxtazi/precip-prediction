@@ -65,29 +65,22 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         if all_var == True:
             # Temperature
             temp_filepath = fd.update_cds_monthly_data(variables=['2m_temperature'], area=[40, 65, 20, 85], qualifier='temp')
-            temp_da = xr.open_dataset(temp_filepath)
-            if 'expver' in list(temp_da.dims):
-                temp_da = temp_da.sel(expver=1)
-            temp_mean_da = temp_da.mean(dim=['longitude', 'latitude'], skipna=True) 
-            multiindex_df = temp_mean_da.to_dataframe()
-            temp_df = multiindex_df.reset_index()
+            temp_df = mean_formatter(temp_filepath)
 
-            # CGTI
-            z200_filepath = fd.update_cds_monthly_data(variables=['geopotential'], pressure_level='200', area=[40, 60, 35,70], qualifier='z200')
-            z200_da = xr.open_dataset(z200_filepath)
-            if 'expver' in list(z200_da.dims):
-                z200_da = z200_da.sel(expver=1)
-            cgti_da = z200_da.mean(dim=['longitude', 'latitude'], skipna=True) 
-            multiindex_df = cgti_da.to_dataframe()
-            cgti_df = multiindex_df.reset_index()
-            cgti_df = cgti_df.rename(columns={"z":"CGTI"})
-
-            eof_da = apply_mask('Data/UIB_z200_EOF2.nc', mask_filepath)
+            # EOF UIB
+            eof_da = apply_mask('Data/regional_z200_EOF2.nc', mask_filepath)
             eof_ds = eof_da.EOF
             eof2 = eof_ds.assign_coords(time=(eof_ds.time.astype('datetime64'))) 
             eof_multiindex_df = eof2.to_dataframe()
             eof_df = eof_multiindex_df.reset_index()
             eof_df['time'] -= np.timedelta64(12,'h')
+
+            # eof200b_df = mean_formatter('Data/regional_z200_EOF2.nc', coords =)
+            eof200c_df = mean_formatter('Data/regional_z200_EOF2.nc', coords = [40, 60, 35,70])
+            eof200c_df['time'] -= np.timedelta64(12,'h')
+
+            eof200b_df = mean_formatter('Data/regional_z200_EOF2.nc', coords = [16, 83, 19, 93])
+            eof200b_df['time'] -= np.timedelta64(12,'h')
 
         # Orography, humidity and precipitation
         if ensemble == False:
@@ -101,10 +94,13 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
 
         # Combine
         df_combined = pd.merge_ordered(cds_df, ind_df, on='time')
+
         if all_var == True:
-            df_combined2 = pd.merge_ordered(df_combined, temp_df, on='time')
-            df_combined3 = pd.merge_ordered(df_combined2, cgti_df, on='time')
-            df_combined = pd.merge_ordered(df_combined3, eof_df, on='time')
+            df_combined = pd.merge_ordered(df_combined, temp_df, on='time')
+            df_combined = pd.merge_ordered(df_combined, eof_df, on='time')
+            #df_combined4 = pd.merge_ordered(df_combined3, eof200a_df, on='time')
+            df_combined = pd.merge_ordered(df_combined, eof200b_df, on='time')
+            df_combined = pd.merge_ordered(df_combined, eof200c_df, on='time')
         
         df_clean = df_combined.dropna() #columns=['expver_x', 'expver_y']
         df_clean['time'] = df_clean['time'].astype('int')
@@ -160,3 +156,22 @@ def apply_mask(data_filepath, mask_filepath):
     UIB = sliced_da.where(mask_da > 0, drop=True)
 
     return UIB
+
+
+def mean_formatter(filepath, coords=None):
+    
+    da = xr.open_dataset(filepath)
+    
+    if 'expver' in list(da.dims):
+        da = da.sel(expver=1)
+    
+    if coords != None:
+        da = da.sel(latitude=slice(coords[0], coords[2]), longitude=slice(coords[1], coords[3]))
+
+    mean_da = da.mean(dim=['longitude', 'latitude'], skipna=True) 
+    eof = mean_da.assign_coords(time=(mean_da.time.astype('datetime64'))) 
+    multiindex_df = eof.to_dataframe()
+    df = multiindex_df.reset_index()
+
+    return df
+
