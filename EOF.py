@@ -15,7 +15,7 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 
-def EOF(component=1, pressure_level='200')
+def EOF(component=1, pressure_level='200'):
     """ Calculates and saves global EOF component for given pressure field """
 
     ## Load the data
