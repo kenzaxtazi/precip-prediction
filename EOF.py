@@ -27,7 +27,7 @@ def EOF(component=1, pressure_level='200'):
     print('dropping nans')
     z = z_da.sel(expver=1).drop('expver').dropna(dim='time')
 
-    grouped_da = z.resample(time="1MS").mean(dim="time")
+    #grouped_da = z.resample(time="1MS").mean(dim="time")
 
     EOF_ds_list = []
 
