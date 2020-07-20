@@ -14,76 +14,79 @@ import FileDownloader as fd
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-## Load the data
-z200_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level='850', path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z850')
 
-print('opening file')
-z200_da = xr.open_dataset(z200_filepath)
+def EOF(component=1, pressure_level='200')
+    """ Calculates and saves global EOF component for given pressure field """
 
-print('dropping nans')
-z200 = z200_da.sel(expver=1).drop('expver').dropna(dim='time')
+    ## Load the data
+    z_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level= pressure_level, path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_'+pressure_level)
 
-grouped_da = z200.resample(time="1MS").mean(dim="time")
+    print('opening file')
+    z_da = xr.open_dataset(z_filepath)
 
-EOF_ds_list = []
+    print('dropping nans')
+    z = z_da.sel(expver=1).drop('expver').dropna(dim='time')
 
-for y in range(36):
+    grouped_da = z.resample(time="1MS").mean(dim="time")
 
-    for m in tqdm(np.arange(1,13)):
-        
-        ## Select subperiod
-        
-        if m < 9:
-            start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
-            end_date = str(1983+y+1) + '-0' +  str(m+1) +'-01T00:00:00'
-        
-        if m == 9:
-            start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
-            end_date = str(1983+y+1) + '-' +  str(m+1) +'-01T00:00:00'
-        
-        if m > 9:
-            start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
-            end_date = str(1983+y) + '-' + str(m+1) +'-01T00:00:00'
-        
-        if m == 12:
-            start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
-            end_date = str(1983+y+1) + '-' +  str(1) +'-01T00:00:00'
+    EOF_ds_list = []
 
-        z200_month = z200.sel(time=slice(start_date, end_date))
+    for y in range(36):
 
-        ## Reshape in 2D time space
-        arr = z200_month.z.values
-        X = arr.reshape(len(z200_month.time), -1)  
+        for m in tqdm(np.arange(1,13)):
+            
+            ## Select subperiod
+            
+            if m < 9:
+                start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
+                end_date = str(1983+y+1) + '-0' +  str(m+1) +'-01T00:00:00'
+            
+            if m == 9:
+                start_date = str(1983+y) + '-0' + str(m) + '-01T00:00:00'
+                end_date = str(1983+y+1) + '-' +  str(m+1) +'-01T00:00:00'
+            
+            if m > 9:
+                start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
+                end_date = str(1983+y) + '-' + str(m+1) +'-01T00:00:00'
+            
+            if m == 12:
+                start_date = str(1983+y) + '-' + str(m) + '-01T00:00:00'
+                end_date = str(1983+y+1) + '-' +  str(1) +'-01T00:00:00'
 
-        # Fit PCA
-        skpca = PCA() #instantiates PCA object
-        skpca.fit(X) # fit
-        
-        '''
-        ### Save fitted PCA oject
-        joblib.dump(skpca, '../EOF.pkl', compress=9)
+            z_month = z.sel(time=slice(start_date, end_date))
 
-        ### Plot of PCAs
-        f, ax = plt.subplots(figsize=(5,5))
-        ax.plot(skpca.explained_variance_ratio_[0:10]*100)
-        ax.plot(skpca.explained_variance_ratio_[0:10]*100,'ro')
-        ax.set_title("% of variance explained", fontsize=14)
-        ax.grid()
-        '''
+            ## Reshape in 2D time space
+            arr = z_month.z.values
+            X = arr.reshape(len(z_month.time), -1)  
 
-        ### The Empirical Orthogonal Functions (EOFs)
-        EOFs = skpca.components_
-        EOFs = EOFs[0,:]
+            # Fit PCA
+            skpca = PCA() #instantiates PCA object
+            skpca.fit(X) # fit
+            
+            '''
+            ### Save fitted PCA oject
+            joblib.dump(skpca, '../EOF.pkl', compress=9)
 
-        ## 2D field reconstruction
-        EOF = EOFs.reshape(1, 721, 1440) * 100
-        ds = xr.Dataset({'EOF': (('time','latitude','longitude'), EOF)}, 
-                        coords={'time':[start_date], 'latitude':z200.latitude, 'longitude': z200.longitude})
-        EOF_ds_list.append(ds)
+            ### Plot of PCAs
+            f, ax = plt.subplots(figsize=(5,5))
+            ax.plot(skpca.explained_variance_ratio_[0:10]*100)
+            ax.plot(skpca.explained_variance_ratio_[0:10]*100,'ro')
+            ax.set_title("% of variance explained", fontsize=14)
+            ax.grid()
+            '''
 
-EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
-EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z850_EOF1.nc')
+            ### The Empirical Orthogonal Functions (EOFs)
+            EOFs = skpca.components_
+            EOFs = EOFs[(component-1),:]
 
+            ## 2D field reconstruction
+            EOF = EOFs.reshape(1, 721, 1440) * 100
+            ds = xr.Dataset({'EOF': (('time','latitude','longitude'), EOF)}, 
+                            coords={'time':[start_date], 'latitude':z.latitude, 'longitude': z.longitude})
+            EOF_ds_list.append(ds)
+
+    EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
+    EOF2.to_netcdf(path='/gws/nopw/j04/bas_climate/users/ktazi/z'+ pressure_level+'_EOF'+ str(component)+'.nc')
 
 '''    
 plt.figure()
