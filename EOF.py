@@ -19,7 +19,7 @@ def EOF(component=1, pressure_level='200'):
     """ Calculates and saves global EOF component for given pressure field """
 
     ## Load the data
-    z_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level= pressure_level, path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_'+pressure_level)
+    z_filepath = fd.update_cds_hourly_data(variables=['geopotential'], pressure_level= pressure_level, path='/gws/nopw/j04/bas_climate/users/ktazi', qualifier='global_z'+pressure_level)
 
     print('opening file')
     z_da = xr.open_dataset(z_filepath)
