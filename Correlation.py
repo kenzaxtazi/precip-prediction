@@ -31,12 +31,11 @@ def UIB_correlation_heatmap():
     df = dd.download_data(mask_filepath, all_var=True)
 
     # create lags
-    df['CGTI-1'] = df['CGTI'].shift(periods=1)
     df['N34-1'] = df['N34'].shift(periods=1)
     df['NAO-1'] = df['NAO'].shift(periods=1)
     df['N4-1'] = df['N4'].shift(periods=1)
 
-    df = df.drop(columns=['expver', 'expver_x', 'expver_y', 'time', 'latitude_y', 'longitude_y'])
+    df = df.drop(columns=['expver', 'time'])
     df_clean = df.dropna()
     df_sorted = df_clean.sort_index(axis=1)
     corr = df_sorted.corr()
