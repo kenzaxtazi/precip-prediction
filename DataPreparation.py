@@ -75,20 +75,21 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
         df = df_clean.drop(columns=['latitude', 'longitude', 'slor', 'anor', 'z'])
 
     df['time'] = df['time'].astype('int')
-    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
+    df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)  # to years
     df['tp'] = df['tp']*1000  # to mm
     
-    # Remove last 10% of time for testing
-    test_df = df[ df['time']> df['time'].max()*0.9]
-    xtest = test_df.drop(columns=['tp']).values
-    ytest = test_df['tp'].values
+    # Keep first of 70% for training
+    train_df = df[ df['time']< df['time'].max()*0.7]
+    xtrain = train_df.drop(columns=['tp']).values
+    ytrain = train_df['tp'].values
+
+    # Last 30% for evaluation
+    eval_df = df[ df['time']> df['time'].max()*0.3]
+    x_eval = eval_df.drop(columns=['tp']).values
+    y_eval = eval_df['tp'].values
 
     # Training and validation data
-    tr_df = df[ df['time']< df['time'].max()*0.9]
-    xtr = tr_df.drop(columns=['tp']).values
-    ytr = tr_df['tp'].values
-
-    xtrain, xval, ytrain, yval = train_test_split(xtr, ytr, test_size=0.30, shuffle=False)
+    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=False)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -129,23 +130,24 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
     multiindex_df = da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
     df_location = sa.random_location_and_time_sampler(df_clean, length=length, seed=seed)
-    df = df_location
+    df = df_location.drop()
 
     df['time'] = df['time'].astype('int')
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
     df['tp'] = df['tp']*1000  # to mm
     
-    # Remove last 10% of time for testing
-    test_df = df[ df['time']> df['time'].max()*0.9]
-    xtest = test_df.drop(columns=['tp']).values
-    ytest = test_df['tp'].values
+    # Keep first of 70% for training
+    train_df = df[ df['time']< df['time'].max()*0.7]
+    xtrain = train_df.drop(columns=['tp']).values
+    ytrain = train_df['tp'].values
+
+    # Last 30% for evaluation
+    eval_df = df[ df['time']> df['time'].max()*0.3]
+    x_eval = eval_df.drop(columns=['tp']).values
+    y_eval = eval_df['tp'].values
 
     # Training and validation data
-    tr_df = df[ df['time']< df['time'].max()*0.9]
-    xtr = tr_df.drop(columns=['tp']).values
-    ytr = tr_df['tp'].values
-
-    xtrain, xval, ytrain, yval = train_test_split(xtr, ytr, test_size=0.30, shuffle=False)
+    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
     
     return xtrain, xval, xtest, ytrain, yval, ytest
 
