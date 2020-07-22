@@ -71,14 +71,14 @@ def single_loc_evaluation():
     plt.show()
 
 
-def uib_evaluation():
+def uib_evaluation(EDA_average=False):
     
     metric_list = []
     
     sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
     for i in tqdm(sample_list):
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i)
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i, EDA_average=EDA_average)
         m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 
         training_R2 = me.R2(m, xtrain, ytrain)
