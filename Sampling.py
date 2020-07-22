@@ -38,7 +38,7 @@ def random_location_generator(N=50, UIB=False):
 
     df = dd.download_data(mask_filepath)
     df_squished = df[['latitude', 'longitude']].reset_index()
-    df_s_reset = df_squished.drop_duplicates()
+    df_s_reset = df_squished.drop_duplicates(subset=['latitude', 'longitude'])
 
     if UIB == True:
         coord_list = df_s_reset[['latitude', 'longitude']].values
