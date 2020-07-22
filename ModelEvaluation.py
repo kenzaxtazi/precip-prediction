@@ -31,7 +31,7 @@ def single_loc_evaluation():
 
     for i in tqdm(range(n)):
         try:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=None, EDA_average=False, coords=list(coord_list[i]))
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(coords=list(coord_list[i]))
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 
             training_R2 = me.R2(m, xtrain, ytrain)
@@ -70,6 +70,7 @@ def single_loc_evaluation():
 
     plt.show()
 
+
 def uib_evaluation():
     
     metric_list = []
@@ -77,7 +78,7 @@ def uib_evaluation():
     sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
     for i in tqdm(sample_list):
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i))
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i)
         m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 
         training_R2 = me.R2(m, xtrain, ytrain)
@@ -89,5 +90,28 @@ def uib_evaluation():
 
     df = pd.DataFrame(metric_list, columns=['samples', 'training_R2', 'training_RMSE', 'val_R2', 'val_RMSE'])
     df.to_csv('uib-eval-2020-07-22.csv')
+
+
+def cluster_evaluation(cluster_mask):
+    
+    metric_list = []
+
+    name = cluster_mask[6:12]
+    
+    sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
+
+    for i in tqdm(sample_list):
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i, cluster_mask=cluster_mask)
+        m = gpm.multi_gp(xtrain, xval, ytrain, yval)
+
+        training_R2 = me.R2(m, xtrain, ytrain)
+        training_RMSE = me.RMSE(m, xtrain, ytrain)
+        val_R2 = me.R2(m, xval, yval)
+        val_RMSE = me.RMSE(m, xval, yval)
+
+        metric_list.append([i, training_R2, training_RMSE, val_R2, val_RMSE])
+
+    df = pd.DataFrame(metric_list, columns=['samples', 'training_R2', 'training_RMSE', 'val_R2', 'val_RMSE'])
+    df.to_csv(name + '-eval-2020-07-22.csv')
 
 
