@@ -40,7 +40,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         filename = 'combi_data_ensemble' + '_' + now.strftime("%m-%Y")+'.csv'
     if all_var == True:
         filename = 'all_data' + '_' + now.strftime("%m-%Y")+'.csv'
-    else:
+    elif ensemble == False:
         filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.csv'
 
     filepath = path + filename
