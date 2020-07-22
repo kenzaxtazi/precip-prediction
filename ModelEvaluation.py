@@ -96,7 +96,7 @@ def cluster_evaluation(cluster_mask):
     
     metric_list = []
 
-    name = cluster_mask[6:12]
+    name = cluster_mask[0:6]
     
     sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
