@@ -45,7 +45,7 @@ def UIB_correlation_heatmap():
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     mask = np.triu(np.ones_like(corr, dtype=np.bool))  # generate a mask for the upper triangle
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0, vmin=-1, vmax=1, fmt='0.2f',
-                square=True, linewidths=.5, annot=True, annot_kws={'size':7})
+                square=True, linewidths=.5, annot=True, annot_kws={'size':5}, cbar_kws={"shrink": .5})
     plt.title('Correlation plot for Upper Indus Basin')
     
     plt.show()
