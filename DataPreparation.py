@@ -130,7 +130,7 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
     multiindex_df = da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
     df_location = sa.random_location_and_time_sampler(df_clean, length=length, seed=seed)
-    df = df_location.drop()
+    df = df_location
 
     df['time'] = df['time'].astype('int')
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
