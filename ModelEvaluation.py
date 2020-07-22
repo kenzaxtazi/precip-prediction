@@ -30,7 +30,7 @@ def single_loc_evaluation():
     n = len(coord_list)
 
     for i in tqdm(range(n)):
-        try: 
+        try:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=None, EDA_average=False, coords=list(coord_list[i]))
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 
@@ -42,10 +42,10 @@ def single_loc_evaluation():
             metric_list.append([coord_list[i,0], coord_list[i,1], training_R2, training_RMSE, val_R2, val_RMSE])
         
         except Exception:
-            pass 
+            pass
 
     df = pd.DataFrame(metric_list, columns=['latitude', 'longitude', 'training_R2', 'training_RMSE', 'val_R2', 'val_RMSE'])
-    df.to_csv('Data/single-locations-eval-2020-07-07')
+    df.to_csv('Data/single-locations-eval-2020-07-22.csv')
     '''
     print(df.mean(axis=0))
     '''
@@ -69,5 +69,25 @@ def single_loc_evaluation():
     ax.set_ylabel('Latitude')
 
     plt.show()
+
+def uib_evaluation():
+    
+    metric_list = []
+    
+    sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
+
+    for i in tqdm(sample_list):
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(length=i))
+        m = gpm.multi_gp(xtrain, xval, ytrain, yval)
+
+        training_R2 = me.R2(m, xtrain, ytrain)
+        training_RMSE = me.RMSE(m, xtrain, ytrain)
+        val_R2 = me.R2(m, xval, yval)
+        val_RMSE = me.RMSE(m, xval, yval)
+
+        metric_list.append([i, training_R2, training_RMSE, val_R2, val_RMSE])
+
+    df = pd.DataFrame(metric_list, columns=['samples', 'training_R2', 'training_RMSE', 'val_R2', 'val_RMSE'])
+    df.to_csv('uib-eval-2020-07-22.csv')
 
 
