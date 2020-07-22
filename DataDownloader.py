@@ -36,12 +36,12 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
     path = 'Data/'
     now = datetime.datetime.now()
 
-    if ensemble == False:
-        filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.csv'
+    if ensemble == True:
+        filename = 'combi_data_ensemble' + '_' + now.strftime("%m-%Y")+'.csv'
     if all_var == True:
         filename = 'all_data' + '_' + now.strftime("%m-%Y")+'.csv'
     else:
-        filename = 'combi_data_ensemble' + '_' + now.strftime("%m-%Y")+'.csv'
+        filename = 'combi_data' + '_' + now.strftime("%m-%Y")+'.csv'
 
     filepath = path + filename
     print(filepath)
@@ -49,21 +49,23 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
     if not os.path.exists(filepath):
 
         # Orography, humidity, precipitation and indices
-        cds_df = cds_downloader(mask_filepath, ensemble=False)
-        ind_df = indice_downloader(all_var = all_var)
-        df_combined = pd.merge_ordered(cds_df, ind_df, on='time', suffixes=("", "_y"))
+        cds_df = cds_downloader(mask_filepath, ensemble=ensemble, all_var=all_var)
+        df_clean = cds_df.dropna()
         
         # Other variables not used in the GP
         if all_var == True:
+            
+            ind_df = indice_downloader(all_var = all_var)            
             mean_df = mean_downloader()
             uib_eofs_df = eof_downloader(mask_filepath, all_var = all_var)
     
             # Combine
+            df_combined = pd.merge_ordered(cds_df, ind_df, on='time', suffixes=("", "_y"))
             df_combined = pd.merge_ordered(df_combined, mean_df, on='time')
             df_combined = pd.merge_ordered(df_combined, uib_eofs_df, on=['time', 'latitude', 'longitude'])
+            df_clean = df_combined.dropna()
 
-        # Clean   
-        df_clean = df_combined.dropna()
+        # Format and save
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean = df_clean.astype('float64')
         df_clean.to_csv(filepath)
@@ -217,7 +219,7 @@ def indice_downloader(all_var=False):
     return ind_df
 
 
-def cds_downloader(mask_filepath, ensemble=False):
+def cds_downloader(mask_filepath, ensemble=False, all_var=False):
     """ Return CDS Dataframe """
 
     if ensemble == False:
@@ -229,4 +231,8 @@ def cds_downloader(mask_filepath, ensemble=False):
     multiindex_df = masked_da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
+    
+    if all_var == False:
+        cds_df = cds_df.drop(['anor'], axis=1)
+    
     return cds_df
