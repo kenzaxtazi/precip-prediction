@@ -46,16 +46,16 @@ def single_loc_evaluation():
 
     df = pd.DataFrame(metric_list, columns=['latitude', 'longitude', 'training_R2', 'training_RMSE', 'val_R2', 'val_RMSE'])
     df.to_csv('Data/single-locations-eval-2020-07-22.csv')
-    '''
+    
     print(df.mean(axis=0))
-    '''
+    
     df_prep = df.set_index(['latitude', 'longitude'])
     da= df_prep.to_xarray()
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.val_R2.plot(cbar_kwargs={'label': '\n Validation R2', 'extend':'neither', 'pad':0.10})
+    da.val_R2.plot(center=0.0, vmax=1.0, cbar_kwargs={'label': '\n Validation R2', 'extend':'neither', 'pad':0.10})
     ax.gridlines(draw_labels=True)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
