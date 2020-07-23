@@ -84,7 +84,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     ytrain = train_df['tp'].values
 
     # Last 30% for evaluation
-    eval_df = df[ df['time']> df['time'].max()*0.3]
+    eval_df = df[ df['time']> df['time'].max()*0.7]
     x_eval = eval_df.drop(columns=['tp']).values
     y_eval = eval_df['tp'].values
 
@@ -142,7 +142,7 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
     ytrain = train_df['tp'].values
 
     # Last 30% for evaluation
-    eval_df = df[ df['time']> df['time'].max()*0.3]
+    eval_df = df[ df['time']> df['time'].max()*0.7]
     x_eval = eval_df.drop(columns=['tp']).values
     y_eval = eval_df['tp'].values
 
