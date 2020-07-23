@@ -31,7 +31,7 @@ def model_plot(model, number=None, coords=None):
     """ Returns plot for multivariate GP for a single loation """
     
     if number == None:
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=number)
+        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=number, coords=coords)
     else:
         xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 
@@ -41,14 +41,14 @@ def model_plot(model, number=None, coords=None):
     
     plt.figure()
     
-    plt.scatter(xtrain[:,0] + 1981, ytrain, label='ERA5 training data')
-    plt.scatter(xval[:,0] + 1981, yval, color='orange', label='ERA5 validation data')
+    plt.scatter(xtrain[:,0] + 1979, ytrain, label='ERA5 training data')
+    plt.scatter(xval[:,0] + 1979, yval, color='orange', label='ERA5 validation data')
     
-    plt.plot(xtr[:,0] + 1981, y_gpr, color='orange', linestyle='-', label='Prediction')
-    plt.fill_between(xtr[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+    plt.plot(xtr[:,0] + 1979, y_gpr, color='orange', linestyle='-', label='Prediction')
+    plt.fill_between(xtr[:,0]+ 1979, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
              alpha=.5, color='lightblue', label='95% confidence interval')
 
-    plt.plot(xtr[:,0] + 1981, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    plt.plot(xtr[:,0] + 1979, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
     
     if coords == None:
         plt.title('GP fit')
@@ -78,7 +78,7 @@ def ensemble_model_plot(models):
 
         y_gpr, y_std = models[i].predict_y(xtr)
        
-        plt.scatter(xtr[:,0] + 1981, ytr, label='ERA5 data', color=palette[i])
+        plt.scatter(xtr[:,0] + 1979, ytr, label='ERA5 data', color=palette[i])
         
         plt.plot(xtr[:,0] + 1981, y_gpr, color=palette[i], linestyle='-', label='Prediction')
         plt.fill_between(xtr[:,0]+ 1981, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
