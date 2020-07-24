@@ -155,18 +155,31 @@ def sampled_points(filepath1, label1, filepath2=None, label2=None, filepath3=Non
     
     plt.figure('R2')
     plt.scatter(df1['samples'].values, df1['R2_val'].values, c='b', label=label1)
+    plt.plot(df1['samples'].values, df1['R2_val'].values, c='b', linestyle='--')
     if filepath2 != None:
-        plt.scatter(df2['samples'].values, df2['R2_val'].values, c='o', label=label2)
+        plt.scatter(df2['samples'].values, df2['R2_val'].values, c='r', label=label2)
+        plt.plot(df2['samples'].values, df2['R2_val'].values, c='r', linestyle='--')
     if filepath3 != None:
         plt.scatter(df3['samples'].values, df3['R2_val'].values, c='g', label=label3)
+        plt.plot(df3['samples'].values, df3['R2_val'].values, c='g', linestyle='--')
+    plt.xlabel('Number of samples')
+    plt.ylabel('R2')
+    plt.legend()
+
 
     plt.figure('RMSE')
     plt.scatter(df1['samples'].values, df1['RMSE_val'].values, c='b', label=label1)
+    plt.plot(df1['samples'].values, df1['RMSE_val'].values, c='b', linestyle='--')
     if filepath2 != None:
-        plt.scatter(df2['samples'].values, df2['RMSE_val'].values, c='o', label=label2)
+        plt.scatter(df2['samples'].values, df2['RMSE_val'].values, c='r', label=label2)
+        plt.plot(df2['samples'].values, df2['RMSE_val'].values, c='r', linestyle='--')
     if filepath3 != None:
         plt.scatter(df3['samples'].values, df3['RMSE_val'].values, c='g', label=label3)
-    
+        plt.plot(df2['samples'].values, df2['RMSE_val'].values, c='r', linestyle='--')
+    plt.xlabel('Number of samples')
+    plt.ylabel('RMSE')
+    plt.legend()
+
     plt.show()
 
 
