@@ -175,7 +175,7 @@ def sampled_points(filepath1, label1, filepath2=None, label2=None, filepath3=Non
         plt.plot(df2['samples'].values, df2['RMSE_val'].values, c='r', linestyle='--')
     if filepath3 != None:
         plt.scatter(df3['samples'].values, df3['RMSE_val'].values, c='g', label=label3)
-        plt.plot(df2['samples'].values, df2['RMSE_val'].values, c='r', linestyle='--')
+        plt.plot(df3['samples'].values, df3['RMSE_val'].values, c='g', linestyle='--')
     plt.xlabel('Number of samples')
     plt.ylabel('RMSE')
     plt.legend()
