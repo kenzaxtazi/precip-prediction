@@ -56,7 +56,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     print(" {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(me.R2(m, xtrain, ytrain), me.RMSE(m, xtrain, ytrain), me.R2(m, xval, yval), me.RMSE(m, xval, yval), np.mean(y_gpr), np.mean(y_std)))
     
     if save == True:
-        filepath = save_model(m, xval)
+        filepath = save_model(m, xval, '')
         print(filepath)
 
     return m
@@ -72,13 +72,13 @@ def save_model(model, xval, qualifiers=None): # TODO
     frozen_model = gpflow.utilities.freeze(model)
     
     module_to_save = tf.Module()
-    predict_fn = tf.function(frozen_model.predict_f, input_signature=[tf.TensorSpec(shape=[None, 1], dtype=tf.float64)])
-    module_to_save.predict = predict_fn
+    predict_fn = tf.function(frozen_model.predict_f, input_signature=[tf.TensorSpec(shape=[None, np.shape(xval)[1]], dtype=tf.float64)])
+    module_to_save.predict_y = predict_fn
 
     samples_input = tf.convert_to_tensor(samples_input, dtype='float64')
-    original_result = module_to_save.predict(samples_input)
+    #original_result = module_to_save.predict(samples_input)
 
-    filename = 'model_' + now.strftime("%Y-%m-%D-%H-%M-%S") + qualifiers
+    filename = 'model_' + now.strftime("%Y-%m-%D-%H-%M-%S") # + qualifiers
 
     save_dir = 'Models/' + filename
     tf.saved_model.save(module_to_save, save_dir)
