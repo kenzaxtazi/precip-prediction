@@ -64,7 +64,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
             df_combined = pd.merge_ordered(df_combined, uib_eofs_df, on=['time', 'latitude', 'longitude'])
 
         # Format and save
-        df_clean = df_combined.dropna()
+        df_clean = df_combined.dropna().drop('expver', axis=1)
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean = df_clean.astype('float64')
         df_clean.to_csv(filepath)
