@@ -50,22 +50,21 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
 
         # Orography, humidity, precipitation and indices
         cds_df = cds_downloader(mask_filepath, ensemble=ensemble, all_var=all_var)
-        df_clean = cds_df.dropna()
+        ind_df = indice_downloader(all_var = all_var)
+        df_combined = pd.merge_ordered(cds_df, ind_df, on='time', suffixes=("", "_y"))
+        
         
         # Other variables not used in the GP
-        if all_var == True:
-            
-            ind_df = indice_downloader(all_var = all_var)            
+        if all_var == True:           
             mean_df = mean_downloader()
             uib_eofs_df = eof_downloader(mask_filepath, all_var = all_var)
     
             # Combine
-            df_combined = pd.merge_ordered(cds_df, ind_df, on='time', suffixes=("", "_y"))
             df_combined = pd.merge_ordered(df_combined, mean_df, on='time')
             df_combined = pd.merge_ordered(df_combined, uib_eofs_df, on=['time', 'latitude', 'longitude'])
-            df_clean = df_combined.dropna()
 
         # Format and save
+        df_clean = df_combined.dropna()
         df_clean['time'] = df_clean['time'].astype('int')
         df_clean = df_clean.astype('float64')
         df_clean.to_csv(filepath)
@@ -231,8 +230,8 @@ def cds_downloader(mask_filepath, ensemble=False, all_var=False):
     multiindex_df = masked_da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
-    
+    '''
     if all_var == False:
         cds_df = cds_df.drop(['anor'], axis=1)
-    
+    '''
     return cds_df
