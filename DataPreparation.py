@@ -136,6 +136,19 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
     df['time'] = (df['time'] - df['time'].min())/ (1e9*60*60*24*365)
     df['tp'] = df['tp']*1000  # to mm
     
+    # Remove last 10% of time for testing		     
+    test_df = df[ df['time']> df['time'].max()*0.9]
+    xtest = test_df.drop(columns=['tp']).values
+    ytest = test_df['tp'].values
+
+    # Training and validation data
+    tr_df = df[ df['time']< df['time'].max()*0.9]		     
+    xtr = tr_df.drop(columns=['tp']).values
+    ytr = tr_df['tp'].values
+
+    xtrain, xval, ytrain, yval = train_test_split(xtr, ytr, test_size=0.30, shuffle=False)		     # Training and validation data
+
+    ''''
     # Keep first of 70% for training
     train_df = df[ df['time']< df['time'].max()*0.7]
     xtrain = train_df.drop(columns=['tp']).values
@@ -148,7 +161,7 @@ def random_multivariate_data_prep(number=None,  EDA_average=False, length=3000, 
 
     # Training and validation data
     xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
-    
+    '''
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
