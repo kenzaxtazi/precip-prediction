@@ -412,7 +412,7 @@ def tp_vs(mask_filepath, variable, cluster_mask=None, longname=''):
     '''
     
     if cluster_mask == None:
-        da = dd.download_data(mask_filepath)
+        df = dd.download_data(mask_filepath)
     else:
         cds_filepath = fd.update_cds_monthly_data()
         da = dd.apply_mask(cds_filepath, cluster_mask)
