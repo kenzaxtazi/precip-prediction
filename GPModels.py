@@ -40,7 +40,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     k2 = gpflow.kernels.RBF()
     # k3 = gpflow.kernels.White()
   
-    k = k1 + k2  #+k3
+    k =  k1 + k2  #+k
 
     mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),1)), b=[1])
 
