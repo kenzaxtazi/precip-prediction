@@ -148,22 +148,22 @@ def mean_downloader():
     temp_df = mean_formatter(temp_filepath)
 
     # EOFs for 200hPa
-    eof1_z200_c = mean_formatter('Data/regional_z200_EOF1.nc', coords = [40, 60, 35,70], name='eof1_z200_c')
-    eof1_z200_b = mean_formatter('Data/regional_z200_EOF1.nc', coords = [19, 83, 16, 93], name='eof1_z200_b')
-    eof2_z200_c = mean_formatter('Data/regional_z200_EOF2.nc', coords = [40, 60, 35,70], name='eof2_z200_c')
-    eof2_z200_b = mean_formatter('Data/regional_z200_EOF2.nc', coords = [19, 83, 16, 93], name='eof2_z200_b')
+    eof1_z200_c = mean_formatter('Data/regional_z200_EOF1.nc', coords = [40, 60, 35,70], name='EOF200C1')
+    eof1_z200_b = mean_formatter('Data/regional_z200_EOF1.nc', coords = [19, 83, 16, 93], name='EOF200B1')
+    eof2_z200_c = mean_formatter('Data/regional_z200_EOF2.nc', coords = [40, 60, 35,70], name='EOF200C2')
+    eof2_z200_b = mean_formatter('Data/regional_z200_EOF2.nc', coords = [19, 83, 16, 93], name='EOF200B2')
 
     # EOFs for 500hPa
-    eof1_z500_c = mean_formatter('Data/regional_z500_EOF1.nc', coords = [40, 60, 35,70], name='eof1_z500_c')
-    eof1_z500_b = mean_formatter('Data/regional_z500_EOF1.nc', coords = [19, 83, 16, 93], name='eof1_z500_b')
-    eof2_z500_c = mean_formatter('Data/regional_z500_EOF2.nc', coords = [40, 60, 35,70], name='eof2_z500_c')
-    eof2_z500_b = mean_formatter('Data/regional_z500_EOF2.nc', coords = [19, 83, 16, 93], name='eof2_z500_b')
+    eof1_z500_c = mean_formatter('Data/regional_z500_EOF1.nc', coords = [40, 60, 35,70], name='EOF500C1')
+    eof1_z500_b = mean_formatter('Data/regional_z500_EOF1.nc', coords = [19, 83, 16, 93], name='EOF500B1')
+    eof2_z500_c = mean_formatter('Data/regional_z500_EOF2.nc', coords = [40, 60, 35,70], name='EOF500C2')
+    eof2_z500_b = mean_formatter('Data/regional_z500_EOF2.nc', coords = [19, 83, 16, 93], name='EOF500B2')
 
     # EOFs for 850hPa
-    eof1_z850_c = mean_formatter('Data/regional_z850_EOF1.nc', coords = [40, 60, 35,70], name='eof1_z850_c')
-    eof1_z850_b = mean_formatter('Data/regional_z850_EOF1.nc', coords = [19, 83, 16, 93], name='eof1_z850_b')
-    eof2_z850_c = mean_formatter('Data/regional_z850_EOF2.nc', coords = [40, 60, 35,70], name='eof2_z850_c')
-    eof2_z850_b = mean_formatter('Data/regional_z850_EOF2.nc', coords = [19, 83, 16, 93], name='eof2_z850_b')
+    eof1_z850_c = mean_formatter('Data/regional_z850_EOF1.nc', coords = [40, 60, 35,70], name='EOF850C1')
+    eof1_z850_b = mean_formatter('Data/regional_z850_EOF1.nc', coords = [19, 83, 16, 93], name='EOF850B1')
+    eof2_z850_c = mean_formatter('Data/regional_z850_EOF2.nc', coords = [40, 60, 35,70], name='EOF850C2')
+    eof2_z850_b = mean_formatter('Data/regional_z850_EOF2.nc', coords = [19, 83, 16, 93], name='EOF850B2')
 
     eof_df = pd.concat([eof1_z200_b, eof1_z200_c, eof2_z200_b, eof2_z200_c, eof1_z500_b, eof1_z500_c, 
                         eof2_z500_b, eof2_z500_c, eof1_z850_b, eof1_z850_c, eof2_z850_b, eof2_z850_c], axis=1)
@@ -186,13 +186,13 @@ def eof_downloader(mask_filepath, all_var=False):
         return eof_df
 
     # EOF UIB
-    eof1_z200_u = eof_formatter('Data/regional_z200_EOF1.nc', mask_filepath, name='eof_z200_u')
-    eof1_z500_u = eof_formatter('Data/regional_z500_EOF1.nc', mask_filepath, name='eof_z500_u')
-    eof1_z850_u = eof_formatter('Data/regional_z850_EOF1.nc', mask_filepath, name='eof_z850_u')
+    eof1_z200_u = eof_formatter('Data/regional_z200_EOF1.nc', mask_filepath, name='EOF200U1')
+    eof1_z500_u = eof_formatter('Data/regional_z500_EOF1.nc', mask_filepath, name='EOF500U1')
+    eof1_z850_u = eof_formatter('Data/regional_z850_EOF1.nc', mask_filepath, name='EOF850U1')
 
-    eof2_z200_u = eof_formatter('Data/regional_z200_EOF2.nc', mask_filepath, name='eof2_z200_u')
-    eof2_z500_u = eof_formatter('Data/regional_z500_EOF2.nc', mask_filepath, name='eof_z500_u')
-    eof2_z850_u = eof_formatter('Data/regional_z850_EOF2.nc', mask_filepath, name='eof_z850_u')
+    eof2_z200_u = eof_formatter('Data/regional_z200_EOF2.nc', mask_filepath, name='EOF200U2')
+    eof2_z500_u = eof_formatter('Data/regional_z500_EOF2.nc', mask_filepath, name='EOF500U2')
+    eof2_z850_u = eof_formatter('Data/regional_z850_EOF2.nc', mask_filepath, name='EOF850U2')
 
     uib_eofs = pd.concat([eof1_z200_u, eof2_z200_u, eof1_z500_u, eof2_z500_u, eof1_z850_u, eof2_z850_u], axis=1)
 
