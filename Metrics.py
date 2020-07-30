@@ -27,7 +27,7 @@ def RMSE(model, x, y):
     RMSE = mean_squared_error(y, y_pred)
     return np.sqrt(RMSE)
 
-def model_plot(model, number=None, coords=None):
+def model_plot(model, number=None, coords=None, posteriors=True):
     """ Returns plot for multivariate GP for a single loation """
     
     if number == None:
@@ -40,15 +40,17 @@ def model_plot(model, number=None, coords=None):
     samples = model.predict_f_samples(xtr, 5)
     
     plt.figure()
-    
-    plt.scatter(xtrain[:,0] + 1979, ytrain, label='ERA5 training data')
-    plt.scatter(xval[:,0] + 1979, yval, color='orange', label='ERA5 validation data')
-    
-    plt.plot(xtr[:,0] + 1979, y_gpr, color='orange', linestyle='-', label='Prediction')
-    plt.fill_between(xtr[:,0]+ 1979, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
-             alpha=.5, color='lightblue', label='95% confidence interval')
 
-    plt.plot(xtr[:,0] + 1979, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
+    plt.fill_between(xtr[:,0]+ 1979, y_gpr[:, 0] - 1.9600 * y_std[:, 0], y_gpr[:, 0] + 1.9600 * y_std[:, 0],
+                     alpha=.5, color='lightblue', label='95% confidence interval')
+    
+    plt.scatter(xtrain[:,0] + 1979, ytrain, color='green', label='ERA5 training data', s=10)
+    plt.scatter(xval[:,0] + 1979, yval, color='orange', label='ERA5 validation data', s=10)
+    
+    plt.plot(xtr[:,0] + 1979, y_gpr, color='C0', linestyle='-', label='Prediction')
+
+    if posteriors == True:
+        plt.plot(xtr[:,0] + 1979, samples[:, :, 0].numpy().T, "C0", linewidth=0.5)
     
     if coords == None:
         plt.title('GP fit')
@@ -98,12 +100,12 @@ def plot_vs_truth(x_train, y_train, x_test, y_test, m):
     y_train_pred, y_train_std_pred = m.predict_y(x_train)
 
     plt.figure()
-    plt.plot([0,16],[0,16], linestyle='--', c='black')
-    plt.scatter(y_train, y_train_pred, c='blue', alpha=0.5, label='ERA5 training data')
-    plt.scatter(y_test, y_test_pred, c='green', alpha=0.5, label='ERA5 validation data')
+    plt.plot([0,25],[0,25], linestyle='--', c='black')
+    plt.scatter(y_train, y_train_pred, c='blue', alpha=0.5, label='Training data')
+    plt.scatter(y_test, y_test_pred, c='green', alpha=0.5, label='Validation data')
     plt.legend()
-    plt.ylabel('Y predicted')
-    plt.xlabel('Y true')
+    plt.ylabel('Y predicted [mm/day]')
+    plt.xlabel('Y true [mm/day]')
     plt.show() 
 
 def plot_residuals(x_train, y_train, x_test, y_test, m):
@@ -117,6 +119,6 @@ def plot_residuals(x_train, y_train, x_test, y_test, m):
     plt.scatter(x_train[:,2] + 1979, y_train-np.array(y_train_pred).flatten(), c='blue', alpha=0.5, label='ERA5 training data')
     plt.scatter(x_test[:,2] + 1979, y_test-np.array(y_test_pred).flatten(), c='green', alpha=0.5, label='ERA5 validation data')
     plt.legend()
-    plt.ylabel('Residuals')
+    plt.ylabel('Residuals [mm/day]')
     plt.xlabel('Time')
     plt.show() 
