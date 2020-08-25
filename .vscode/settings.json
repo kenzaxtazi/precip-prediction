@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/kenzatazi/opt/anaconda3/bin/python"
+    "python.pythonPath": "/Users/kenzatazi/opt/anaconda3/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
