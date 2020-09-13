@@ -1,7 +1,7 @@
 # GP ensemble
 
 import pandas as pd
-import numpy as np   
+import numpy as np
 
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -11,10 +11,10 @@ import Metrics as me
 
 
 ## Filepaths
-mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
-khyber_mask = 'Khyber_mask.nc'
-gilgit_mask = 'Gilgit_mask.nc'
-ngari_mask = 'Ngari_mask.nc'
+mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+khyber_mask = "Khyber_mask.nc"
+gilgit_mask = "Gilgit_mask.nc"
+ngari_mask = "Ngari_mask.nc"
 
 
 ## Empty lists
@@ -22,7 +22,7 @@ model_list = []
 
 ytrain_list = []
 ytrain_pred_list = []
-ytrain_std_pred_list =[]
+ytrain_std_pred_list = []
 
 yval_list = []
 yval_pred_list = []
@@ -32,12 +32,14 @@ yval_std_pred_list = []
 ## Runs
 
 for i in range(10):
-    
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(number=i, length=10000)
+
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+        number=i, length=10000
+    )
 
     ytrain_list.append(ytrain)
     yval_list.append(yval)
-    '''
+    """
     model = gpm.multi_gpflow_gp(xtrain, xval, ytrain, yval)
     model_list.append(model)
 
@@ -48,20 +50,20 @@ for i in range(10):
     yval_pred, yval_std_pred = model.predict_y(xval)
     yval_pred_list.append(yval_pred)
     yval_std_pred_list.append(yval_std_pred)
-    '''
+    """
 
 ## Ensemble
 
-yval_array = np.array(yval_list) 
+yval_array = np.array(yval_list)
 yval_df = pd.DataFrame(yval_array.reshape(10, -1))
 yval_df = yval_df.T
-yval_df['mean'] = yval_df.mean(axis=1)
+yval_df["mean"] = yval_df.mean(axis=1)
 
-ytrain_array = np.array(ytrain_list) 
+ytrain_array = np.array(ytrain_list)
 ytrain_df = pd.DataFrame(ytrain_array.reshape(10, -1))
 ytrain_df = ytrain_df.T
-ytrain_df['mean'] = ytrain_df.mean(axis=1)
-'''
+ytrain_df["mean"] = ytrain_df.mean(axis=1)
+"""
 yval_pred_array = np.array(yval_pred_list) 
 yval_pred_df = pd.DataFrame(yval_pred_array.reshape(10, -1))
 yval_pred_df = yval_pred_df.T
@@ -90,8 +92,8 @@ R2_val = r2_score(yval_df['mean'], yval_pred_df['mean'])
 
 y_mean = np.concatenate((ytrain_pred_df['mean'], yval_pred_df['mean'])).mean()
 std_mean = np.concatenate((ytrain_std_pred_df['mean'], yval_std_pred_df['mean'])).mean()
-'''
+"""
 # me.ensemble_model_plot(model_list)
 
 ## Averaged EDA Data
-m_a = gpm.multi_gp(xtrain, xval, ytrain_df['mean'].values, yval_df['mean'].values)
+m_a = gpm.multi_gp(xtrain, xval, ytrain_df["mean"].values, yval_df["mean"].values)
