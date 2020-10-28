@@ -147,7 +147,7 @@ def random_multivariate_data_prep(
     df["time"] = df["time"].astype("int")
     df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
     df["tp"] = df["tp"] * 1000  # to mm
-    df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N43"]]
+    df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Remove last 10% of time for testing
     test_df = df[df["time"] > df["time"].max() * 0.9]
