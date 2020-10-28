@@ -38,7 +38,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     # model construction
     k1 = gpflow.kernels.Periodic(
-        gpflow.kernels.RBF(lengthscales=0.3, variance=6, active_dims=[0])
+        gpflow.kernels.RBF(lengthscales=0.3, variance=1, active_dims=[0])
     )
     k2 = gpflow.kernels.RBF()
     # k3 = gpflow.kernels.White()
