@@ -80,7 +80,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     df["time"] = (df["time"] - df["time"].min()) / (
         1e9 * 60 * 60 * 24 * 365
     )  # to years
-    df["tp"] = df["tp"] * 1000  # to mm
+    df = log_transform(df, ["tp"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
 
     # Keep first of 70% for training
@@ -145,7 +145,7 @@ def random_multivariate_data_prep(
 
     df["time"] = df["time"].astype("int")
     df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
-    df["tp"] = df["tp"] * 1000  # to mm
+    df = log_transform(df, ["tp"]) 
     df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Remove last 10% of time for testing
