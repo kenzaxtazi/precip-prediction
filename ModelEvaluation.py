@@ -103,7 +103,7 @@ def uib_evaluation(average=False):
 
     metric_list = []
 
-    sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
+    sample_list =  3000 #[1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
     for i in tqdm(sample_list):
         try:
@@ -146,7 +146,7 @@ def cluster_evaluation(cluster_mask):
 
     name = cluster_mask[0:6]
 
-    sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
+    sample_list =  3000 #[1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
     for i in tqdm(sample_list):
         try:
