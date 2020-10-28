@@ -81,6 +81,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
         1e9 * 60 * 60 * 24 * 365
     )  # to years
     df["tp"] = df["tp"] * 1000  # to mm
+    df = df[["time", "d2m", "tcwv", "N43"]] #format order
 
     # Keep first of 70% for training
     train_df = df[df["time"] < df["time"].max() * 0.7]
@@ -145,6 +146,7 @@ def random_multivariate_data_prep(
     df["time"] = df["time"].astype("int")
     df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
     df["tp"] = df["tp"] * 1000  # to mm
+    df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N43"]]
 
     # Remove last 10% of time for testing
     test_df = df[df["time"] > df["time"].max() * 0.9]
@@ -160,7 +162,7 @@ def random_multivariate_data_prep(
         xtr, ytr, test_size=0.30, shuffle=False
     )  # Training and validation data
 
-    """'
+    """
     # Keep first of 70% for training
     train_df = df[ df['time']< df['time'].max()*0.7]
     xtrain = train_df.drop(columns=['tp']).values
