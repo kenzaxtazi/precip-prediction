@@ -81,6 +81,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
         1e9 * 60 * 60 * 24 * 365
     )  # to years
     df["tp"] = df["tp"] * 1000  # to mm
+    print(list(df))
     df = df[["time", "d2m", "tcwv", "N43"]] #format order
 
     # Keep first of 70% for training
