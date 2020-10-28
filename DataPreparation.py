@@ -82,7 +82,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     )  # to years
     df["tp"] = df["tp"] * 1000  # to mm
     print(list(df))
-    df = df[["time", "d2m", "tcwv", "N43"]] #format order
+    df = df[["time", "d2m", "tcwv", "N43", "tp"]] #format order
 
     # Keep first of 70% for training
     train_df = df[df["time"] < df["time"].max() * 0.7]
