@@ -198,6 +198,6 @@ def log_transform(df, features):
         df: updated dataframe.
     """
     for f in features:
-        df[f] = np.log(df[f]*np.e/df[f].max() + 1)
+        df[f] = np.log(df[f]*(np.e-1)/df[f].max() + 1)
     
     return df
