@@ -53,7 +53,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(
-        m.training_loss, m.trainable_variables, options=dict(maxiter=100)
+        m.training_loss, m.trainable_variables, options=dict(maxiter=1000)
     )
     # print_summary(m)
 
