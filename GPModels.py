@@ -48,8 +48,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]), 1)), b=[1])
 
     m = gpflow.models.GPR(
-        data=(xtrain, ytrain.reshape(-1, 1)), kernel=k, mean_function=mean_function
-    )
+        data=(xtrain, ytrain.reshape(-1, 1)), kernel=k) #, mean_function=mean_function)
 
     opt = gpflow.optimizers.Scipy()
     opt_logs = opt.minimize(
