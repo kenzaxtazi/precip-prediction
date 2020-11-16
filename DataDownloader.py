@@ -64,8 +64,13 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
                 df_combined, uib_eofs_df, on=["time", "latitude", "longitude"]
             )
 
+        # Choose experiment version 1 
+        expver1 = [c for c in df_combined.columns if c[-1] != '5']
+        df_expver1 = df_combined[expver1]
+        df_expver1.columns = df_expver1.columns.str.strip('_0001')
+        
         # Format and save
-        df_clean = df_combined.dropna().drop("expver", axis=1)
+        df_clean = df_expver1.dropna() #.drop("expver", axis=1)
         df_clean["time"] = df_clean["time"].astype("int")
         df_clean = df_clean.astype("float64")
         df_clean.to_csv(filepath)
