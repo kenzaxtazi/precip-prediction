@@ -38,14 +38,14 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     # model construction
     k1 = gpflow.kernels.Periodic(
-        gpflow.kernels.RBF(lengthscales=0.3, variance=1, active_dims=[0])
+        gpflow.kernels.Matern52(lengthscales=0.3, variance=1, active_dims=[0])
     )
-    k2 = gpflow.kernels.RBF(active_dims=np.arange(1, len(xval[0])))
+    k2 = gpflow.kernels.Matern52(active_dims=np.arange(1, len(xval[0])))
     # k3 = gpflow.kernels.White()
 
     k = k1 + k2  # +k
 
-    mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]), 1)), b=[1])
+    # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]), 1)), b=[1])
 
     m = gpflow.models.GPR(
         data=(xtrain, ytrain.reshape(-1, 1)), kernel=k) #, mean_function=mean_function)
