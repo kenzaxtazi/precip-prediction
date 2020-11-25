@@ -80,7 +80,8 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     df["time"] = (df["time"] - df["time"].min()) / (
         1e9 * 60 * 60 * 24 * 365
     )  # to years
-    df = log_transform(df, ["tp"])
+    df = log_transform(df, ["tp", "d2m", "tcwv"])
+    df = normal_transform(df, ["N34"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
 
     # Keep first of 70% for training
@@ -145,7 +146,8 @@ def random_multivariate_data_prep(
 
     df["time"] = df["time"].astype("int")
     df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
-    df = log_transform(df, ["tp"]) 
+    df = log_transform(df, ["tp", "d2m", "tcwv", "z", "slope"])
+    df = normal_transform(df, ["N34", "anor", "latitude", "longitude"])
     df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Remove last 10% of time for testing
@@ -179,9 +181,15 @@ def random_multivariate_data_prep(
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def normal_transform(df):
-    """ Normalise dataframe """
-    features = list(df)
+def normal_transform(df, features):
+    """ 
+    Normalise dataframe    
+    Inputs
+        df: dataframe
+        features: list of features to transform, list of strings
+    Output:
+        df: updated dataframe.
+    """
     for f in features:
         df[f] = df[f] / df[f].max()
     return df
@@ -189,11 +197,9 @@ def normal_transform(df):
 def log_transform(df, features):
     """ 
     Log transformation of features in dataframe
-    
     Inputs
         df: dataframe
         features: list of features to transform, list of strings
-
     Output:
         df: updated dataframe.
     """
