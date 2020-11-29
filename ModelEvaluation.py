@@ -24,7 +24,7 @@ import Sampling as sa
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 
 
-def single_loc_evaluation():
+def single_loc_evaluation(perf_plot=False, hpar_plot=False):
 
     metric_list = []
     coord_list = sa.random_location_generator(UIB=True)
@@ -41,6 +41,9 @@ def single_loc_evaluation():
             training_RMSE = me.RMSE(m, xtrain, ytrain)
             val_R2 = me.R2(m, xval, yval)
             val_RMSE = me.RMSE(m, xval, yval)
+            time_kernel_lengthscale = float(m.kernel.kernels[0].base_kernel.variance.value())
+            time_kernel_variance = float(m.kernel.kernels[0].base_kernel.lengthscales.value()) 
+            time_kernel_periodicity = float(m.kernel.kernels[0].period.value()) 
 
             metric_list.append(
                 [
@@ -50,6 +53,9 @@ def single_loc_evaluation():
                     training_RMSE,
                     val_R2,
                     val_RMSE,
+                    time_kernel_lengthscale,
+                    time_kernel_variance,
+                    time_kernel_periodicity
                 ]
             )
 
@@ -65,36 +71,76 @@ def single_loc_evaluation():
             "training_RMSE",
             "val_R2",
             "val_RMSE",
+            "time_kernel_lengthscale",
+            "time_kernel_variance",
+            "time_kernel_periodicity"
         ],
     )
-    df.to_csv("Data/single-locations-eval-2020-07-22.csv")
+    
+    now = datetime.datetime.now()
+    df.to_csv("Data/single-locations-eval-" + now.strftime("%Y-%m-%D") + ".csv")
 
     print(df.mean(axis=0))
 
     df_prep = df.set_index(["latitude", "longitude"])
     da = df_prep.to_xarray()
 
-    plt.figure()
-    ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([71, 83, 30, 38])
-    da.val_R2.plot(
-        center=0.0,
-        vmax=1.0,
-        cbar_kwargs={"label": "\n Validation R2", "extend": "neither", "pad": 0.10},
-    )
-    ax.gridlines(draw_labels=True)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
+    if perf_plot == True:
 
-    plt.figure()
-    ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([71, 83, 30, 38])
-    da.val_RMSE.plot(
-        cbar_kwargs={"label": "\n Validation RMSE", "extend": "neither", "pad": 0.10}
-    )
-    ax.gridlines(draw_labels=True)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        da.val_R2.plot(
+            center=0.0,
+            vmax=1.0,
+            cbar_kwargs={"label": "\n Validation R2", "extend": "neither", "pad": 0.10},
+        )
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        da.val_RMSE.plot(
+            cbar_kwargs={"label": "\n Validation RMSE", "extend": "neither", "pad": 0.10}
+        )
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+    
+    if hpar_plot == True:
+        
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        da.time_kernel_lengthscale.plot(
+            cbar_kwargs={"label": "\n Time axis kernel lengthscale", "extend": "neither", "pad": 0.10},
+        )
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        da.time_kernel_variance.plot(
+            cbar_kwargs={"label": "\n Time axis kernel variance", "extend": "neither", "pad": 0.10},
+        )
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
+        plt.figure()
+        ax = plt.subplot(projection=ccrs.PlateCarree())
+        ax.set_extent([71, 83, 30, 38])
+        da.time_kernel_periodicity.plot(
+            cbar_kwargs={"label": "\n Time axis kernel periodicity", "extend": "neither", "pad": 0.10},
+        )
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
 
     plt.show()
 
