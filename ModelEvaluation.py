@@ -78,7 +78,7 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
     )
     
     now = datetime.datetime.now()
-    df.to_csv("Data/single-locations-eval-" + now.strftime("%Y-%m-%D") + ".csv")
+    df.to_csv("Data/single-locations-eval-" + now.strftime("%Y-%m-%d") + ".csv")
 
     print(df.mean(axis=0))
 
