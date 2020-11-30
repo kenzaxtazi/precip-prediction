@@ -40,7 +40,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     k1 = gpflow.kernels.Periodic(
         gpflow.kernels.RBF(lengthscales=0.3, variance=1, active_dims=[0])
     )
-    k2 = gpflow.kernels.RBF() #active_dims=np.arange(1, len(xval[0])))
+    k2 = gpflow.kernels.RBF(active_dims=np.arange(1, len(xval[0])))
     # k3 = gpflow.kernels.White()
 
     k = k1 + k2  # +k
