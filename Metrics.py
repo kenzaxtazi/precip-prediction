@@ -26,7 +26,8 @@ def R2(model, x, y):
 def RMSE(model, x, y):
     """ Returns RMSE score """
     y_pred, y_std_pred = model.predict_y(x)
-    RMSE = mean_squared_error(y, y_pred)
+    log_RMSE = mean_squared_error(y, y_pred)
+    RMSE = dp.inverse_log_transform(log_RMSE)
     return np.sqrt(RMSE)
 
 
