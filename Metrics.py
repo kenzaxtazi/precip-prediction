@@ -27,7 +27,7 @@ def RMSE(model, x, y):
     """ Returns RMSE score """
     y_pred, y_std_pred = model.predict_y(x)
     log_RMSE = mean_squared_error(y, y_pred)
-    RMSE = dp.inverse_log_transform(log_RMSE)
+    RMSE = dp.inverse_log_transform(log_RMSE) * 1000    # to mm/day
     return np.sqrt(RMSE)
 
 
@@ -42,7 +42,9 @@ def model_plot(model, number=None, coords=None, posteriors=True):
         xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 
     xtr = np.concatenate((xtrain, xval), axis=0)
-    y_gpr, y_std = model.predict_y(xtr)
+    log_y_gpr, log_y_std = model.predict_y(xtr)
+    y_gpr = dp.inverse_log_transform(log_y_gpr) * 1000 # to mm/day
+    y_std = dp.inverse_log_transform(log_y_std) * 1000 # to mm/day
     samples = model.predict_f_samples(xtr, 5)
 
     plt.figure()
@@ -94,7 +96,9 @@ def ensemble_model_plot(models):
         xtr = np.concatenate((xtrain, xval), axis=0)
         ytr = np.concatenate((ytrain, yval), axis=0)
 
-        y_gpr, y_std = models[i].predict_y(xtr)
+        log_y_gpr, log_y_std = model.predict_y(xtr)
+        y_gpr = dp.inverse_log_transform(log_y_gpr) * 1000 # to mm/day
+        y_std = dp.inverse_log_transform(log_y_std) * 1000 # to mm/day
 
         plt.scatter(xtr[:, 0] + 1979, ytr, label="ERA5 data", color=palette[i])
 
