@@ -80,7 +80,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     df["time"] = (df["time"] - df["time"].min()) / (
         1e9 * 60 * 60 * 24 * 365
     )  # to years
-    df = log_transform(df, ["tp"])
+    df = log_transform(df["tp"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
 
     # Keep first of 70% for training
@@ -145,7 +145,7 @@ def random_multivariate_data_prep(
 
     df["time"] = df["time"].astype("int")
     df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
-    df = log_transform(df, ["tp"])
+    df = log_transform(df["tp"])
     df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Remove last 10% of time for testing
@@ -192,16 +192,14 @@ def normal_transform(df, features):
         df[f] = df[f] / df[f].max()
     return df
 
-def log_transform(df, features):
-    """ 
-    Log transformation of features in dataframe
-    Inputs
-        df: dataframe
-        features: list of features to transform, list of strings
-    Output:
-        df: updated dataframe.
-    """
-    for f in features:
-        df[f] = np.log(df[f]*(np.e-1)/df[f].max() + 1)
-    
-    return df
+def log_transform(x):
+    """ Log transformation  for total precipitation """
+    tp_max = 0.02340308390557766
+    y = np.log(x*(np.e-1)/tp_max + 1)
+    return y
+
+def inverse_log_transform(x):
+    """ Inverse log transformation for total precipitation """
+    tp_max = 0.02340308390557766
+    y = (np.exp(x)-1) * tp_max / (np.e-1)  # np.log(df[f]*(np.e-1)/df[f].max() + 1)
+    return y
