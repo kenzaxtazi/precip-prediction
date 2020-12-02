@@ -44,7 +44,12 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
             time_kernel_lengthscale = float(m.kernel.kernels[0].base_kernel.variance.value())
             time_kernel_variance = float(m.kernel.kernels[0].base_kernel.lengthscales.value()) 
             time_kernel_periodicity = float(m.kernel.kernels[0].period.value()) 
+            N34_lengthscale = np.array(m.kernel.kernels[1].lengthscales.value())[2]  
+            d2m_lengthscale = np.array(m.kernel.kernels[1].lengthscales.value())[0]  
+            tcwv_lengthscale = np.array(m.kernel.kernels[1].lengthscales.value())[1]
+            rbf_kernel_variance = float(m.kernel.kernels[1].variance.value())  
 
+            
             metric_list.append(
                 [
                     coord_list[i, 0],
@@ -55,7 +60,11 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
                     val_RMSE,
                     time_kernel_lengthscale,
                     time_kernel_variance,
-                    time_kernel_periodicity
+                    time_kernel_periodicity,
+                    N34_lengthscale,
+                    d2m_lengthscale,
+                    tcwv_lengthscale,
+                    rbf_kernel_variance
                 ]
             )
 
@@ -73,7 +82,11 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
             "val_RMSE",
             "time_kernel_lengthscale",
             "time_kernel_variance",
-            "time_kernel_periodicity"
+            "time_kernel_periodicity",
+            "N34_lengthscale",
+            "d2m_lengthscale",
+            "tcwv_lengthscale",
+            "rbf_kernel_variance"
         ],
     )
     
@@ -86,64 +99,10 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
     da = df_prep.to_xarray()
 
     if perf_plot == True:
-
-        plt.figure()
-        ax = plt.subplot(projection=ccrs.PlateCarree())
-        ax.set_extent([71, 83, 30, 38])
-        da.val_R2.plot(
-            center=0.0,
-            vmax=1.0,
-            cbar_kwargs={"label": "\n Validation R2", "extend": "neither", "pad": 0.10},
-        )
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-
-        plt.figure()
-        ax = plt.subplot(projection=ccrs.PlateCarree())
-        ax.set_extent([71, 83, 30, 38])
-        da.val_RMSE.plot(
-            cbar_kwargs={"label": "\n Validation RMSE", "extend": "neither", "pad": 0.10}
-        )
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
+        slm_perf_plots(da)
     
     if hpar_plot == True:
-        
-        plt.figure()
-        ax = plt.subplot(projection=ccrs.PlateCarree())
-        ax.set_extent([71, 83, 30, 38])
-        da.time_kernel_lengthscale.plot(
-            cbar_kwargs={"label": "\n Time axis kernel lengthscale", "extend": "neither", "pad": 0.10},
-        )
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-
-        plt.figure()
-        ax = plt.subplot(projection=ccrs.PlateCarree())
-        ax.set_extent([71, 83, 30, 38])
-        da.time_kernel_variance.plot(
-            cbar_kwargs={"label": "\n Time axis kernel variance", "extend": "neither", "pad": 0.10},
-        )
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-
-        plt.figure()
-        ax = plt.subplot(projection=ccrs.PlateCarree())
-        ax.set_extent([71, 83, 30, 38])
-        da.time_kernel_periodicity.plot(
-            cbar_kwargs={"label": "\n Time axis kernel periodicity", "extend": "neither", "pad": 0.10},
-        )
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-
-
-    plt.show()
-
+        slm_hpar_plots(da)
 
 def uib_evaluation(average=False):
 
@@ -268,4 +227,67 @@ def sampled_points(
     plt.ylabel("RMSE [mm/day]")
     plt.legend()
 
+    plt.show()
+
+
+
+def slm_perf_plots(da):
+    """ Plots figures for Single Location Model """
+
+    plt.figure("SLM R2")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.val_R2.plot(
+        center=0.0,
+        vmax=1.0,
+        cbar_kwargs={"label": "\n Validation R2", "extend": "neither", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.figure("SLM RMSE")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.val_RMSE.plot(
+        cbar_kwargs={"label": "\n Validation RMSE", "extend": "neither", "pad": 0.10}
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.show()
+
+def slm_hpar_plots(da):
+
+    plt.figure("SLM time kernel lengthscale")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.time_kernel_lengthscale.plot(vmax=0.1,
+        cbar_kwargs={"label": "\n Time axis kernel lengthscale", "extend": "max", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.figure("SLM time kernel variance")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.time_kernel_variance.plot(vmax=50,
+        cbar_kwargs={"label": "\n Time axis kernel variance", "extend": "max", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.figure("SLM time kernel periodicity")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.time_kernel_periodicity.plot(vmax=10,
+        cbar_kwargs={"label": "\n Time axis kernel periodicity", "extend": "max", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    
     plt.show()
