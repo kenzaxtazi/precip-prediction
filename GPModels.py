@@ -13,7 +13,7 @@ import Metrics as me
 
 import gpflow
 import tensorflow as tf
-from gpflow.utilities import print_summary
+from gpflow.utilities import print_summary, positive 
 
 
 # Filepaths and URLs
@@ -34,7 +34,7 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep()
 
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):
-    """ Returns model and plot of GP model using sklearn """
+    """ Returns simple GP model """
 
     # model construction
     k1 = gpflow.kernels.Periodic(
@@ -75,6 +75,44 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     return m
 
+def hybrid_gp(xtrain, xval, ytrain, yval, save=False):
+    """ Returns whole basin or cluster GP model with hybrid kernel """
+
+    dimensions = len(xtrain[0])
+
+    k1 = gpflow.kernels.RBF(lengthscales= np.ones(dimensions), active_dims=np.arange(0, dimensions))
+    k2 = gpflow.kernels.RBF(lengthscales= np.ones(dimensions), active_dims=np.arange(0, dimensions))
+
+    alpha1 = hybrid_kernel(dimensions, 1)
+    alpha2 = hybrid_kernel(dimensions, 2)
+
+    k = alpha1*k1 + alpha2*k2
+
+    m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
+
+    opt = gpflow.optimizers.Scipy()
+    opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
+    # print_summary(m)
+
+    x_plot = np.concatenate((xtrain, xval))
+    y_gpr, y_std = m.predict_y(x_plot)
+
+    print(
+        " {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(
+            me.R2(m, xtrain, ytrain),
+            me.RMSE(m, xtrain, ytrain),
+            me.R2(m, xval, yval),
+            me.RMSE(m, xval, yval),
+            np.mean(y_gpr),
+            np.mean(y_std),
+        )
+    )
+
+    if save == True:
+        filepath = save_model(m, xval, "")
+        print(filepath)
+
+    return m
 
 def save_model(model, xval, qualifiers=None):  # TODO
     """ Save the model for future use, returns filepath """
@@ -103,8 +141,32 @@ def save_model(model, xval, qualifiers=None):  # TODO
 
     return save_dir
 
-
 def restore_model(model_filepath):
     """ Restore a saved model """
     loaded_model = tf.saved_model.load(model_filepath)
     return loaded_model
+
+
+class hybrid_kernel(gpflow.kernels.AnisotropicStationary):
+    def __init__(self, dimensions, feature):
+        super().__init__(active_dims= np.arange(dimensions))
+        self.variance = gpflow.Parameter(1, transform=positive())
+        self.feature = feature
+
+    def K(self, X, X2):
+        if X2 is None:
+            X2 = X
+
+        print('X ', np.shape(X))
+        k = self.variance * (X[:, self.feature] - X2[:, self.feature]) * tf.transpose(X[:, self.feature] - X2[:, self.feature]) # this returns a 2D tensor
+        print('k ', np.shape(k))
+        return k
+    
+    def K_diag(self, X):
+        print('X ', np.shape(X))
+        kdiag = self.variance * (X[:, self.feature]) * tf.transpose(X[:, self.feature])
+        
+        print('kdiag ', np.shape(kdiag))
+        return kdiag  # this returns a 1D tensor
+    
+
