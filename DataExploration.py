@@ -28,30 +28,26 @@ mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
 
 
 def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
-    """ Map of cumulative precipitation for 1979 """
+    """ Annual map """
 
     da = dd.apply_mask(data_filepath, mask_filepath)
-    da_var = da[variable]
-    da_year = da_var.sel(
-        time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00")
-    )
+    ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00"))
+    ds_var = ds_year[variable] * 1000
 
     if cumulative is True:
-        da_processed = dp.cumulative_monthly(da_year)
-        da_final = da_processed.sum(dim="time")
+        ds_processed = dp.cumulative_monthly(ds_var)
+        ds_final = ds_processed.sum(dim="time")
     else:
-        da_final = da_year.mean(dim="time")  # TODO weighted mean
+        ds_final = ds_var.std(dim="time")  # TODO weighted mean
+    
+    print(ds_final)
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    g = da_final.plot(
-        cmap="magma_r",
-        vmin=0.01,
-        cbar_kwargs={"label": "\n Total precipitation [m]", "extend": "neither"},
-    )
+    g = ds_final["tp_0001"].plot(cmap="magma_r", vmin=0.001, cbar_kwargs={"label": "Precipitation standard deviation [mm/day]", "extend": "neither", "pad": 0.10})
     g.cmap.set_under("white")
-    ax.add_feature(cf.BORDERS)
+    #ax.add_feature(cf.BORDERS)
     ax.coastlines()
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
