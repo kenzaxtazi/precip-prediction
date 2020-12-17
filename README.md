@@ -1,4 +1,4 @@
-# Alpine Precipitation Predictions
+# Alpine Precipitation Prediction
 
 Application of probabilistic machine learning methods to predicting local alpine precipitation using large scale atmospheric data.
 
