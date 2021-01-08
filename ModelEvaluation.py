@@ -259,11 +259,11 @@ def slm_perf_plots(da):
     plt.show()
 
 def slm_hpar_plots(da):
-
+    """
     plt.figure("SLM time kernel lengthscale")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.time_kernel_lengthscale.plot(vmax=0.1,
+    da.time_kernel_lengthscale.plot(robust=True,
         cbar_kwargs={"label": "\n Time axis kernel lengthscale", "extend": "max", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
@@ -273,21 +273,63 @@ def slm_hpar_plots(da):
     plt.figure("SLM time kernel variance")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.time_kernel_variance.plot(vmax=50,
+    da.time_kernel_variance.plot(robust=True, 
         cbar_kwargs={"label": "\n Time axis kernel variance", "extend": "max", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-
+    """
     plt.figure("SLM time kernel periodicity")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.time_kernel_periodicity.plot(vmax=10,
-        cbar_kwargs={"label": "\n Time axis kernel periodicity", "extend": "max", "pad": 0.10},
+    a= np.log10(da.time_kernel_periodicity)
+    a.plot(robust=True, vmin=0,
+        cbar_kwargs={"label": "\n Time axis kernel periodicity (10^x)", "extend": "neither", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    """
+    plt.figure("SLM RBF kernel variance")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.rbf_kernel_variance.plot(robust=True, 
+        cbar_kwargs={"label": "\n RBF kernel variance", "extend": "max", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     
+    plt.figure("N34 lengthscale")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    a = np.log10(da.N34_lengthscale)
+    a.plot(robust=True, vmin=0,
+        cbar_kwargs={"label": "\n N34 index lengthscale (10^x)", "extend": "neither", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    
+    plt.figure("tcwv lengthscale")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.tcwv_lengthscale.plot(robust=True,
+        cbar_kwargs={"label": "\n tcwv lengthscale", "extend": "max", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.figure("d2m lengthscale")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([71, 83, 30, 38])
+    da.d2m_lengthscale.plot(robust=True,
+        cbar_kwargs={"label": "\n d2m lengthscale", "extend": "max", "pad": 0.10},
+    )
+    ax.gridlines(draw_labels=True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    """
     plt.show()
