@@ -32,7 +32,7 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
 
     for i in tqdm(range(n)):
         try:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.multivariate_data_prep(
                 coords=list(coord_list[i])
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -112,7 +112,7 @@ def uib_evaluation(average=False):
 
     for i in tqdm(sample_list):
         try:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
                 length=i, EDA_average=average
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -126,7 +126,7 @@ def uib_evaluation(average=False):
 
         except Exception:
             print(i + 100)
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
                 length=i + 100, EDA_average=average
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -155,7 +155,7 @@ def cluster_evaluation(cluster_mask):
 
     for i in tqdm(sample_list):
         try:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
                 length=i, cluster_mask=cluster_mask
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -169,7 +169,7 @@ def cluster_evaluation(cluster_mask):
 
         except Exception:
             print(i + 100)
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
                 length=i + 100, cluster_mask=cluster_mask
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
