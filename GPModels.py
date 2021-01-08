@@ -17,7 +17,6 @@ from gpflow.utilities import print_summary, positive
 
 
 # Filepaths and URLs
-
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 khyber_mask = "Data/Khyber_mask.nc"
 gilgit_mask = "Data/Gilgit_mask.nc"
@@ -31,7 +30,6 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
 # Random sampling multivariate GP preparation
 xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep()
 """
-
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):
     """ Returns simple GP model """
