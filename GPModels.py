@@ -69,8 +69,8 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
         )
     )
 
-    if save == True:
-        filepath = save_model(m, xval, "")
+    if save != False:
+        filepath = save_model(m, xval, save)
         print(filepath)
 
     return m
