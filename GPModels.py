@@ -25,7 +25,7 @@ ngari_mask = "Data/Ngari_mask.nc"
 
 """
 # Single point multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
+xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
 
 # Random sampling multivariate GP preparation
 xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep()

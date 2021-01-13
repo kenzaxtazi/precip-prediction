@@ -32,7 +32,7 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
 
     for i in tqdm(range(n)):
         try:
-            xtrain, xval, _, ytrain, yval, _ = dp.multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.slm_multivariate_data_prep(
                 coords=list(coord_list[i])
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
