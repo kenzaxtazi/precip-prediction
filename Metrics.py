@@ -31,15 +31,21 @@ def RMSE(model, x, y):
     return np.sqrt(RMSE)
 
 
-def model_plot(model, number=None, coords=None, posteriors=True):
+def model_plot(model, number=None, coords=None, posteriors=True, slm=True):
     """ Returns plot for multivariate GP for a single loation """
 
-    if number == None:
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(
-            number=number, coords=coords
-        )
+    if slm == True:
+        if number == None:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(
+                number=number, coords=coords)
+        else:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
     else:
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep()
+        if number == None:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(
+                number=number, coords=coords)
+        else:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
 
     xtr = np.concatenate((xtrain, xval), axis=0)
     y_gpr, y_std = model.predict_y(xtr)
@@ -87,7 +93,7 @@ def model_plot(model, number=None, coords=None, posteriors=True):
     plt.show()
 
 
-def ensemble_model_plot(models):
+def ensemble_model_plot(models, slm=True):
     """ Returns plot for ensemble of multivariate GP for a single loation """
 
     palette = sns.color_palette("husl", 10)
@@ -96,12 +102,15 @@ def ensemble_model_plot(models):
 
     for i in range(10):
 
-        xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=i)
+        if slm == True:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(number=i)
+        else:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=i)
 
         xtr = np.concatenate((xtrain, xval), axis=0)
         ytr = np.concatenate((ytrain, yval), axis=0)
 
-        log_y_gpr, log_y_std = model.predict_y(xtr)\
+        log_y_gpr, log_y_std = model.predict_y(xtr)
 
         # to mm/day
         y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
