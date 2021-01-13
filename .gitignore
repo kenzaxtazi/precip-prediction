@@ -122,3 +122,7 @@ Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_sc
 Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shx
 Data/N34-01-2021.csv
 Data/combi_data_01-2021.csv
+Models/model_2021-01-01/08/21-22-35-56/saved_model.pb
+Models/model_2021-01-01/08/21-22-35-56/variables/variables.index
+.gitignore
+Models/model_2021-01-01/08/21-22-35-56/variables/variables.data-00000-of-00001
