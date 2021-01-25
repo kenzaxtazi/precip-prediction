@@ -114,26 +114,30 @@ def change_maps(variable, year):  # TODO fix this
     plt.show()
 
 
-
-def telcon_map():
-    # UIB shapefile
-    uib_path = "Data/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
-    uib_shape = shapereader.Reader(uib_path)
+def telconnnection_map(shapefiles=["Data/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
+    """ 
+    Returns global map with study area(s) superimposed. The output can then be used to draw teleconnection interactions.
+    """
+    # Shapefiles
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree(central_longitude=70))
     ax.coastlines("50m", linewidth=0.5)
 
-    for rec in uib_shape.records():
-        ax.add_geometries(
-            [rec.geometry],
-            ccrs.AlbersEqualArea(
-                central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
-            ),
-            edgecolor="red",
-            facecolor="red",
-            alpha=0.1,
-        )
+    for s in shapefiles:
+        path = s
+        basin_shape = shapereader.Reader(uib_pat
+
+        for rec in basin_shape.records():
+            ax.add_geometries(
+                [rec.geometry],
+                ccrs.AlbersEqualArea(
+                    central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
+                ),
+                edgecolor="red",
+                facecolor="red",
+                alpha=0.1,
+            )
 
     plt.show()
 
@@ -150,12 +154,8 @@ def uib_map():
     uib_shape = shapereader.Reader(uib_path)
 
     # Other phyical features
-    land_50m = cf.NaturalEarthFeature(
-        "physical", "land", "50m", edgecolor="face", facecolor=cf.COLORS["land"]
-    )
-    ocean_50m = cf.NaturalEarthFeature(
-        "physical", "ocean", "50m", edgecolor="face", facecolor=cf.COLORS["water"]
-    )
+    land_50m = cf.NaturalEarthFeature("physical", "land", "50m", edgecolor="face", facecolor=cf.COLORS["land"])
+    ocean_50m = cf.NaturalEarthFeature("physical", "ocean", "50m", edgecolor="face", facecolor=cf.COLORS["water"])
 
     # Regional rectangle
     nvert = 100
