@@ -1,4 +1,9 @@
-# PrecipitationLinearRegression
+# Timeseries
+
+"""
+A collection of functions to analyse timeseries. 
+Assumes timeseries are pre-processed, i.e. they are DataArray objects with precipiation in mm/day and time in years.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,116 +19,103 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-# Open data
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-tp = dd.download_data(mask_filepath, xarray=True)
-tp_da = tp.tp * 1000  # convert from m/day to mm/day
+def lin_reg(timeseries):
+    """ 
+    Outputs parameter of linear model
+    
+    Inputs
+        timeseries: data array
 
-# Sklearn model for location timeseries
+    Outputs
+        lineat_model: list [slope, intercept, r_value, p_value, std_err]
+    """
+    linear_model= stats.linregress(timeseries['time'].values, timeseries.values)
 
-## Data
-gilgit = tp_da.interp(coords={"longitude": 75, "latitude": 36}, method="nearest")
-ngari = tp_da.interp(coords={"longitude": 81, "latitude": 32}, method="nearest")
-khyber = tp_da.interp(coords={"longitude": 73, "latitude": 34.5}, method="nearest")
+    print('Linear model parameters for '+ str(timeseries.latitude.values) + "°N, " + str(timeseries.longitude.values) + "°E")
+    print('Slope', linear_model[0])
+    print('Intercept', linear_model[1])
+    print('R value', linear_model[2])
+    print('P value', linear_model[3])
+    print('Standard error', linear_model[4])
 
-gilgit_values = gilgit.values
-ngari_values = ngari.values
-khyber_values = khyber.values
-
-stime = gilgit.time.values
-utime = (stime.astype("int")) / (
-    1e9 * 60 * 60 * 24 * 365
-)  # from numpy.datetime64 to unix timestamp
+    return linear_model
 
 
-## Models
-(
-    gilgit_slope,
-    gilgit_intercept,
-    gilgit_r_value,
-    gilgit_p_value,
-    gilgit_std_err,
-) = stats.linregress(utime, gilgit_values)
-(
-    ngari_slope,
-    ngari_intercept,
-    ngari_r_value,
-    ngari_p_value,
-    ngari_std_err,
-) = stats.linregress(utime, ngari_values)
-(
-    khyber_slope,
-    khyber_intercept,
-    khyber_r_value,
-    khyber_p_value,
-    khyber_std_err,
-) = stats.linregress(utime, khyber_values)
+def linreg_plot(timeseries, linear_models):
+    """ 
+    Returns plot of linear regression on one ore more timeseries
+    """
 
-"""
+    N = len(timeseries)
+    _, axs = plt.subplots(N, sharex=True, sharey=True)
 
-## Predictions
-gilgit_pred = gilgit_model.predict(utime)
-ngari_pred = ngari_model.predict(utime)
-khyber_pred = khyber_model.predict(utime)
+    for n in range(N):
 
-## Coefficients 
-print('Gilgit coefficients: \n', gilgit_model.coef_*1e9*60*60*24*365) # to mm/day/year 
-print('ngari coefficients: \n', ngari_model.coef_*1e9*60*60*24*365)
-print('khyber coefficients: \n', khyber_model.coef_*1e9*60*60*24*365)
+        (slope, intercept, _, p_value, std_err) = linear_models[n]  
 
-print('Gilgit coefficient of determination: %.5f' % r2_score(gilgit_values, gilgit_pred))
-print('ngari coefficient of determination: %.5f' % r2_score(ngari_values, ngari_pred))
-print('khyber coefficient of determination: %.5f' % r2_score(khyber_values, khyber_pred))
-"""
+        time = timeseries[n].time.values
+        axs[n].plot(timeseries[n].time.values, timeseries[n].values)
+        axs[n].set_title( str(timeseries[n].latitude.values) + "°N, " + str(timeseries[n].longitude.values) + "°E")
+        axs[n].plot(
+            time,
+            slope * time + intercept,
+            color="green",
+            linestyle="--",
+            label="Slope = %.3f±%.3f mm/day/year, p-value = %.3f"
+            % (slope, std_err, p_value),
+        )
+        axs[n].set_xlabel(" ")
+        axs[n].set_ylabel("Total precipation [mm/day]")
+        axs[n].grid(True)
+        axs[n].legend()
+    
+    axs[n].set_xlabel("Year")
+    plt.show()
 
-print(gilgit_p_value, ngari_p_value, khyber_p_value)
 
-## Plots
-fig, axs = plt.subplots(3, sharex=True, sharey=True)
+def uib_sample_linreg():
+    """ Plots sample timeseries for UIB clusters """
 
-axs[0].plot(utime + 1970, gilgit_values)
-axs[0].set_title("36.00°N 75.00°E")
-axs[0].plot(
-    utime + 1970,
-    gilgit_slope * utime + gilgit_intercept,
-    color="green",
-    linestyle="--",
-    label="Slope = %.3f±%.3f mm/day/year, p-value = %.3f"
-    % (gilgit_slope, gilgit_std_err, gilgit_p_value),
-)
-axs[0].set_xlabel(" ")
-axs[0].set_ylabel("Total precipation [mm/day]")
-axs[0].grid(True)
-axs[0].legend()
+    # Open data
+    mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+    tp = dd.download_data(mask_filepath, xarray=True)
+    tp_da = tp.tp * 1000  # convert from m/day to mm/day
 
-axs[1].plot(utime + 1970, ngari_values)
-axs[1].set_title("32.00°N 81.00°E")
-axs[1].plot(
-    utime + 1970,
-    ngari_slope * utime + ngari_intercept,
-    color="green",
-    linestyle="--",
-    label="Slope = %.3f±%.3f mm/day/year, p-value = %.3f"
-    % (ngari_slope, ngari_std_err, ngari_p_value),
-)
-axs[1].set_xlabel(" ")
-axs[1].set_ylabel("Total precipation [mm/day]")
-axs[1].grid(True)
-axs[1].legend()
+    ## Data
+    gilgit = tp_da.interp(coords={"longitude": 75, "latitude": 36}, method="nearest")
+    ngari = tp_da.interp(coords={"longitude": 81, "latitude": 32}, method="nearest")
+    khyber = tp_da.interp(coords={"longitude": 73, "latitude": 34.5}, method="nearest")
+    timeseries = [gilgit, ngari, khyber]
 
-axs[2].plot(utime + 1970, khyber_values)
-axs[2].set_title("34.50°N 73.00°E")
-axs[2].plot(
-    utime + 1970,
-    khyber_slope * utime + khyber_intercept,
-    color="green",
-    linestyle="--",
-    label="Slope = %.3f±%.3f mm/day/year, p-value = %.3f"
-    % (khyber_slope, khyber_std_err, khyber_p_value),
-)
-axs[2].set_xlabel("Year")
-axs[2].set_ylabel("Total precipation [mm/day]")
-axs[2].grid(True)
-axs[2].legend()
+    gilgit_linear_model = lin_reg(gilgit)
+    ngari_linear_model = lin_reg(ngari)
+    khyber_linear_model = lin_reg(khyber)
+    linear_models = [gilgit_linear_model, ngari_linear_model, khyber_linear_model]
 
-plt.show()
+    linreg_plot(timeseries, linear_models)
+
+
+def benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t):
+    """ 
+    Plot timeseries of model outputs.
+    Assumes that timeseries and model outputs are already formatted.
+    """
+    plt.figure()
+    for ts in timeseries:
+        plt.plot(ts.time.values, ts.tp.values, label=ts.plot_legend)
+    plt.fill_between(xtr[:, 0] + 1979, y_gpr_t[:, 0] - 1.9600 * y_std_t[:, 0], y_gpr_t[:, 0] + 1.9600 * y_std_t[:, 0], 
+                        alpha=0.5, color="lightblue") #label="95% confidence interval")
+    plt.plot(xtr[:, 0] + 1979, y_gpr_t, linestyle="-", label="Prediction")
+    plt.xlabel('Time')
+    plt.ylabel('Precipitation mm/day')
+    plt.legend()
+    plt.show()
+
+
+
+def rolling_timseries_comparison(timeseries, xtr, y_gpr_t, y_std_t):
+    """ Plot rolling avereaged timeseries of model outputs """
+    
+    return 1
+
+
