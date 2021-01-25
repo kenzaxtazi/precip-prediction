@@ -114,7 +114,7 @@ def change_maps(variable, year):  # TODO fix this
     plt.show()
 
 
-def telconnnection_map(shapefiles=["Data/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
+def telconnnection_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
     """ 
     Returns global map with study area(s) superimposed. The output can then be used to draw teleconnection interactions.
     """
@@ -146,11 +146,11 @@ def uib_map():
     """ Returns two maps: global map with box, zoomed in map of the Upper Indus Basin """
 
     # River shapefiles
-    fpath = "Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
+    fpath = "Data/Shapefiles/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
     as_shp = shapereader.Reader(fpath)
 
     # UIB shapefile
-    uib_path = "Data/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
+    uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     uib_shape = shapereader.Reader(uib_path)
 
     # Other phyical features
@@ -158,19 +158,7 @@ def uib_map():
     ocean_50m = cf.NaturalEarthFeature("physical", "ocean", "50m", edgecolor="face", facecolor=cf.COLORS["water"])
 
     # Regional rectangle
-    nvert = 100
-    lonmin, lonmax, latmin, latmax = [60, 80, 20, 40]
-    lons = np.r_[
-        np.linspace(lonmin, lonmin, nvert),
-        np.linspace(lonmin, lonmax, nvert),
-        np.linspace(lonmax, lonmax, nvert),
-    ].tolist()
-    lats = np.r_[
-        np.linspace(latmin, latmax, nvert),
-        np.linspace(latmax, latmax, nvert),
-        np.linspace(latmax, latmin, nvert),
-    ].tolist()
-    pgon = LinearRing(list(zip(lons, lats)))
+    pgon = regional_rectangle(60, 80, 20, 40)
 
     # Projection for global map
     glb_proj = ccrs.NearsidePerspective(central_longitude=70, central_latitude=30)
@@ -230,19 +218,19 @@ def uib_map():
     plt.title("Indus River \n \n")
     plt.show()
 
-
 def beas_sutlej_map():
     """ Returns two maps: global map with box, zoomed in map of the Beas and Sutlej basins """
 
     # River shapefiles
-    fpath = "Data/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
+    fpath = "Data/Shapefiles/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
     as_shp = shapereader.Reader(fpath)
 
     # Basin shapefiles
-    beas_path = "Data/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
+    beas_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     beas_shape = shapereader.Reader(beas_path)
-    sutlej_path = 
+    sutlej_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     sutlej_shape = shapereader.Reader(beas_path)
+    basins_shapes = [beas_shape, sutlej_shape]
 
     # Other phyical features
     land_50m = cf.NaturalEarthFeature(
@@ -253,19 +241,7 @@ def beas_sutlej_map():
     )
 
     # Regional rectangle
-    nvert = 100
-    lonmin, lonmax, latmin, latmax = [60, 80, 20, 40]
-    lons = np.r_[
-        np.linspace(lonmin, lonmin, nvert),
-        np.linspace(lonmin, lonmax, nvert),
-        np.linspace(lonmax, lonmax, nvert),
-    ].tolist()
-    lats = np.r_[
-        np.linspace(latmin, latmax, nvert),
-        np.linspace(latmax, latmax, nvert),
-        np.linspace(latmax, latmin, nvert),
-    ].tolist()
-    pgon = LinearRing(list(zip(lons, lats)))
+    pgon = regional_rectangle(60, 80, 20, 40)
 
     # Projection for global map
     glb_proj = ccrs.NearsidePerspective(central_longitude=70, central_latitude=30)
@@ -287,18 +263,18 @@ def beas_sutlej_map():
     ax.add_feature(cf.BORDERS.with_scale("50m"), linewidth=0.5)
     ax.coastlines("50m", linewidth=0.5)
 
-    for rec in uib_shape.records():
-        ax.add_geometries(
-            [rec.geometry],
-            ccrs.AlbersEqualArea(
-                central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
-            ),
-            edgecolor="red",
-            facecolor="red",
-            alpha=0.1,
-        )
+    for b in basins_shapes:
+        for rec in b.records():
+            ax.add_geometries(
+                [rec.geometry],
+                ccrs.AlbersEqualArea(
+                    central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
+                ),
+                edgecolor="red",
+                facecolor="red",
+                alpha=0.1,
+            )
 
-    # ax.add_feature(rivers)
     for rec in as_shp.records():
         if rec.attributes["name"] == "Indus":
             ax.add_geometries(
@@ -325,3 +301,23 @@ def beas_sutlej_map():
     plt.title("Indus River \n \n")
     plt.show()
 
+
+def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
+    """ 
+    Returns Polygon object to create regional rectangle on maps.
+    """
+    lons = np.r_[
+        np.linspace(lonmin, lonmin, nvert),
+        np.linspace(lonmin, lonmax, nvert),
+        np.linspace(lonmax, lonmax, nvert),
+    ].tolist()
+    
+    lats = np.r_[
+        np.linspace(latmin, latmax, nvert),
+        np.linspace(latmax, latmax, nvert),
+        np.linspace(latmax, latmin, nvert),
+    ].tolist()
+
+    pgon = LinearRing(list(zip(lons, lats)))
+
+    return pgon
