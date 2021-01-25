@@ -27,7 +27,7 @@ eof_filepath = "/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc"
 corr_filepath = "Data/EOF_corr_pval.csv"
 
 
-def UIB_correlation_heatmap():
+def input_correlation_heatmap():
 
     df = dd.download_data(mask_filepath, all_var=True)
 
@@ -42,7 +42,7 @@ def UIB_correlation_heatmap():
     corr = df_sorted.corr()
 
     sns.set(style="white")
-    f, ax = plt.subplots(figsize=(11, 9))
+    plt.subplots(figsize=(11, 9))
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     mask = np.triu(
         np.ones_like(corr, dtype=np.bool)
@@ -106,7 +106,7 @@ def cluster_correlation_heatmap():
         # Plot
         sns.set(style="white")
 
-        f, ax = plt.subplots(figsize=(11, 9))
+        plt.subplots(figsize=(11, 9))
         cmap = sns.diverging_palette(220, 10, as_cmap=True)
 
         # Draw the heatmap with the mask and correct aspect ratio
@@ -201,7 +201,48 @@ def pvalue(df):
     pval_list = []
 
     for c in tqdm(list(df1)):
-        corr, pval = sp.stats.pearsonr(df1[c], df1["tp"])
+        _, pval = sp.stats.pearsonr(df1[c], df1["tp"])
         pval_list.append(pval)
 
     return np.array(pval_list)
+
+
+def dataset_correlation(timeseries, y_gpr_t):
+    """ Plots correlation heatmap for datasets """
+
+    dataframes = []
+    
+    for ts in timeseries:
+        df1 = ts.tp.to_dataframe(name=ts.plot_legend)
+        df2 = df1.reset_index()
+        df3 = df2.drop(["time", "lon", "lat"], axis=1)
+        dataframes.append(df3)
+    
+    combined_df = dataframes[0].join(dataframes[1:])
+    combined_df["model"] = y_gpr_t[132:312, 0]   
+    corr = combined_df.corr()
+
+    sns.set(style="white")
+    plt.subplots(figsize=(11, 9))
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    mask = np.triu(
+        np.ones_like(corr, dtype=np.bool)
+    )  # generate a mask for the upper triangle
+    sns.heatmap(
+        corr,
+        mask=mask,
+        cmap=cmap,
+        center=0,
+        vmin=-1,
+        vmax=1,
+        fmt="0.2f",
+        square=True,
+        linewidths=0.5,
+        annot=True,
+        annot_kws={"size": 10},
+        cbar_kws={"shrink": 0.5},
+    )
+    plt.title("Correlation plot for gridded datasets")
+
+    plt.show()
+    return 1
