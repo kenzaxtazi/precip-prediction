@@ -32,7 +32,7 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
 
     da = dd.apply_mask(data_filepath, mask_filepath)
     ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00"))
-    ds_var = ds_year[variable] * 1000
+    ds_var = ds_year[variable] * 1000 # to mm/day 
 
     if cumulative is True:
         ds_processed = dp.cumulative_monthly(ds_var)
@@ -56,44 +56,41 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     plt.show()
 
 
-def change_maps(variable, year):  # TODO fix this
+def change_maps(data_filepath, mask_filepath, variable):
     """ Maps of average annual change from 1979 to 1989, 1999, 2009 and 2019 """
 
-    da = xr.open_dataset(data_filepath)
+    da = dd.apply_mask(data_filepath, mask_filepath)
+    ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00"))
+    ds_var = ds_year[variable] * 1000 # to mm/day 
 
-    if "expver" in list(da.dims):
-        print("expver found")
-        da = da.sel(expver=1)
-
-    da_var = da[variable]
     da_1979 = da_var.sel(
         time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00")
     )
     da_processed = dp.cumulative_monthly(da_1979)
-    UIB_1979_sum = da_processed.sum(dim="time")
+    basin_1979_sum = da_processed.sum(dim="time")
 
-    UIB_1989 = da_var.sel(time=slice("1989-01-01T12:00:00", "1990-01-01T12:00:00"))
-    UIB_1989_sum = dp.cumulative_monthly(UIB_1989).sum(dim="time")
-    UIB_1989_change = UIB_1989_sum / UIB_1979_sum - 1
+    basin_1989 = da_var.sel(time=slice("1989-01-01T12:00:00", "1990-01-01T12:00:00"))
+    basin_1989_sum = dp.cumulative_monthly(basin_1989).sum(dim="time")
+    basin_1989_change = basin_1989_sum / basin_1979_sum - 1
 
-    UIB_1999 = da_var.sel(time=slice("1999-01-01T12:00:00", "2000-01-01T12:00:00"))
-    UIB_1999_sum = dp.cumulative_monthly(UIB_1999).sum(dim="time")
-    UIB_1999_change = UIB_1999_sum / UIB_1979_sum - 1
+    basin_1999 = da_var.sel(time=slice("1999-01-01T12:00:00", "2000-01-01T12:00:00"))
+    basin_1999_sum = dp.cumulative_monthly(basin_1999).sum(dim="time")
+    basin_1999_change = basin_1999_sum / basin_1979_sum - 1
 
-    UIB_2009 = da_var.sel(time=slice("2009-01-01T12:00:00", "2010-01-01T12:00:00"))
-    UIB_2009_sum = dp.cumulative_monthly(UIB_2009).sum(dim="time")
-    UIB_2009_change = UIB_2009_sum / UIB_1979_sum - 1
+    basin_2009 = da_var.sel(time=slice("2009-01-01T12:00:00", "2010-01-01T12:00:00"))
+    basin_2009_sum = dp.cumulative_monthly(basin_2009).sum(dim="time")
+    basin_2009_change = basin_2009_sum / basin_1979_sum - 1
 
-    UIB_2019 = da_var.sel(time=slice("2019-01-01T12:00:00", "2020-01-01T12:00:00"))
-    UIB_2019_sum = dp.cumulative_monthly(UIB_2019).sum(dim="time")
-    UIB_2019_change = UIB_2019_sum / UIB_1979_sum - 1
+    basin_2019 = da_var.sel(time=slice("2019-01-01T12:00:00", "2020-01-01T12:00:00"))
+    basin_2019_sum = dp.cumulative_monthly(basin_2019).sum(dim="time")
+    basin_2019_change = basin_2019_sum / basin_1979_sum - 1
 
-    UIB_changes = xr.concat(
-        [UIB_1989_change, UIB_1999_change, UIB_2009_change, UIB_2019_change],
+    basin_changes = xr.concat(
+        [basin_1989_change, basin_1999_change, basin_2009_change, basin_2019_change],
         pd.Index(["1989", "1999", "2009", "2019"], name="year"),
     )
-
-    g = UIB_changes.plot(
+    
+    g = basin_changes.plot(
         x="longitude",
         y="latitude",
         col="year",
@@ -218,6 +215,7 @@ def uib_map():
     plt.title("Indus River \n \n")
     plt.show()
 
+
 def beas_sutlej_map():
     """ Returns two maps: global map with box, zoomed in map of the Beas and Sutlej basins """
 
@@ -321,3 +319,4 @@ def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
     pgon = LinearRing(list(zip(lons, lats)))
 
     return pgon
+
