@@ -76,10 +76,7 @@ def slm_multivariate_data_prep(number=None, EDA_average=False, coords=None):
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["latitude", "longitude", "slor", "anor", "z"])
 
-    df["time"] = df["time"].astype("int")
-    df["time"] = (df["time"] - df["time"].min()) / (
-        1e9 * 60 * 60 * 24 * 365
-    )  # to years
+    df["time"] = df["time"] - 1970 # to years
     df["tp"] = log_transform(df["tp"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
 
@@ -128,7 +125,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
     if coords == None:
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
-        df_location = sa.random_location_sampler(df_clean)
+        df = sa.random_location_sampler(df_clean)
 
     else:
         da_location = da.interp(
@@ -137,10 +134,7 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
         multiindex_df = da_location.to_dataframe()
         df = multiindex_df.dropna().reset_index()
 
-    df["time"] = df["time"].astype("int")
-    df["time"] = (df["time"] - df["time"].min()) / (
-        1e9 * 60 * 60 * 24 * 365
-    )  # to years
+    df["time"] = df["time"] - 1970 # to years
     df["tp"] = log_transform(df["tp"])
     df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]] #format order
 
@@ -199,13 +193,10 @@ def random_multivariate_data_prep(
 
     multiindex_df = da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
-    df_location = sa.random_location_and_time_sampler(
-        df_clean, length=length, seed=seed
-    )
-    df = df_location
+    df = sa.random_location_and_time_sampler(
+        df_clean, length=length, seed=seed)
 
-    df["time"] = df["time"].astype("int")
-    df["time"] = (df["time"] - df["time"].min()) / (1e9 * 60 * 60 * 24 * 365)
+    df["time"] = df["time"] - 1970 
     df["tp"] = log_transform(df["tp"])
     df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 

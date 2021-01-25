@@ -69,9 +69,10 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         df_expver1 = df_combined[expver1]
         df_expver1.columns = df_expver1.columns.str.strip('_0001')
         
-        # Format and save
+        # Pre pre-processing and save
         df_clean = df_expver1.dropna() #.drop("expver", axis=1)
-        df_clean["time"] = df_clean["time"].astype("int")
+        df_clean["time"] = standardised_time(df_clean["time"])
+        df_clean["tp"] *= 1000  # to mm/day
         df_clean = df_clean.astype("float64")
         df_clean.to_csv(filepath)
 
@@ -304,3 +305,70 @@ def cds_downloader(mask_filepath, ensemble=False, all_var=False):
         cds_df = cds_df.drop(['anor'], axis=1)
     """
     return cds_df
+
+
+def standardised_time(dataset):
+    """ Returns array of standardised times to plot """
+    try:
+        utime = dataset.time.values.astype(int)/(1e9 * 60 * 60 * 24 * 365)
+    except Exception:
+        time = np.array([d.strftime() for d in dataset.time.values])
+        time2 = np.array([datetime.datetime.strptime(d, "%Y-%m-%d %H:%M:%S") for d in time])
+        utime = np.array([d.timestamp() for d in time2])/ ( 60 * 60 * 24 * 365)
+    return(utime + 1970)
+
+
+def collect_ERA5():
+    """ Downloads data from ERA5 """
+    mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+    era5_ds= dd.download_data(mask_filepath, xarray=True) # in m/day
+    era5_ds['tp'] *= 1000  # to mm/day
+    era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
+    era5_ds['time'] = standardised_time(era5_ds)
+    era5_ds = era5_ds.rename({'latitude': 'lat', 'longitude': 'lon'})
+    return era5_ds
+
+def collect_CMIP5():
+    """ Downloads data from CMIP5 """
+    cmip_59_84_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
+    cmip_84_05_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
+    cmip_ds = cmip_84_05_ds.merge(cmip_59_84_ds)  # in kg/m2/s
+    cmip_ds = cmip_ds.assign_attrs(plot_legend="HadCM3 historical")
+    cmip_ds = cmip_ds.rename({'pr': 'tp'})
+    cmip_ds['tp'] *= 60 * 60 * 24  # to mm/day
+    cmip_ds['time'] = standardised_time(cmip_ds)
+    return cmip_ds
+
+def collect_CORDEX():
+    """ Downloads data from CORDEX East Asia model """
+    cordex_90_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
+    cordex_91_00_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
+    cordex_01_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_200101-201012.nc")
+    cordex_02_11_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_201101-201111.nc")
+    cordex_90_00_ds = cordex_90_ds.merge(cordex_91_00_ds)
+    cordex_01_11_ds= cordex_01_ds.merge(cordex_02_11_ds)
+    cordex_ds = cordex_01_11_ds.merge(cordex_90_00_ds)  # in kg/m2/s
+    
+    cordex_ds = cordex_ds.assign_attrs(plot_legend="CORDEX EA - MOHC-HadRM3P historical")
+    cordex_ds = cordex_ds.rename_vars({'pr': 'tp'})
+    cordex_ds['tp'] *= 60 * 60 * 24   # to mm/day
+    cordex_ds['time'] = standardised_time(cordex_ds)
+
+    return cordex_ds
+
+def collect_APHRO():
+    """ Downloads data from APHRODITE model"""
+    aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob('/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
+    aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
+    aphro_ds = aphro_ds.rename_vars({'precip': 'tp'})
+    aphro_ds['time'] = standardised_time(aphro_ds)
+    return aphro_ds
+
+def collect_CRU():
+    """ Downloads data from CRU model"""
+    cru_ds = xr.open_dataset("/Users/kenzatazi/Downloads/cru_ts4.04.1901.2019.pre.dat.nc")
+    cru_ds = cru_ds.assign_attrs(plot_legend="CRU") # in mm/month
+    cru_ds = cru_ds.rename_vars({'pre': 'tp'})
+    cru_ds['tp'] /= 30.437  #TODO apply proper function to get mm/day
+    cru_ds['time'] = standardised_time(cru_ds)
+    return cru_ds
