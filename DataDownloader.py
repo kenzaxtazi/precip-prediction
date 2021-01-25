@@ -1,6 +1,7 @@
 # Data Downloader
 
 import os
+import glob
 import calendar
 import datetime
 import xarray as xr
@@ -73,16 +74,17 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         df_clean = df_expver1.dropna() #.drop("expver", axis=1)
         df_clean["time"] = standardised_time(df_clean["time"])
         df_clean["tp"] *= 1000  # to mm/day
+        df_clean = df_clean.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
         df_clean = df_clean.astype("float64")
         df_clean.to_csv(filepath)
 
         if xarray == True:
             if ensemble == True:
                 df_multi = df_clean.set_index(
-                    ["time", "longitude", "latitude", "number"]
+                    ["time", "long", "lat", "number"]
                 )
             else:
-                df_multi = df_clean.set_index(["time", "longitude", "latitude"])
+                df_multi = df_clean.set_index(["time", "lon", "lat"])
             ds = df_multi.to_xarray()
             return ds
         else:
@@ -95,10 +97,10 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         if xarray == True:
             if ensemble == True:
                 df_multi = df_clean.set_index(
-                    ["time", "longitude", "latitude", "number"]
+                    ["time", "lon", "lat", "number"]
                 )
             else:
-                df_multi = df_clean.set_index(["time", "longitude", "latitude"])
+                df_multi = df_clean.set_index(["time", "lon", "lat"])
             ds = df_multi.to_xarray()
             return ds
         else:
@@ -321,10 +323,8 @@ def standardised_time(dataset):
 def collect_ERA5():
     """ Downloads data from ERA5 """
     mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-    era5_ds= dd.download_data(mask_filepath, xarray=True) # in m/day
-    era5_ds['tp'] *= 1000  # to mm/day
+    era5_ds= download_data(mask_filepath, xarray=True) # in m/day
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
-    era5_ds['time'] = standardised_time(era5_ds)
     era5_ds = era5_ds.rename({'latitude': 'lat', 'longitude': 'lon'})
     return era5_ds
 
