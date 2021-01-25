@@ -123,7 +123,7 @@ def telconnnection_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/Uppe
 
     for s in shapefiles:
         path = s
-        basin_shape = shapereader.Reader(uib_pat
+        basin_shape = shapereader.Reader(path)
 
         for rec in basin_shape.records():
             ax.add_geometries(
