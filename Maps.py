@@ -60,11 +60,10 @@ def change_maps(data_filepath, mask_filepath, variable):
     """ Maps of average annual change from 1979 to 1989, 1999, 2009 and 2019 """
 
     da = dd.apply_mask(data_filepath, mask_filepath)
-    ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00"))
-    ds_var = ds_year[variable] * 1000 # to mm/day 
+    da_var = da[variable] * 1000 # to mm/day 
 
     da_1979 = da_var.sel(
-        time=slice(str(year) + "-01-16T12:00:00", str(year + 1) + "-01-01T12:00:00")
+        time=slice("1979-01-16T12:00:00", str( + 1) + "1980-01-01T12:00:00")
     )
     da_processed = dp.cumulative_monthly(da_1979)
     basin_1979_sum = da_processed.sum(dim="time")
