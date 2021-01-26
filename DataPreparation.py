@@ -66,15 +66,15 @@ def slm_multivariate_data_prep(number=None, EDA_average=False, coords=None):
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df_location = sa.random_location_sampler(df_clean)
-        df = df_location.drop(columns=["latitude", "longitude", "slor", "anor", "z"])
+        df = df_location.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
     else:
         da_location = da.interp(
-            coords={"latitude": coords[0], "longitude": coords[1]}, method="nearest"
+            coords={"lat": coords[0], "lon": coords[1]}, method="nearest"
         )
         multiindex_df = da_location.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
-        df = df_clean.drop(columns=["latitude", "longitude", "slor", "anor", "z"])
+        df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
     df["time"] = df["time"] - 1970 # to years
     df["tp"] = log_transform(df["tp"])
@@ -129,14 +129,14 @@ def multivariate_data_prep(number=None, EDA_average=False, coords=None):
 
     else:
         da_location = da.interp(
-            coords={"latitude": coords[0], "longitude": coords[1]}, method="nearest"
+            coords={"lat": coords[0], "lon": coords[1]}, method="nearest"
         )
         multiindex_df = da_location.to_dataframe()
         df = multiindex_df.dropna().reset_index()
 
     df["time"] = df["time"] - 1970 # to years
     df["tp"] = log_transform(df["tp"])
-    df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]] #format order
+    df = df[["time", "lat", "lon", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]] #format order
 
     # Keep first of 70% for training
     train_df = df[df["time"] < df["time"].max() * 0.7]
@@ -198,7 +198,7 @@ def random_multivariate_data_prep(
 
     df["time"] = df["time"] - 1970 
     df["tp"] = log_transform(df["tp"])
-    df = df[["time", "latitude", "longitude", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
+    df = df[["time", "lat", "lon", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Remove last 10% of time for testing
     test_df = df[df["time"] > df["time"].max() * 0.9]
