@@ -13,6 +13,7 @@ from sklearn.cluster import KMeans
 import DataExploration as de
 import DataPreparation as dp
 import DataDownloader as dd
+import Maps as maps
 
 ## Filepaths
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
@@ -52,7 +53,7 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
         FacetGrid plots
     """
 
-    UIB_cum = dp.cumulative_monthly(tp_da)
+    UIB_cum = maps.cumulative_monthly(tp_da)
 
     # Seperation into seasons
     JFM = UIB_cum.where(UIB_cum.time.dt.month <= 3)
