@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 import FileDownloader as fd
 
 # Filepaths and URLs
-# mask_filepath = 'Data/ERA5_Upper_Indus_mask.nc'
+# mask_filepath = 'Data/Masks/ERA5_Upper_Indus_mask.nc'
 
 
 def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
@@ -72,7 +72,7 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
         
         # Pre pre-processing and save
         df_clean = df_expver1.dropna() #.drop("expver", axis=1)
-        df_clean["time"] = standardised_time(df_clean["time"])
+        df_clean['time'] = standardised_time(df_clean)
         df_clean["tp"] *= 1000  # to mm/day
         df_clean = df_clean.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
         df_clean = df_clean.astype("float64")
