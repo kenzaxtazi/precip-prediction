@@ -325,7 +325,6 @@ def collect_ERA5():
     mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
     era5_ds= download_data(mask_filepath, xarray=True) # in m/day
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
-    era5_ds = era5_ds.rename({'latitude': 'lat', 'longitude': 'lon'})
     return era5_ds
 
 def collect_CMIP5():
