@@ -31,7 +31,7 @@ def lin_reg(timeseries):
     """
     linear_model= stats.linregress(timeseries['time'].values, timeseries.values)
 
-    print('Linear model parameters for '+ str(timeseries.latitude.values) + "°N, " + str(timeseries.longitude.values) + "°E")
+    print('Linear model parameters for '+ str(timeseries.lat.values) + "°N, " + str(timeseries.lon.values) + "°E")
     print('Slope', linear_model[0])
     print('Intercept', linear_model[1])
     print('R value', linear_model[2])
@@ -55,7 +55,7 @@ def linreg_plot(timeseries, linear_models):
 
         time = timeseries[n].time.values
         axs[n].plot(timeseries[n].time.values, timeseries[n].values)
-        axs[n].set_title( str(timeseries[n].latitude.values) + "°N, " + str(timeseries[n].longitude.values) + "°E")
+        axs[n].set_title( str(timeseries[n].lat.values) + "°N, " + str(timeseries[n].lon.values) + "°E")
         axs[n].plot(
             time,
             slope * time + intercept,
@@ -77,14 +77,14 @@ def uib_sample_linreg():
     """ Plots sample timeseries for UIB clusters """
 
     # Open data
-    mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+    mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
     tp = dd.download_data(mask_filepath, xarray=True)
     tp_da = tp.tp * 1000  # convert from m/day to mm/day
 
     ## Data
-    gilgit = tp_da.interp(coords={"longitude": 75, "latitude": 36}, method="nearest")
-    ngari = tp_da.interp(coords={"longitude": 81, "latitude": 32}, method="nearest")
-    khyber = tp_da.interp(coords={"longitude": 73, "latitude": 34.5}, method="nearest")
+    gilgit = tp_da.interp(coords={"lon": 75, "lat": 36}, method="nearest")
+    ngari = tp_da.interp(coords={"lon": 81, "lat": 32}, method="nearest")
+    khyber = tp_da.interp(coords={"lon": 73, "lat": 34.5}, method="nearest")
     timeseries = [gilgit, ngari, khyber]
 
     gilgit_linear_model = lin_reg(gilgit)
