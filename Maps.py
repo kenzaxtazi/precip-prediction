@@ -35,7 +35,7 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     ds_var = ds_year[variable] * 1000 # to mm/day 
 
     if cumulative is True:
-        ds_processed = dp.cumulative_monthly(ds_var)
+        ds_processed = cumulative_monthly(ds_var)
         ds_final = ds_processed.sum(dim="time")
     else:
         ds_final = ds_var.std(dim="time")  # TODO weighted mean
@@ -65,23 +65,23 @@ def change_maps(data_filepath, mask_filepath, variable):
     da_1979 = da_var.sel(
         time=slice("1979-01-16T12:00:00", str( + 1) + "1980-01-01T12:00:00")
     )
-    da_processed = dp.cumulative_monthly(da_1979)
+    da_processed = cumulative_monthly(da_1979)
     basin_1979_sum = da_processed.sum(dim="time")
 
     basin_1989 = da_var.sel(time=slice("1989-01-01T12:00:00", "1990-01-01T12:00:00"))
-    basin_1989_sum = dp.cumulative_monthly(basin_1989).sum(dim="time")
+    basin_1989_sum = cumulative_monthly(basin_1989).sum(dim="time")
     basin_1989_change = basin_1989_sum / basin_1979_sum - 1
 
     basin_1999 = da_var.sel(time=slice("1999-01-01T12:00:00", "2000-01-01T12:00:00"))
-    basin_1999_sum = dp.cumulative_monthly(basin_1999).sum(dim="time")
+    basin_1999_sum = cumulative_monthly(basin_1999).sum(dim="time")
     basin_1999_change = basin_1999_sum / basin_1979_sum - 1
 
     basin_2009 = da_var.sel(time=slice("2009-01-01T12:00:00", "2010-01-01T12:00:00"))
-    basin_2009_sum = dp.cumulative_monthly(basin_2009).sum(dim="time")
+    basin_2009_sum = cumulative_monthly(basin_2009).sum(dim="time")
     basin_2009_change = basin_2009_sum / basin_1979_sum - 1
 
     basin_2019 = da_var.sel(time=slice("2019-01-01T12:00:00", "2020-01-01T12:00:00"))
-    basin_2019_sum = dp.cumulative_monthly(basin_2019).sum(dim="time")
+    basin_2019_sum = cumulative_monthly(basin_2019).sum(dim="time")
     basin_2019_change = basin_2019_sum / basin_1979_sum - 1
 
     basin_changes = xr.concat(
@@ -318,4 +318,22 @@ def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
     pgon = LinearRing(list(zip(lons, lats)))
 
     return pgon
+
+
+
+
+def cumulative_monthly(da):
+    """ Multiplies monthly averages by the number of day in each month """
+    x, y, z = np.shape(da.values)
+    times = np.datetime_as_string(da.time.values)
+    days_in_month = []
+    for t in times:
+        year = t[0:4]
+        month = t[5:7]
+        days = calendar.monthrange(int(year), int(month))[1]
+        days_in_month.append(days)
+    dim = np.array(days_in_month)
+    dim_mesh = np.repeat(dim, y * z).reshape(x, y, z)
+
+    return da * dim_mesh
 
