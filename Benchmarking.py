@@ -20,26 +20,39 @@ import PDF as pdf
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
+# Masks
+uib_mask = 'Data/Masks/ERA5_Upper_Indus_mask.nc'
+beas_mask = 'Data/Masks/Beas_basin_overlap.nc'
+sutlej_mask = 'Data/Masks/Sutlej_basin_overlap.nc'
+gilgit_mask = 'Data/Masks/Gilgit_mask.nc'
+khyber_mask = 'Data/Masks/Khyber_mask.nc'
+ngari_mask = 'Data/Masks/Khyber_mask.nc'
 
-def select_coords(lat, lon, dataset):
+def select_coords(dataset, lat=None, lon=None):
     """ Interpolate dataset at given coordinates """
     timeseries = dataset.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     timeseries = timeseries.sel(time= slice(1990, 2005))
-    return timeseries
-        
 
-def select_basin(basin_name, dataset, mask_filepath):  # TODO
-    basin_data = dd.apply_mask(dataset, mask_filepath)
-    return basin_data
+def select_basin(dataset, mask_filepath):
+    """ Interpolate dataset at given coordinates """  
+    basin = dd.apply_mask(dataset, mask_filepath) 
+    basin = timeseries.sel(time= slice(1990, 2005))  
+    return basin
 
-def model_prep(model_filepath, lat, lon):
+
+def model_prep(model_filepath, lat=None, lon=None, mask_filepath=None):
     """ Prepares model outputs for comparison """
 
     model = gpm.restore_model(model_filepath)
-    xtrain, xval, _, _, _, _ = dp.multivariate_data_prep(coords=[lat,lon])
+
+    if lat != None:
+        xtrain, xval, _, _, _, _ = dp.areal_model_eval(coords=[lat,lon])
+    
+    if mask_filepath != None:
+        xtrain, xval, _, _, _, _ = dp.areal_model(length=3000, mask=None)
     
     xtr = np.concatenate((xtrain, xval), axis=0)
-    y_gpr, y_std = model.predict_y(xtr)
+    y_gpr, y_std = model.predict_y(xtr[132:312, 0])
  
     # to mm/day
     y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
@@ -65,7 +78,7 @@ def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
     print('slope = ', slope, 'mm/day/month')
 
 
-def trend_comparison(model_filepath, lat, lon):
+def single_location_comparison(model_filepath, lat, lon):
     """ Plots model outputs for given coordinates over time """
     
     era5_ds = dd.collect_ERA5()
@@ -88,6 +101,31 @@ def trend_comparison(model_filepath, lat, lon):
     dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
     corr.dataset_correlation(timeseries, y_gpr_t)
     pdf.benchmarking_plot(timeseries, y_gpr_t)
+
+
+def basin_comparison(model_filepath, lat, lon):
+    """ Plots model outputs for given coordinates over time """
+    
+    era5_ds = dd.collect_ERA5()
+    cmip_ds = dd.collect_CMIP5()
+    cordex_ds = dd.collect_CORDEX()
+    cru_ds = dd.collect_CRU()
+    #aphro_ds = dd.collect_APHRO()
+ 
+    era5_ts = select_basin(era5_ds, mask_filepath)
+    cmip_ts = select_basin(cmip_ds, mask_filepath)
+    cordex_ts = select_basin(cordex_ds, mask_filepath)
+    cru_ts = select_basin(cru_ds, mask_filepath)
+    #aphro_ts = select_basin(aphro_ds, mask_filepath)
+
+    timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
+
+    xtr, y_gpr_t, y_std_t = model_prep(model_filepath, lat, lon)
+
+    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t, basin=True)
+    dataset_stats(timeseries, xtr, y_gpr_t, y_std_t, basin=True)
+    corr.dataset_correlation(timeseries, y_gpr_t, basin=True)
+    pdf.benchmarking_plot(timeseries, y_gpr_t, basin=True)
 
 
 
