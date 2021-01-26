@@ -36,16 +36,16 @@ def model_plot(model, number=None, coords=None, posteriors=True, slm=True):
 
     if slm == True:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
                 number=number, coords=coords)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
     else:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
                 number=number, coords=coords)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
 
     xtr = np.concatenate((xtrain, xval), axis=0)
     y_gpr, y_std = model.predict_y(xtr)
@@ -103,9 +103,9 @@ def ensemble_model_plot(models, slm=True):
     for i in range(10):
 
         if slm == True:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep(number=i)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(number=i)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.multivariate_data_prep(number=i)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model_eval(number=i)
 
         xtr = np.concatenate((xtrain, xval), axis=0)
         ytr = np.concatenate((ytrain, yval), axis=0)

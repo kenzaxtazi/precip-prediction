@@ -68,11 +68,11 @@ def input_correlation_heatmap():
 
 def cluster_correlation_heatmap():
 
-    cluster_masks = ["Khyber_mask.nc", "Gilgit_mask.nc", "Ngari_mask.nc"]
+    masks = ["Khyber_mask.nc", "Gilgit_mask.nc", "Ngari_mask.nc"]
     names = ["Gilgit regime", "Ngari regime", "Khyber regime"]
 
     for i in range(3):
-        cluster_df = dd.download_data(cluster_masks[i])
+        cluster_df = dd.download_data(masks[i])
 
         # create lags
         cluster_df["CGTI-1"] = cluster_df["CGTI"].shift(periods=1)
@@ -219,7 +219,7 @@ def dataset_correlation(timeseries, y_gpr_t):
         dataframes.append(df3)
     
     combined_df = dataframes[0].join(dataframes[1:])
-    combined_df["model"] = y_gpr_t[132:312, 0]   
+    combined_df["model"] = y_gpr_t 
     corr = combined_df.corr()
 
     sns.set(style="white")

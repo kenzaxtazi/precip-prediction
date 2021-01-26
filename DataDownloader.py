@@ -16,15 +16,16 @@ from sklearn.model_selection import train_test_split
 import FileDownloader as fd
 
 # Filepaths and URLs
-# mask_filepath = 'Data/Masks/ERA5_Upper_Indus_mask.nc'
+# indus_filepath = 'Data/Masks/Indus_mask.nc'
+# ganges_filepath =
+# peru = 
 
-
-def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
+def download_data(basin_filepath, xarray=False, ensemble=False, all_var=False):
     """
     Downloads data for prepearation or analysis
 
     Inputs
-        mask_filepath: string
+        basin_filepath: string
         xarray: boolean
         ensemble: boolean
         all_var: boolean
@@ -50,14 +51,14 @@ def download_data(mask_filepath, xarray=False, ensemble=False, all_var=False):
     if not os.path.exists(filepath):
 
         # Orography, humidity, precipitation and indices
-        cds_df = cds_downloader(mask_filepath, ensemble=ensemble, all_var=all_var)
+        cds_df = cds_downloader(basin_filepath, ensemble=ensemble, all_var=all_var)
         ind_df = indice_downloader(all_var=all_var)
         df_combined = pd.merge_ordered(cds_df, ind_df, on="time", suffixes=("", "_y"))
 
         # Other variables not used in the GP
         if all_var == True:
             mean_df = mean_downloader()
-            uib_eofs_df = eof_downloader(mask_filepath, all_var=all_var)
+            uib_eofs_df = eof_downloader(basin_filepath, all_var=all_var)
 
             # Combine
             df_combined = pd.merge_ordered(df_combined, mean_df, on="time")
@@ -229,10 +230,10 @@ def mean_downloader():
     return mean_df
 
 
-def eof_downloader(mask_filepath, all_var=False):
-    def eof_formatter(filepath, mask_filepath, name=None):
+def eof_downloader(basin_filepath, all_var=False):
+    def eof_formatter(filepath, basin_filepath, name=None):
         """ Returns DataFrame of EOF over UIB  """
-        eof_da = apply_mask(filepath, mask_filepath)
+        eof_da = apply_mask(filepath, basin_filepath)
         eof_ds = eof_da.EOF
         eof2 = eof_ds.assign_coords(time=(eof_ds.time.astype("datetime64")))
         eof_multiindex_df = eof2.to_dataframe()
@@ -242,23 +243,23 @@ def eof_downloader(mask_filepath, all_var=False):
 
     # EOF UIB
     eof1_z200_u = eof_formatter(
-        "Data/regional_z200_EOF1.nc", mask_filepath, name="EOF200U1"
+        "Data/regional_z200_EOF1.nc", basin_filepath, name="EOF200U1"
     )
     eof1_z500_u = eof_formatter(
-        "Data/regional_z500_EOF1.nc", mask_filepath, name="EOF500U1"
+        "Data/regional_z500_EOF1.nc", basin_filepath, name="EOF500U1"
     )
     eof1_z850_u = eof_formatter(
-        "Data/regional_z850_EOF1.nc", mask_filepath, name="EOF850U1"
+        "Data/regional_z850_EOF1.nc", basin_filepath, name="EOF850U1"
     )
 
     eof2_z200_u = eof_formatter(
-        "Data/regional_z200_EOF2.nc", mask_filepath, name="EOF200U2"
+        "Data/regional_z200_EOF2.nc", basin_filepath, name="EOF200U2"
     )
     eof2_z500_u = eof_formatter(
-        "Data/regional_z500_EOF2.nc", mask_filepath, name="EOF500U2"
+        "Data/regional_z500_EOF2.nc", basin_filepath, name="EOF500U2"
     )
     eof2_z850_u = eof_formatter(
-        "Data/regional_z850_EOF2.nc", mask_filepath, name="EOF850U2"
+        "Data/regional_z850_EOF2.nc", basin_filepath, name="EOF850U2"
     )
 
     uib_eofs = pd.concat(
@@ -288,7 +289,7 @@ def indice_downloader(all_var=False):
     return ind_df
 
 
-def cds_downloader(mask_filepath, ensemble=False, all_var=False):
+def cds_downloader(basin_filepath, ensemble=False, all_var=False):
     """ Return CDS Dataframe """
 
     if ensemble == False:
@@ -298,7 +299,7 @@ def cds_downloader(mask_filepath, ensemble=False, all_var=False):
             product_type="monthly_averaged_ensemble_members"
         )
 
-    masked_da = apply_mask(cds_filepath, mask_filepath)
+    masked_da = apply_mask(cds_filepath, basin_filepath)
     multiindex_df = masked_da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
@@ -320,14 +321,14 @@ def standardised_time(dataset):
     return(utime + 1970)
 
 
-def collect_ERA5():
+def collect_ERA5(basin_filepath):
     """ Downloads data from ERA5 """
-    mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-    era5_ds= download_data(mask_filepath, xarray=True) # in m/day
+    basin_filepath = "Data/Masks/Indus_mask.nc"
+    era5_ds= download_data(basin_filepath, xarray=True) # in m/day
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
     return era5_ds
 
-def collect_CMIP5():
+def collect_CMIP5(basin_filepath):
     """ Downloads data from CMIP5 """
     cmip_59_84_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
     cmip_84_05_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
@@ -338,7 +339,7 @@ def collect_CMIP5():
     cmip_ds['time'] = standardised_time(cmip_ds)
     return cmip_ds
 
-def collect_CORDEX():
+def collect_CORDEX(basin_filepath):
     """ Downloads data from CORDEX East Asia model """
     cordex_90_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
     cordex_91_00_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
@@ -355,7 +356,7 @@ def collect_CORDEX():
 
     return cordex_ds
 
-def collect_APHRO():
+def collect_APHRO(basin_filepath):
     """ Downloads data from APHRODITE model"""
     aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob('/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
     aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
@@ -363,7 +364,7 @@ def collect_APHRO():
     aphro_ds['time'] = standardised_time(aphro_ds)
     return aphro_ds
 
-def collect_CRU():
+def collect_CRU(basin_filepath):
     """ Downloads data from CRU model"""
     cru_ds = xr.open_dataset("/Users/kenzatazi/Downloads/cru_ts4.04.1901.2019.pre.dat.nc")
     cru_ds = cru_ds.assign_attrs(plot_legend="CRU") # in mm/month

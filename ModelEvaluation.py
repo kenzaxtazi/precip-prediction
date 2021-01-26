@@ -32,7 +32,7 @@ def single_loc_evaluation(perf_plot=False, hpar_plot=False):
 
     for i in tqdm(range(n)):
         try:
-            xtrain, xval, _, ytrain, yval, _ = dp.slm_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.point_model(
                 coords=list(coord_list[i])
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -112,7 +112,7 @@ def uib_evaluation(average=False):
 
     for i in tqdm(sample_list):
         try:
-            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.areal_model(
                 length=i, EDA_average=average
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -126,7 +126,7 @@ def uib_evaluation(average=False):
 
         except Exception:
             print(i + 100)
-            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
+            xtrain, xval, _, ytrain, yval, _ = dp.areal_model(
                 length=i + 100, EDA_average=average
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
@@ -145,18 +145,18 @@ def uib_evaluation(average=False):
     df.to_csv("uib-eval-2020-07-22.csv")
 
 
-def cluster_evaluation(cluster_mask):
+def cluster_evaluation(mask):
 
     metric_list = []
 
-    name = cluster_mask[0:6]
+    name = mask[0:6]
 
     sample_list = [1000, 3000, 5000, 7000, 9000, 11000, 14000]
 
     for i in tqdm(sample_list):
         try:
-            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
-                length=i, cluster_mask=cluster_mask
+            xtrain, xval, _, ytrain, yval, _ = dp.areal_model(
+                length=i, mask=mask
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 
@@ -169,8 +169,8 @@ def cluster_evaluation(cluster_mask):
 
         except Exception:
             print(i + 100)
-            xtrain, xval, _, ytrain, yval, _ = dp.random_multivariate_data_prep(
-                length=i + 100, cluster_mask=cluster_mask
+            xtrain, xval, _, ytrain, yval, _ = dp.areal_model(
+                length=i + 100, mask=mask
             )
             m = gpm.multi_gp(xtrain, xval, ytrain, yval)
 

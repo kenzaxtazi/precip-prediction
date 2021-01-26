@@ -33,7 +33,7 @@ yval_std_pred_list = []
 
 for i in range(10):
 
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep(
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model(
         number=i, length=10000
     )
 

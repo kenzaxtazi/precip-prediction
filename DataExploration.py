@@ -276,7 +276,7 @@ def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total p
 
 
 
-def tp_vs(mask_filepath, variable, cluster_mask=None, longname=""):
+def tp_vs(mask_filepath, variable, mask=None, longname=""):
 
     """
     df = dp.download_data(mask_filepath)
@@ -284,11 +284,11 @@ def tp_vs(mask_filepath, variable, cluster_mask=None, longname=""):
     #df_mean = df_var.groupby('time').mean()
     """
 
-    if cluster_mask == None:
+    if mask == None:
         df = dd.download_data(mask_filepath)
     else:
         cds_filepath = fd.update_cds_monthly_data()
-        da = dd.apply_mask(cds_filepath, cluster_mask)
+        da = dd.apply_mask(cds_filepath, mask)
         df = da.to_dataframe().reset_index()
 
     df = df[["time", "tp", variable]]

@@ -25,10 +25,10 @@ ngari_mask = "Data/Ngari_mask.nc"
 
 """
 # Single point multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.slm_multivariate_data_prep()
+xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
 
 # Random sampling multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.random_multivariate_data_prep()
+xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model()
 """
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):
@@ -132,7 +132,7 @@ def save_model(model, xval, qualifiers=None):  # TODO
     samples_input = tf.convert_to_tensor(samples_input, dtype="float64")
     # original_result = module_to_save.predict(samples_input)
 
-    filename = "model_" + now.strftime("%Y-%m-%D-%H-%M-%S")  # + qualifiers
+    filename = "model_" + now.strftime("%Y-%m-%D-%H-%M-%S") + qualifiers
 
     save_dir = "Models/" + filename
     tf.saved_model.save(module_to_save, save_dir)
