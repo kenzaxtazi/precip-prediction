@@ -110,9 +110,9 @@ def change_maps(data_filepath, mask_filepath, variable):
     plt.show()
 
 
-def telconnnection_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
+def global_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
     """ 
-    Returns global map with study area(s) superimposed. The output can then be used to draw teleconnection interactions.
+    Returns global map with study area(s) superimposed.
     """
     # Shapefiles
 
