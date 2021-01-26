@@ -16,6 +16,7 @@ import DataPreparation as dp
 import GPModels as gpm
 import Correlation as corr
 import Timeseries as tims
+import PDF as pdf
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
@@ -83,9 +84,10 @@ def trend_comparison(model_filepath, lat, lon):
 
     xtr, y_gpr_t, y_std_t = model_prep(model_filepath, lat, lon)
 
-    tims.timeseries_plot(timeseries, xtr, y_gpr_t, y_std_t)
+    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
     dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
-    corr.dataset_correlation(timeseries, xtr, y_gpr_t, y_std_t)
+    corr.dataset_correlation(timeseries, y_gpr_t)
+    pdf.benchmarking_plot(timeseries, y_gpr_t)
 
 
 
