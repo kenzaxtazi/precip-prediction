@@ -34,14 +34,12 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
 
     if slm == True:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location
-                number=number)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=number)
         else:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
     else:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location
-                number=number)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=number)
         else:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
 

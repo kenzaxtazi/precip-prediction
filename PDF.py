@@ -91,7 +91,7 @@ def monthly_PDF(data_filepath, mask_filepath, variable="tp", longname=""):
     plt.show()
 
 
-def benchmarking_plot(timeseries, y_gpr_t):
+def benchmarking_plot(timeseries, y_gpr_t, basin=False):
     """ Plot probability distribution of model outputs """
 
     dataframes = []
@@ -103,7 +103,7 @@ def benchmarking_plot(timeseries, y_gpr_t):
         dataframes.append(df3)
 
     combined_df = dataframes[0].join(dataframes[1:])
-    combined_df["model"] = y_gpr_t[132:312, 0]
+    combined_df["model"] = y_gpr_t
     
     time_ds = timeseries[0].time.to_dataframe(name='time')
     months_float = np.ceil((time_ds["time"] - np.floor(time_ds["time"])) * 12)

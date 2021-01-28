@@ -327,14 +327,14 @@ def standardised_time(dataset):
     return(utime + 1970)
 
 
-def collect_ERA5(basin_filepath):
+def collect_ERA5():
     """ Downloads data from ERA5 """
     basin_filepath = "Data/Masks/Indus_mask.nc"
     era5_ds= download_data(basin_filepath, xarray=True) # in m/day
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
     return era5_ds
 
-def collect_CMIP5(basin_filepath):
+def collect_CMIP5():
     """ Downloads data from CMIP5 """
     cmip_59_84_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
     cmip_84_05_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
@@ -345,7 +345,7 @@ def collect_CMIP5(basin_filepath):
     cmip_ds['time'] = standardised_time(cmip_ds)
     return cmip_ds
 
-def collect_CORDEX(basin_filepath):
+def collect_CORDEX():
     """ Downloads data from CORDEX East Asia model """
     cordex_90_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
     cordex_91_00_ds = xr.open_dataset("/Users/kenzatazi/Downloads/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
@@ -362,7 +362,7 @@ def collect_CORDEX(basin_filepath):
 
     return cordex_ds
 
-def collect_APHRO(basin_filepath):
+def collect_APHRO():
     """ Downloads data from APHRODITE model"""
     aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob('/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
     aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
@@ -370,7 +370,7 @@ def collect_APHRO(basin_filepath):
     aphro_ds['time'] = standardised_time(aphro_ds)
     return aphro_ds
 
-def collect_CRU(basin_filepath):
+def collect_CRU():
     """ Downloads data from CRU model"""
     cru_ds = xr.open_dataset("/Users/kenzatazi/Downloads/cru_ts4.04.1901.2019.pre.dat.nc")
     cru_ds = cru_ds.assign_attrs(plot_legend="CRU") # in mm/month

@@ -33,25 +33,20 @@ def select_coords(dataset, lat=None, lon=None):
     timeseries = dataset.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     timeseries = timeseries.sel(time= slice(1990, 2005))
 
-def select_basin(dataset, mask_filepath):
+def select_basin(dataset, location):
     """ Interpolate dataset at given coordinates """  
+    mask_filepath = dp.find_mask(location)
     basin = dd.apply_mask(dataset, mask_filepath) 
-    basin = timeseries.sel(time= slice(1990, 2005))  
+    basin = basin.sel(time= slice(1990, 2005))  
     return basin
 
 
-def model_prep(model_filepath, lat=None, lon=None, mask_filepath=None):
+def model_prep(location, model_filepath):
     """ Prepares model outputs for comparison """
 
     model = gpm.restore_model(model_filepath)
 
-    if lat != None:
-        xtrain, xval, _, _, _, _ = dp.areal_model_eval(coords=[lat,lon])
-    
-    if mask_filepath != None:
-        xtrain, xval, _, _, _, _ = dp.areal_model(length=3000, mask=None)
-    
-    xtr = np.concatenate((xtrain, xval), axis=0)
+    xtr, ytr = dp.areal_model_eval(location)
     y_gpr, y_std = model.predict_y(xtr[132:312, 0])
  
     # to mm/day
@@ -95,7 +90,7 @@ def single_location_comparison(model_filepath, lat, lon):
 
     timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
 
-    xtr, y_gpr_t, y_std_t = model_prep(model_filepath, lat, lon)
+    xtr, y_gpr_t, y_std_t = model_prep([lat, lon], model_filepath)
 
     tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
     dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
@@ -103,7 +98,7 @@ def single_location_comparison(model_filepath, lat, lon):
     pdf.benchmarking_plot(timeseries, y_gpr_t)
 
 
-def basin_comparison(model_filepath, lat, lon):
+def basin_comparison(model_filepath, location):
     """ Plots model outputs for given coordinates over time """
     
     era5_ds = dd.collect_ERA5()
@@ -112,20 +107,20 @@ def basin_comparison(model_filepath, lat, lon):
     cru_ds = dd.collect_CRU()
     #aphro_ds = dd.collect_APHRO()
  
-    era5_ts = select_basin(era5_ds, mask_filepath)
-    cmip_ts = select_basin(cmip_ds, mask_filepath)
-    cordex_ts = select_basin(cordex_ds, mask_filepath)
-    cru_ts = select_basin(cru_ds, mask_filepath)
-    #aphro_ts = select_basin(aphro_ds, mask_filepath)
+    era5_ts = select_basin(era5_ds, location)
+    cmip_ts = select_basin(cmip_ds, location)
+    cordex_ts = select_basin(cordex_ds, location)
+    cru_ts = select_basin(cru_ds, location)
+    #aphro_ts = select_basin(aphro_ds, location)
 
     timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
 
-    xtr, y_gpr_t, y_std_t = model_prep(model_filepath, lat, lon)
+    xtr, y_gpr_t, y_std_t = model_prep(model_filepath, location)
 
-    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t, basin=True)
-    dataset_stats(timeseries, xtr, y_gpr_t, y_std_t, basin=True)
-    corr.dataset_correlation(timeseries, y_gpr_t, basin=True)
-    pdf.benchmarking_plot(timeseries, y_gpr_t, basin=True)
+    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
+    dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
+    corr.dataset_correlation(timeseries, y_gpr_t)
+    pdf.benchmarking_plot(timeseries, y_gpr_t)
 
 
 
