@@ -186,13 +186,12 @@ def areal_model_eval(location, number=None, EDA_average=False, minyear=1979, max
 
     sliced_da = da.sel(time=slice(minyear, maxyear))
 
-    if location is str:
+    if isinstance(location, str) == True:
         mask_filepath = find_mask(location)
         masked_da = dd.apply_mask(sliced_da, mask_filepath)
         multiindex_df = masked_da.to_dataframe()
         multiindex_df = da.to_dataframe()
-        df_clean = multiindex_df.dropna().reset_index()
-        df = sa.random_location_sampler(df_clean)
+        df = multiindex_df.dropna().reset_index()
 
     else:
         da_location = sliced_da.interp(
