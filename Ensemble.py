@@ -10,12 +10,6 @@ import DataPreparation as dp
 import Metrics as me
 
 
-## Filepaths
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-khyber_mask = "Khyber_mask.nc"
-gilgit_mask = "Gilgit_mask.nc"
-ngari_mask = "Ngari_mask.nc"
-
 
 ## Empty lists
 model_list = []
@@ -33,7 +27,7 @@ yval_std_pred_list = []
 
 for i in range(10):
 
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model(
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib',
         number=i, length=10000
     )
 
