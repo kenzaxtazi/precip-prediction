@@ -245,4 +245,3 @@ def dataset_correlation(timeseries, y_gpr_t):
     plt.title("Correlation plot for gridded datasets")
 
     plt.show()
-    return 1
