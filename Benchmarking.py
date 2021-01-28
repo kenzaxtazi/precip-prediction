@@ -32,6 +32,7 @@ def select_coords(dataset, lat=None, lon=None):
     """ Interpolate dataset at given coordinates """
     timeseries = dataset.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     timeseries = timeseries.sel(time= slice(1990, 2005))
+    return timeseries
 
 def select_basin(dataset, location):
     """ Interpolate dataset at given coordinates """  
