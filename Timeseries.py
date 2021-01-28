@@ -103,9 +103,9 @@ def benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t):
     plt.figure()
     for ts in timeseries:
         plt.plot(ts.time.values, ts.tp.values, label=ts.plot_legend)
-    plt.fill_between(xtr[:, 0] + 1979, y_gpr_t[:, 0] - 1.9600 * y_std_t[:, 0], y_gpr_t[:, 0] + 1.9600 * y_std_t[:, 0], 
+    plt.fill_between(xtr[:, 0] + 1970, y_gpr_t[:, 0] - 1.9600 * y_std_t[:, 0], y_gpr_t[:, 0] + 1.9600 * y_std_t[:, 0], 
                         alpha=0.5, color="lightblue") #label="95% confidence interval")
-    plt.plot(xtr[:, 0] + 1979, y_gpr_t, linestyle="-", label="Prediction")
+    plt.plot(xtr[:, 0] + 1970, y_gpr_t, linestyle="-", label="Prediction")
     plt.xlabel('Time')
     plt.ylabel('Precipitation mm/day')
     plt.legend()
