@@ -98,20 +98,20 @@ def basin_comparison(model_filepath, location):
     cru_ds = dd.collect_CRU()
     #aphro_ds = dd.collect_APHRO()
  
-    era5_ts = select_basin(era5_ds, location)
-    cmip_ts = select_basin(cmip_ds, location)
-    cordex_ts = select_basin(cordex_ds, location)
-    cru_ts = select_basin(cru_ds, location)
-    #aphro_ts = select_basin(aphro_ds, location)
+    era5_bs = select_basin(era5_ds, location)
+    cmip_bs = select_basin(cmip_ds, location)
+    cordex_bs = select_basin(cordex_ds, location)
+    cru_bs = select_basin(cru_ds, location)
+    #aphro_bs = select_basin(aphro_ds, location)
 
-    timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
+    basins = [era5_bs, cmip_bs, cordex_bs, cru_bs] #, aphro_ts]
 
-    xtr, y_gpr_t, y_std_t = model_prep( location, model_filepath)
+    xtr, y_gpr_t, y_std_t = model_prep(location, model_filepath)
 
-    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
-    dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
-    corr.dataset_correlation(timeseries, y_gpr_t)
-    pdf.benchmarking_plot(timeseries, y_gpr_t)
+    tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
+    dataset_stats(basins, xtr, y_gpr_t, y_std_t)
+    corr.dataset_correlation(basins, y_gpr_t)
+    pdf.benchmarking_plot(basins, y_gpr_t)
 
 
 
