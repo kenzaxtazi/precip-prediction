@@ -25,10 +25,10 @@ ngari_mask = "Data/Ngari_mask.nc"
 
 """
 # Single point multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
+xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
 
 # Random sampling multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model()
+xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib')
 """
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):

@@ -20,7 +20,7 @@ import FileDownloader as fd
 # ganges_filepath =
 # peru = 
 
-def download_data(basin_filepath, xarray=False, ensemble=False, all_var=False):
+def download_data(location, xarray=False, ensemble=False, all_var=False):
     """
     Downloads data for prepearation or analysis
 
@@ -35,15 +35,17 @@ def download_data(basin_filepath, xarray=False, ensemble=False, all_var=False):
         ds: DataArray of data
     """
 
+    basin = basin_finder(location)
+
     path = "Data/"
     now = datetime.datetime.now()
 
     if ensemble == True:
-        filename = "combi_data_ensemble" + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "combi_data_ensemble" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
     if all_var == True:
-        filename = "all_data" + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "all_data" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
     elif ensemble == False:
-        filename = "combi_data" + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "combi_data" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
 
     filepath = path + filename
     print(filepath)
@@ -51,14 +53,14 @@ def download_data(basin_filepath, xarray=False, ensemble=False, all_var=False):
     if not os.path.exists(filepath):
 
         # Orography, humidity, precipitation and indices
-        cds_df = cds_downloader(basin_filepath, ensemble=ensemble, all_var=all_var)
+        cds_df = cds_downloader(basin, ensemble=ensemble, all_var=all_var)
         ind_df = indice_downloader(all_var=all_var)
         df_combined = pd.merge_ordered(cds_df, ind_df, on="time", suffixes=("", "_y"))
 
         # Other variables not used in the GP
         if all_var == True:
-            mean_df = mean_downloader()
-            uib_eofs_df = eof_downloader(basin_filepath, all_var=all_var)
+            mean_df = mean_downloader(basin)
+            uib_eofs_df = eof_downloader(basin, all_var=all_var)
 
             # Combine
             df_combined = pd.merge_ordered(df_combined, mean_df, on="time")
@@ -134,7 +136,7 @@ def apply_mask(data_filepath, mask_filepath):
     return UIB
 
 
-def mean_downloader():
+def mean_downloader(basin):
     def mean_formatter(filepath, coords=None, name=None):
         """ Returns dataframe averaged data over a optionally given area """
 
@@ -161,7 +163,7 @@ def mean_downloader():
 
     # Temperature
     temp_filepath = fd.update_cds_monthly_data(
-        variables=["2m_temperature"], area=[40, 65, 20, 85], qualifier="temp"
+        variables=["2m_temperature"], area=basin, qualifier="temp"
     )
     temp_df = mean_formatter(temp_filepath)
 
@@ -230,11 +232,18 @@ def mean_downloader():
     return mean_df
 
 
-def eof_downloader(basin_filepath, all_var=False):
-    def eof_formatter(filepath, basin_filepath, name=None):
+def eof_downloader(basin, all_var=False):
+
+    def eof_formatter(filepath, basin, name=None):
         """ Returns DataFrame of EOF over UIB  """
-        eof_da = apply_mask(filepath, basin_filepath)
-        eof_ds = eof_da.EOF
+        
+        da = xr.open_dataset(filepath)
+        if "expver" in list(da.dims):
+            da = da.sel(expver=1)
+        (latmax, lonmin, latmin, lonmax) = fd.basin_extent(basin)
+        sliced_da = da.sel(latitude=slice(latmin, latmax), longitude=slice(lonmin, lonmax))
+
+        eof_ds = sliced_da.EOF
         eof2 = eof_ds.assign_coords(time=(eof_ds.time.astype("datetime64")))
         eof_multiindex_df = eof2.to_dataframe()
         eof_df = eof_multiindex_df.dropna()
@@ -243,23 +252,23 @@ def eof_downloader(basin_filepath, all_var=False):
 
     # EOF UIB
     eof1_z200_u = eof_formatter(
-        "Data/regional_z200_EOF1.nc", basin_filepath, name="EOF200U1"
+        "Data/regional_z200_EOF1.nc", basin, name="EOF200U1"
     )
     eof1_z500_u = eof_formatter(
-        "Data/regional_z500_EOF1.nc", basin_filepath, name="EOF500U1"
+        "Data/regional_z500_EOF1.nc", basin, name="EOF500U1"
     )
     eof1_z850_u = eof_formatter(
-        "Data/regional_z850_EOF1.nc", basin_filepath, name="EOF850U1"
+        "Data/regional_z850_EOF1.nc", basin, name="EOF850U1"
     )
 
     eof2_z200_u = eof_formatter(
-        "Data/regional_z200_EOF2.nc", basin_filepath, name="EOF200U2"
+        "Data/regional_z200_EOF2.nc", basin, name="EOF200U2"
     )
     eof2_z500_u = eof_formatter(
-        "Data/regional_z500_EOF2.nc", basin_filepath, name="EOF500U2"
+        "Data/regional_z500_EOF2.nc", basin, name="EOF500U2"
     )
     eof2_z850_u = eof_formatter(
-        "Data/regional_z850_EOF2.nc", basin_filepath, name="EOF850U2"
+        "Data/regional_z850_EOF2.nc", basin, name="EOF850U2"
     )
 
     uib_eofs = pd.concat(
@@ -289,24 +298,21 @@ def indice_downloader(all_var=False):
     return ind_df
 
 
-def cds_downloader(basin_filepath, ensemble=False, all_var=False):
+def cds_downloader(basin, ensemble=False, all_var=False):
     """ Return CDS Dataframe """
 
     if ensemble == False:
-        cds_filepath = fd.update_cds_monthly_data()
+        cds_filepath = fd.update_cds_monthly_data(area=basin)
     else:
-        cds_filepath = fd.update_cds_monthly_data(
-            product_type="monthly_averaged_ensemble_members"
-        )
+        cds_filepath = fd.update_cds_monthly_data(product_type="monthly_averaged_ensemble_members", area=basin)
 
-    masked_da = apply_mask(cds_filepath, basin_filepath)
-    multiindex_df = masked_da.to_dataframe()
+    da = xr.open_dataset(cds_filepath)
+    if "expver" in list(da.dims):
+        da = da.sel(expver=1)
+    
+    multiindex_df = da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
-    """
-    if all_var == False:
-        cds_df = cds_df.drop(['anor'], axis=1)
-    """
     return cds_df
 
 
@@ -372,3 +378,25 @@ def collect_CRU(basin_filepath):
     cru_ds['tp'] /= 30.437  #TODO apply proper function to get mm/day
     cru_ds['time'] = standardised_time(cru_ds)
     return cru_ds
+
+
+def basin_finder(loc):
+    """ 
+    Finds basin to load data from.
+
+    Input
+        loc: list of coordinates [lat, lon] or string refering to an area.
+    Output
+        basin , string: name of the basin.
+    """
+
+    basin_dic ={'indus': 'indus', 'uib': 'indus', 'sutlej':'indus', 'beas':'indus',
+                'khyber': 'indus', 'ngari': 'indus', 'gilgit':'indus'}
+    
+    if loc is str:
+        basin = basin_dic[loc]
+        return basin
+    
+    if loc is not str: # fix to search with coords
+        return 'indus'
+

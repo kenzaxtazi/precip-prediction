@@ -13,8 +13,6 @@ import GPModels as gpm
 
 from sklearn.metrics import mean_squared_error, r2_score
 
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-
 
 def R2(model, x, y):
     """ Returns R2 score """
@@ -31,21 +29,21 @@ def RMSE(model, x, y):
     return np.sqrt(RMSE)
 
 
-def model_plot(model, number=None, coords=None, posteriors=True, slm=True):
+def model_plot(model, location, number=None, posteriors=True, slm=True):
     """ Returns plot for multivariate GP for a single loation """
 
     if slm == True:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
-                number=number, coords=coords)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location
+                number=number)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
     else:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
-                number=number, coords=coords)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location
+                number=number)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model()
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
 
     xtr = np.concatenate((xtrain, xval), axis=0)
     y_gpr, y_std = model.predict_y(xtr)
@@ -93,7 +91,7 @@ def model_plot(model, number=None, coords=None, posteriors=True, slm=True):
     plt.show()
 
 
-def ensemble_model_plot(models, slm=True):
+def ensemble_model_plot(location, models, slm=True):
     """ Returns plot for ensemble of multivariate GP for a single loation """
 
     palette = sns.color_palette("husl", 10)
@@ -103,9 +101,9 @@ def ensemble_model_plot(models, slm=True):
     for i in range(10):
 
         if slm == True:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(number=i)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=i)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model_eval(number=i)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model_eval(location, number=i)
 
         xtr = np.concatenate((xtrain, xval), axis=0)
         ytr = np.concatenate((ytrain, yval), axis=0)
@@ -133,7 +131,7 @@ def ensemble_model_plot(models, slm=True):
             label="95% confidence interval",
         )
 
-    plt.title("GPflow fit for Gilgit (35.8884°N, 74.4584°E, 1500m)")
+    plt.title("GPflow fit")
     plt.ylabel("Precipitation [mm/day]")
     plt.xlabel("Year")
     plt.legend()

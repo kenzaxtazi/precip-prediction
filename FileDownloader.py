@@ -63,8 +63,8 @@ def update_cds_monthly_data(
         "total_column_water_vapour",
         "total_precipitation",
     ],
-    pressure_level=None,
     area=[40, 70, 30, 85],
+    pressure_level=None,
     path="Data/",
     qualifier=None,
 ):
@@ -82,6 +82,9 @@ def update_cds_monthly_data(
 
     Returns: local filepath to netcdf.
     """
+    if area is str:
+        qualifier = area
+        area = basin_extent(area)
 
     now = datetime.datetime.now()
 
@@ -95,9 +98,9 @@ def update_cds_monthly_data(
             + "_"
             + product_type
             + "_"
-            + now.strftime("%m-%Y")
-            + "_"
             + qualifier
+            +"_"
+            + now.strftime("%m-%Y")
             + ".nc"
         )
 
@@ -232,3 +235,9 @@ def update_cds_hourly_data(
             )
 
     return filepath
+
+
+def basin_extent(string):
+    """ Returns extent of basin to save data """
+    basin_dic = {'indus': [40, 65, 25, 85]}
+    return basin_dic[string]
