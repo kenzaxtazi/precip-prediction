@@ -110,7 +110,7 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
             return df_clean
 
 
-def apply_mask(data_filepath, mask_filepath):
+def apply_mask(data, mask_filepath):
 
     """
     Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
@@ -120,20 +120,21 @@ def apply_mask(data_filepath, mask_filepath):
     Return:
         A Data Array
     """
-    da = xr.open_dataset(data_filepath)
-    if "expver" in list(da.dims):
-        print("expver found")
-        da = da.sel(expver=1)
+
+    if data is str:
+        da = xr.open_dataset(data)
+        if "expver" in list(da.dims):
+            print("expver found")
+            da = da.sel(expver=1)
+    else:
+        da = data
 
     mask = xr.open_dataset(mask_filepath)
+    mask = mask.rename({'latitude': 'lat', 'longitude': 'lon'})
     mask_da = mask.overlap
+    masked_da = da.where(mask_da > 0, drop=True)
 
-    # slice in case step has not been performed at download stage
-    sliced_da = da.sel(latitude=slice(38, 30), longitude=slice(71.25, 82.75))
-
-    UIB = sliced_da.where(mask_da > 0, drop=True)
-
-    return UIB
+    return masked_da
 
 
 def mean_downloader(basin):
