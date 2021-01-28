@@ -20,13 +20,6 @@ import PDF as pdf
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
-# Masks
-uib_mask = 'Data/Masks/ERA5_Upper_Indus_mask.nc'
-beas_mask = 'Data/Masks/Beas_basin_overlap.nc'
-sutlej_mask = 'Data/Masks/Sutlej_basin_overlap.nc'
-gilgit_mask = 'Data/Masks/Gilgit_mask.nc'
-khyber_mask = 'Data/Masks/Khyber_mask.nc'
-ngari_mask = 'Data/Masks/Khyber_mask.nc'
 
 def select_coords(dataset, lat=None, lon=None):
     """ Interpolate dataset at given coordinates """
@@ -41,21 +34,19 @@ def select_basin(dataset, location):
     basin = basin.sel(time= slice(1990, 2005))  
     return basin
 
-
-def model_prep(location, model_filepath):
+def model_prep(location, model_filepath, minyear=1990, maxyear=2005):
     """ Prepares model outputs for comparison """
 
     model = gpm.restore_model(model_filepath)
 
-    xtr, ytr = dp.areal_model_eval(location)
-    y_gpr, y_std = model.predict_y(xtr[132:312, 0])
+    xtr, ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
+    y_gpr, y_std = model.predict_y(xtr)
  
     # to mm/day
     y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
     y_std_t = dp.inverse_log_transform(y_std) * 1000
 
     return xtr, y_gpr_t, y_std_t
-
 
 def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
     """ Print mean, standard deviations and slope for datasets """
@@ -73,7 +64,6 @@ def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
     print('std = ', np.std(y_gpr_t), 'mm/day')
     print('slope = ', slope, 'mm/day/month')
 
-
 def single_location_comparison(model_filepath, lat, lon):
     """ Plots model outputs for given coordinates over time """
     
@@ -83,11 +73,11 @@ def single_location_comparison(model_filepath, lat, lon):
     cru_ds = dd.collect_CRU()
     #aphro_ds = dd.collect_APHRO()
  
-    era5_ts = select_coords(lat, lon, era5_ds)
-    cmip_ts = select_coords(lat, lon, cmip_ds)
-    cordex_ts = select_coords(lat, lon, cordex_ds)
-    cru_ts = select_coords(lat, lon, cru_ds)
-    #aphro_ts = select_coords(lat, lon, aphro_ds)
+    era5_ts = select_coords(era5_ds, lat, lon)
+    cmip_ts = select_coords(cmip_ds, lat, lon)
+    cordex_ts = select_coords(cordex_ds, lat, lon)
+    cru_ts = select_coords(cru_ds, lat, lon)
+    #aphro_ts = select_coords(aphro_ds, lat, lon)
 
     timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
 
@@ -116,7 +106,7 @@ def basin_comparison(model_filepath, location):
 
     timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
 
-    xtr, y_gpr_t, y_std_t = model_prep(model_filepath, location)
+    xtr, y_gpr_t, y_std_t = model_prep( location, model_filepath)
 
     tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
     dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
