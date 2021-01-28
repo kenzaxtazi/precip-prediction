@@ -24,10 +24,10 @@ import Sampling as sa
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 
 
-def single_loc_evaluation(perf_plot=False, hpar_plot=False):
+def single_loc_evaluation(location, perf_plot=False, hpar_plot=False):
 
     metric_list = []
-    coord_list = sa.random_location_generator(UIB=True)
+    coord_list = sa.random_location_generator(location)
     n = len(coord_list)
 
     for i in tqdm(range(n)):
