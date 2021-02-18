@@ -138,7 +138,7 @@ def global_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_H
     plt.show()
 
 
-def uib_map():
+def indus_map(uib_only=False, bs_only=False):
     """ Returns two maps: global map with box, zoomed in map of the Upper Indus Basin """
 
     # River shapefiles
@@ -148,6 +148,14 @@ def uib_map():
     # UIB shapefile
     uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     uib_shape = shapereader.Reader(uib_path)
+
+    # Beas + Sutlej shapefile and projection
+    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
+    bs_shape = shapereader.Reader(bs_path)
+    bs_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
+    cranfield_crs = ccrs.LambertConformal(
+                central_longitude=82, central_latitude=20, false_easting=2000000.0, false_northing=2000000.0,
+                standard_parallels=[12.47294444444444,35.17280555555556], globe=bs_globe)
 
     # Other phyical features
     land_50m = cf.NaturalEarthFeature("physical", "land", "50m", edgecolor="face", facecolor=cf.COLORS["land"])
@@ -176,92 +184,8 @@ def uib_map():
     ax.add_feature(cf.BORDERS.with_scale("50m"), linewidth=0.5)
     ax.coastlines("50m", linewidth=0.5)
 
-    for rec in uib_shape.records():
-        ax.add_geometries(
-            [rec.geometry],
-            ccrs.AlbersEqualArea(
-                central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
-            ),
-            edgecolor="red",
-            facecolor="red",
-            alpha=0.1,
-        )
-
-    # ax.add_feature(rivers)
-    for rec in as_shp.records():
-        if rec.attributes["name"] == "Indus":
-            ax.add_geometries(
-                [rec.geometry],
-                ccrs.PlateCarree(),
-                edgecolor="steelblue",
-                facecolor="None",
-            )
-        pass
-
-    ax.text(64, 28, "PAKISTAN", c="gray")
-    ax.text(62.5, 33.5, "AFGHANISTAN", c="gray")
-    ax.text(80, 37, "CHINA", c="gray")
-    ax.text(77, 25, "INDIA", c="gray")
-    ax.text(62, 22, "Arabian Sea", c="navy", alpha=0.5)
-    ax.text(70.3, 32, "Indus river", c="steelblue", rotation=55, size=7)
-
-    ax.set_xticks([60, 65, 70, 75, 80, 85])
-    ax.set_xticklabels(["60°E", "65°E", "70°E", "75°E", "80°E", "85°E"])
-
-    ax.set_yticks([20, 25, 30, 35, 40])
-    ax.set_yticklabels(["20°N", "25°N", "30°N", "35°N", "40°N"])
-
-    plt.title("Indus River \n \n")
-    plt.show()
-
-
-def beas_sutlej_map():
-    """ Returns two maps: global map with box, zoomed in map of the Beas and Sutlej basins """
-
-    # River shapefiles
-    fpath = "Data/Shapefiles/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
-    as_shp = shapereader.Reader(fpath)
-
-    # Basin shapefiles
-    beas_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
-    beas_shape = shapereader.Reader(beas_path)
-    sutlej_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
-    sutlej_shape = shapereader.Reader(beas_path)
-    basins_shapes = [beas_shape, sutlej_shape]
-
-    # Other phyical features
-    land_50m = cf.NaturalEarthFeature(
-        "physical", "land", "50m", edgecolor="face", facecolor=cf.COLORS["land"]
-    )
-    ocean_50m = cf.NaturalEarthFeature(
-        "physical", "ocean", "50m", edgecolor="face", facecolor=cf.COLORS["water"]
-    )
-
-    # Regional rectangle
-    pgon = regional_rectangle(60, 80, 20, 40)
-
-    # Projection for global map
-    glb_proj = ccrs.NearsidePerspective(central_longitude=70, central_latitude=30)
-
-    plt.figure("Global")
-    ax = plt.subplot(projection=glb_proj)
-    ax.add_feature(ocean_50m)
-    ax.add_feature(land_50m)
-    ax.coastlines("50m", linewidth=0.4)
-    ax.add_feature(cf.BORDERS, linewidth=0.4)
-    ax.add_geometries([pgon], crs=ccrs.PlateCarree(), facecolor="none", edgecolor="red")
-
-    plt.figure("Zoomed in")
-    ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([60, 85, 20, 40])
-
-    ax.add_feature(land_50m)
-    ax.add_feature(ocean_50m)
-    ax.add_feature(cf.BORDERS.with_scale("50m"), linewidth=0.5)
-    ax.coastlines("50m", linewidth=0.5)
-
-    for b in basins_shapes:
-        for rec in b.records():
+    if bs_only == False:
+        for rec in uib_shape.records():
             ax.add_geometries(
                 [rec.geometry],
                 ccrs.AlbersEqualArea(
@@ -272,6 +196,17 @@ def beas_sutlej_map():
                 alpha=0.1,
             )
 
+    if uib_only == False:
+        for rec in bs_shape.records():
+            ax.add_geometries(
+                [rec.geometry],
+                cranfield_crs,
+                edgecolor=None,
+                facecolor="green",
+                alpha=0.1,
+                )
+
+    # ax.add_feature(rivers)
     for rec in as_shp.records():
         if rec.attributes["name"] == "Indus":
             ax.add_geometries(
