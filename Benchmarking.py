@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
-import cftime
 import datetime
 import glob
 import seaborn as sns
