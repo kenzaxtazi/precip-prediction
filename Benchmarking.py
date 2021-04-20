@@ -82,7 +82,7 @@ def single_location_comparison(model_filepath, lat, lon):
 
     xtr, y_gpr_t, y_std_t = model_prep([lat, lon], model_filepath)
 
-    # tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
+    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
     dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
     corr.dataset_correlation(timeseries, y_gpr_t)
     pdf.benchmarking_plot(timeseries, y_gpr_t)
@@ -107,7 +107,7 @@ def basin_comparison(model_filepath, location):
 
     xtr, y_gpr_t, y_std_t = model_prep(location, model_filepath)
 
-    tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
+    # tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
     dataset_stats(basins, xtr, y_gpr_t, y_std_t)
     corr.dataset_correlation(basins, y_gpr_t)
     pdf.benchmarking_plot(basins, y_gpr_t)
