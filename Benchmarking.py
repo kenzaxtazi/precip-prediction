@@ -51,8 +51,13 @@ def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
     """ Print mean, standard deviations and slope for datasets """
 
     for ds in datasets:
+
+        tp = ds.tp.values
+        if np.shape(tp)[1]>1:
+            ds = dp.average_basin_values(ds)
+        
         slope, intercept, r_value, p_value, std_err = stats.linregress(ds.time.values, ds.tp.values)
-        print(ds.plot_legend)
+        #print(ds.plot_legend)
         print('mean = ', np.mean(ds.tp.values),'mm/day')
         print('std = ', np.std(ds.tp.values), 'mm/day')
         print('slope = ', slope, 'mm/day/month')
@@ -111,6 +116,9 @@ def basin_comparison(model_filepath, location):
     dataset_stats(basins, xtr, y_gpr_t, y_std_t)
     corr.dataset_correlation(basins, y_gpr_t)
     pdf.benchmarking_plot(basins, y_gpr_t)
+
+
+
 
 
 
