@@ -158,7 +158,7 @@ def areal_model(location,
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def areal_model_eval(location, number=None, EDA_average=False, minyear=1979, maxyear=2020):
+def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed=42, minyear=1979, maxyear=2020):
     """
     Returns data to evaluate an areal model at a given location, area and time period.
     Variables: total precipitation as a function of time, 2m dewpoint temperature, angle of 
@@ -191,7 +191,9 @@ def areal_model_eval(location, number=None, EDA_average=False, minyear=1979, max
         masked_da = dd.apply_mask(sliced_da, mask_filepath)
         multiindex_df = masked_da.to_dataframe()
         multiindex_df = da.to_dataframe()
-        df = multiindex_df.dropna().reset_index()
+        df_clean = multiindex_df.dropna().reset_index()
+        df = sa.random_location_and_time_sampler(
+        df_clean, length=length, seed=seed)
 
     else:
         da_location = sliced_da.interp(
@@ -244,3 +246,10 @@ def find_mask(location):
                 'sutlej': 'Data/Masks/Sutlej_basin_overlap.nc', 'beas':'Data/Masks/Beas_basin_overlap.nc'}
     mask_filepath = mask_dic[location]
     return mask_filepath
+
+
+def average_basin_values(ds):
+    """ Take average over latitude and longitude """
+    ds = ds.mean("lon")
+    ds = ds.mean("lat")
+    return ds
