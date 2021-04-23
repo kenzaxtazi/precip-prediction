@@ -45,9 +45,20 @@ def model_prep(location, model_filepath, minyear=1990, maxyear=2005):
     y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
     y_std_t = dp.inverse_log_transform(y_std) * 1000
 
-    return xtr, y_gpr_t, y_std_t
+    model_ds = xr.Dataset( 
+        data_vars= dict(
+            tp = (["lon", "lat", "time"], y_gpr_t),
+            tp_std_t = (["lon", "lat", "time"], y_std_t)),
+        coords = dict(
+            lon = (["lon", "lat"], xtr[2]), 
+            lat = (["lon", "lat"], xtr[1]),
+            time = xtr[0]))
 
-def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
+    model_ds.assign_attrs(plot_legend="ERA5")
+
+    return model_ds
+
+def dataset_stats(datasets):
     """ Print mean, standard deviations and slope for datasets """
 
     for ds in datasets:
@@ -57,16 +68,10 @@ def dataset_stats(datasets, xtr, y_gpr_t, y_std_t):
             ds = dp.average_basin_values(ds)
         
         slope, intercept, r_value, p_value, std_err = stats.linregress(ds.time.values, ds.tp.values)
-        #print(ds.plot_legend)
+        #print(ds.plot_legend) # TODO
         print('mean = ', np.mean(ds.tp.values),'mm/day')
         print('std = ', np.std(ds.tp.values), 'mm/day')
         print('slope = ', slope, 'mm/day/month')
-    
-    slope, intercept, r_value, p_value, std_err = stats.linregress(xtr[131:313, 0], y_gpr_t[131:313, 0]) # btw 1990 and 2005
-    print("model")
-    print('mean = ', np.mean(y_gpr_t),'mm/day')
-    print('std = ', np.std(y_gpr_t), 'mm/day')
-    print('slope = ', slope, 'mm/day/month')
 
 def single_location_comparison(model_filepath, lat, lon):
     """ Plots model outputs for given coordinates over time """
@@ -108,12 +113,14 @@ def basin_comparison(model_filepath, location):
     cru_bs = select_basin(cru_ds, location)
     #aphro_bs = select_basin(aphro_ds, location)
 
-    basins = [era5_bs, cmip_bs, cordex_bs, cru_bs] #, aphro_ts]
+    model_bs = model_prep(location, model_filepath)
 
-    xtr, y_gpr_t, y_std_t = model_prep(location, model_filepath)
+    basins = [model_bs, era5_bs, cmip_bs, cordex_bs, cru_bs] #, aphro_ts]
 
-    # tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
-    dataset_stats(basins, xtr, y_gpr_t, y_std_t)
+    dataset_stats(basins)
+
+    tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
+    
     corr.dataset_correlation(basins, y_gpr_t)
     pdf.benchmarking_plot(basins, y_gpr_t)
 
