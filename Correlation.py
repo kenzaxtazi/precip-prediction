@@ -207,7 +207,7 @@ def pvalue(df):
     return np.array(pval_list)
 
 
-def dataset_correlation(timeseries, y_gpr_t):
+def dataset_correlation(timeseries):
     """ Plots correlation heatmap for datasets """
 
     dataframes = []
@@ -218,8 +218,7 @@ def dataset_correlation(timeseries, y_gpr_t):
         df3 = df2.drop(["time", "lon", "lat"], axis=1)
         dataframes.append(df3)
     
-    combined_df = dataframes[0].join(dataframes[1:])
-    combined_df["model"] = y_gpr_t 
+    combined_df = dataframes[0].join(dataframes[1:]) 
     corr = combined_df.corr()
 
     sns.set(style="white")

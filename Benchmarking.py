@@ -1,5 +1,6 @@
 # Trend comparison
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import glob
 import seaborn as sns
 import cftime 
 from scipy import stats
+
 
 import DataDownloader as dd
 import DataPreparation as dp
@@ -33,30 +35,38 @@ def select_basin(dataset, location):
     basin = basin.sel(time= slice(1990, 2005))  
     return basin
 
-def model_prep(location, model_filepath, minyear=1990, maxyear=2005):
+def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepath='Models/model_2021-01-01/08/21-22-35-56', minyear=1990, maxyear=2005, ):
     """ Prepares model outputs for comparison """
 
-    model = gpm.restore_model(model_filepath)
+    if os.path.exists(data_filepath):
+        model_df = pd.read_csv(data_filepath)
 
-    xtr, ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
-    y_gpr, y_std = model.predict_y(xtr)
- 
-    # to mm/day
-    y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
-    y_std_t = dp.inverse_log_transform(y_std) * 1000
+    else:
+        model = gpm.restore_model(model_filepath)
 
-    model_ds = xr.Dataset( 
-        data_vars= dict(
-            tp = (["lon", "lat", "time"], y_gpr_t),
-            tp_std_t = (["lon", "lat", "time"], y_std_t)),
-        coords = dict(
-            lon = (["lon", "lat"], xtr[2]), 
-            lat = (["lon", "lat"], xtr[1]),
-            time = xtr[0]))
+        xtr, ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
+        y_gpr, y_std = model.predict_y(xtr)
+    
+        # to mm/day
+        y_gpr_t = dp.inverse_log_transform(y_gpr)
+        y_std_t = dp.inverse_log_transform(y_std)
 
-    model_ds.assign_attrs(plot_legend="ERA5")
+        model_df = pd.DataFrame({'time': xtr[:, 0]+1970, 
+                                'lat': xtr[:, 1], 
+                                'lon': xtr[:, 2], 
+                                'tp': y_gpr_t.flatten(),
+                                'tp_std': y_std_t.flatten()})
 
+        model_df = model_df.groupby('time').mean()                      
+        model_df.to_csv(data_filepath)
+
+    reset_df = model_df.reset_index()
+    multi_index_df = reset_df.set_index(["time", "lat", "lon"])
+
+    model_ds = multi_index_df.to_xarray()
+    model_ds = model_ds.assign_attrs(plot_legend="Model")
     return model_ds
+
 
 def dataset_stats(datasets):
     """ Print mean, standard deviations and slope for datasets """
@@ -64,8 +74,8 @@ def dataset_stats(datasets):
     for ds in datasets:
 
         tp = ds.tp.values
-        if np.shape(tp)[1]>1:
-            ds = dp.average_basin_values(ds)
+        if len(tp.shape)>1:
+            ds = dp.average_over_coords(ds)
         
         slope, intercept, r_value, p_value, std_err = stats.linregress(ds.time.values, ds.tp.values)
         #print(ds.plot_legend) # TODO
@@ -92,10 +102,10 @@ def single_location_comparison(model_filepath, lat, lon):
 
     xtr, y_gpr_t, y_std_t = model_prep([lat, lon], model_filepath)
 
-    tims.benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t)
-    dataset_stats(timeseries, xtr, y_gpr_t, y_std_t)
-    corr.dataset_correlation(timeseries, y_gpr_t)
-    pdf.benchmarking_plot(timeseries, y_gpr_t)
+    tims.benchmarking_plot(timeseries)
+    dataset_stats(timeseries)
+    corr.dataset_correlation(timeseries)
+    pdf.benchmarking_plot(timeseries)
 
 
 def basin_comparison(model_filepath, location):
@@ -118,11 +128,9 @@ def basin_comparison(model_filepath, location):
     basins = [model_bs, era5_bs, cmip_bs, cordex_bs, cru_bs] #, aphro_ts]
 
     dataset_stats(basins)
-
-    tims.benchmarking_plot(basins, xtr, y_gpr_t, y_std_t)
-    
-    corr.dataset_correlation(basins, y_gpr_t)
-    pdf.benchmarking_plot(basins, y_gpr_t)
+    tims.benchmarking_plot(basins)
+    corr.dataset_correlation(basins)
+    pdf.benchmarking_plot(basins)
 
 
 

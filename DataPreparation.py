@@ -248,7 +248,7 @@ def find_mask(location):
     return mask_filepath
 
 
-def average_basin_values(ds):
+def average_over_coords(ds):
     """ Take average over latitude and longitude """
     ds = ds.mean("lon")
     ds = ds.mean("lat")

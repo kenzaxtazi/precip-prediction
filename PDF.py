@@ -91,19 +91,17 @@ def monthly_PDF(data_filepath, mask_filepath, variable="tp", longname=""):
     plt.show()
 
 
-def benchmarking_plot(timeseries, y_gpr_t, basin=False):
+def benchmarking_plot(timeseries):
     """ Plot probability distribution of model outputs """
 
-    dataframes = []
+    combined_df = pd.DataFrame()
     
     for ts in timeseries:
         df1 = ts.tp.to_dataframe(name=ts.plot_legend)
-        df2 = df1.reset_index()
+        df2 = df1.dropna().reset_index()
         df3 = df2.drop(["time", "lon", "lat"], axis=1)
-        dataframes.append(df3)
-
-    combined_df = dataframes[0].join(dataframes[1:])
-    combined_df["model"] = y_gpr_t
+        print(df2)
+        combined_df[ts.plot_legend]= df3[ts.plot_legend]
     
     time_ds = timeseries[0].time.to_dataframe(name='time')
     months_float = np.ceil((time_ds["time"] - np.floor(time_ds["time"])) * 12)
@@ -130,6 +128,7 @@ def benchmarking_plot(timeseries, y_gpr_t, basin=False):
         axs[x, y].yaxis.set_tick_params(which="both", labelbottom=True)
         axs[x, y].set_xlabel("Precipitation (mm/day)")
         axs[x, y].set_ylabel("Probability density")
+        '''
         axs[x, y].axvline(
             np.percentile((grouped_dfs[i])['ERA5'], 95),
             color="k",
@@ -137,5 +136,6 @@ def benchmarking_plot(timeseries, y_gpr_t, basin=False):
             linewidth=1,
             label="ERA5 95th percentile",
         )
+        '''
     plt.legend(loc="upper right")    
     plt.show()

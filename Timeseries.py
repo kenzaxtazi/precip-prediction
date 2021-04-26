@@ -13,6 +13,7 @@ import xarray as xr
 
 import FileDownloader as fd
 import DataDownloader as dd
+import DataPreparation as dp
 
 from scipy import stats
 from sklearn import datasets, linear_model
@@ -95,17 +96,26 @@ def uib_sample_linreg():
     linreg_plot(timeseries, linear_models)
 
 
-def benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t):
+def benchmarking_plot(timeseries):
     """ 
     Plot timeseries of model outputs.
     Assumes that timeseries and model outputs are already formatted.
     """
     plt.figure()
+    
     for ts in timeseries:
-        plt.plot(ts.time.values, ts.tp.values, label=ts.plot_legend)
-    plt.fill_between(xtr[:, 0] + 1970, y_gpr_t[:, 0] - 1.9600 * y_std_t[:, 0], y_gpr_t[:, 0] + 1.9600 * y_std_t[:, 0], 
-                        alpha=0.5, color="lightblue") #label="95% confidence interval")
-    plt.plot(xtr[:, 0] + 1970, y_gpr_t, linestyle="-", label="Prediction")
+
+        tp = ts.tp.values
+        plot_label = ts.plot_legend
+        if np.shape(tp)[1]>1:
+            ts = dp.average_over_coords(ts)
+        print(ts)
+        plt.plot(ts.time.values, ts.tp.values, label=plot_label)
+
+        if len(ts.tp_std.values) > 0:
+            plt.fill_between(ts.time.values, ts.tp.values - 1.9600 * ts.tp_std.values, ts.tp.values + 1.9600 * ts.tp_std.values, 
+                                alpha=0.5, color="lightblue") #label="95% confidence interval")
+   
     plt.xlabel('Time')
     plt.ylabel('Precipitation mm/day')
     plt.legend()
@@ -114,7 +124,7 @@ def benchmarking_plot(timeseries, xtr, y_gpr_t, y_std_t):
 
 
 def rolling_timseries_comparison(timeseries, xtr, y_gpr_t, y_std_t):
-    """ Plot rolling avereaged timeseries of model outputs """
+    """ Plot rolling averaged timeseries of model outputs """
     
     return 1
 
