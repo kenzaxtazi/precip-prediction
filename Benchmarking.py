@@ -48,8 +48,8 @@ def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepat
         y_gpr, y_std = model.predict_y(xtr)
     
         # to mm/day
-        y_gpr_t = dp.inverse_log_transform(y_gpr)
-        y_std_t = dp.inverse_log_transform(y_std)
+        y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
+        y_std_t = dp.inverse_log_transform(y_std) * 1000
 
         model_df = pd.DataFrame({'time': xtr[:, 0]+1970, 
                                 'lat': xtr[:, 1], 
@@ -73,12 +73,13 @@ def dataset_stats(datasets):
 
     for ds in datasets:
 
+        name = ds.plot_legend
         tp = ds.tp.values
         if len(tp.shape)>1:
             ds = dp.average_over_coords(ds)
         
         slope, intercept, r_value, p_value, std_err = stats.linregress(ds.time.values, ds.tp.values)
-        #print(ds.plot_legend) # TODO
+        print(name)
         print('mean = ', np.mean(ds.tp.values),'mm/day')
         print('std = ', np.std(ds.tp.values), 'mm/day')
         print('slope = ', slope, 'mm/day/month')
@@ -98,9 +99,8 @@ def single_location_comparison(model_filepath, lat, lon):
     cru_ts = select_coords(cru_ds, lat, lon)
     #aphro_ts = select_coords(aphro_ds, lat, lon)
 
-    timeseries = [era5_ts, cmip_ts, cordex_ts, cru_ts] #, aphro_ts]
-
-    xtr, y_gpr_t, y_std_t = model_prep([lat, lon], model_filepath)
+    model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
+    timeseries = [model_ts, era5_ts, cordex_ts] #, cmip_ts, cru_ts, aphro_ts]
 
     tims.benchmarking_plot(timeseries)
     dataset_stats(timeseries)
