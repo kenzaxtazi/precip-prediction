@@ -107,12 +107,12 @@ def benchmarking_plot(timeseries):
 
         tp = ts.tp.values
         plot_label = ts.plot_legend
-        if np.shape(tp)[1]>1:
+        if len(np.shape(tp))>1:
             ts = dp.average_over_coords(ts)
-        print(ts)
+        
         plt.plot(ts.time.values, ts.tp.values, label=plot_label)
 
-        if len(ts.tp_std.values) > 0:
+        if 'tp_std' in (ts.variables):
             plt.fill_between(ts.time.values, ts.tp.values - 1.9600 * ts.tp_std.values, ts.tp.values + 1.9600 * ts.tp_std.values, 
                                 alpha=0.5, color="lightblue") #label="95% confidence interval")
    
