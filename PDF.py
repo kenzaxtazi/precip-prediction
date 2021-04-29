@@ -100,7 +100,6 @@ def benchmarking_plot(timeseries):
         df1 = ts.tp.to_dataframe(name=ts.plot_legend)
         df2 = df1.dropna().reset_index()
         df3 = df2.drop(["time", "lon", "lat"], axis=1)
-        print(df2)
         combined_df[ts.plot_legend]= df3[ts.plot_legend]
     
     time_ds = timeseries[0].time.to_dataframe(name='time')
