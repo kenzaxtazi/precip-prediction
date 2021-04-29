@@ -19,7 +19,7 @@ import Clustering as cl
 
 # Filepaths and URLs
 
-def point_model(location, number=None, EDA_average=False):
+def point_model(location, number=None, EDA_average=False, maxyear=None):
     """
     Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature,
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -60,6 +60,9 @@ def point_model(location, number=None, EDA_average=False):
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
+    if maxyear != None:
+        df["time"] = df[df["time"]< maxyear]
+
     df["time"] = df["time"] - 1970 # to years
     df["tp"] = log_transform(df["tp"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
@@ -75,16 +78,12 @@ def point_model(location, number=None, EDA_average=False):
     y_eval = eval_df["tp"].values
 
     # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=0.3333, shuffle=False
-    )
+    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
 
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def areal_model(location,
-    number=None, EDA_average=False, length=3000, seed=42
-):
+def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, maxyear=None):
     """
     Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature,
     angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
@@ -118,6 +117,9 @@ def areal_model(location,
     mask_filepath = find_mask(location)
     masked_da = dd.apply_mask(da, mask_filepath)
 
+    if maxyear != None:
+        masked_da = masked_da.where(da.time < maxyear+1, drop=True)
+
     multiindex_df = masked_da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
     df = sa.random_location_and_time_sampler(
@@ -127,21 +129,6 @@ def areal_model(location,
     df["tp"] = log_transform(df["tp"])
     df = df[["time", "lat", "lon", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
-    # Remove last 10% of time for testing
-    test_df = df[df["time"] > df["time"].max() * 0.9]
-    xtest = test_df.drop(columns=["tp"]).values
-    ytest = test_df["tp"].values
-
-    # Training and validation data
-    tr_df = df[df["time"] < df["time"].max() * 0.9]
-    xtr = tr_df.drop(columns=["tp"]).values
-    ytr = tr_df["tp"].values
-
-    xtrain, xval, ytrain, yval = train_test_split(
-        xtr, ytr, test_size=0.30, shuffle=False
-    )  # Training and validation data
-
-    """
     # Keep first of 70% for training
     train_df = df[ df['time']< df['time'].max()*0.7]
     xtrain = train_df.drop(columns=['tp']).values
@@ -154,7 +141,7 @@ def areal_model(location,
 
     # Training and validation data
     xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
-    """
+    
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
