@@ -276,7 +276,7 @@ def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total p
 
 
 
-def tp_vs(mask_filepath, variable, mask=None, longname=""):
+def tp_vs(variable, longname="", location='uib'):
 
     """
     df = dp.download_data(mask_filepath)
@@ -284,21 +284,27 @@ def tp_vs(mask_filepath, variable, mask=None, longname=""):
     #df_mean = df_var.groupby('time').mean()
     """
 
-    if mask == None:
-        df = dd.download_data(mask_filepath)
-    else:
-        cds_filepath = fd.update_cds_monthly_data()
-        da = dd.apply_mask(cds_filepath, mask)
-        df = da.to_dataframe().reset_index()
+    ds = dd.download_data(location, xarray=True)
 
-    df = df[["time", "tp", variable]]
-    # gilgit = ds.interp(coords={'longitude':74.4584, 'latitude':35.8884 }, method='nearest')
+    if type(location) is str: 
+        mask_filepath = dp.find_mask(location)
+        masked_ds = dd.apply_mask(ds, mask_filepath)
+    else:
+        masked_ds = ds.interp(coords={"lon": location[1], "lat": location[0]}, method="nearest")
+
+    multiindex_df = masked_ds.to_dataframe()
+    df_clean = multiindex_df.dropna().reset_index()
+
+    df = df_clean[["tp", variable]]
     df_var = df.dropna()
 
     # Plot
     df_var.plot.scatter(x=variable, y="tp", alpha=0.2, c="b")
-    plt.title("Upper Indus Basin")
-    plt.ylabel("Total precipitation [m/day]")
+    if type(location) is str: 
+        plt.title(location)
+    else:
+        plt.title(str(location[0]) + '°N, ' + str(location[1]) + '°E')
+    plt.ylabel("Total precipitation [mm/day]")
     plt.xlabel(longname)
     plt.grid(True)
     plt.show()
