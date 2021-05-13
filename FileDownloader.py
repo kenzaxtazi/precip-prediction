@@ -82,10 +82,10 @@ def update_cds_monthly_data(
 
     Returns: local filepath to netcdf.
     """
-    if area is str:
+    if type(area) == str:
         qualifier = area
         area = basin_extent(area)
-
+        
     now = datetime.datetime.now()
 
     if qualifier == None:
@@ -239,5 +239,5 @@ def update_cds_hourly_data(
 
 def basin_extent(string):
     """ Returns extent of basin to save data """
-    basin_dic = {'indus': [40, 65, 25, 85]}
+    basin_dic = {'indus':[40, 65, 25, 85]}
     return basin_dic[string]
