@@ -1,3 +1,4 @@
+
 # Data Downloader
 
 import os
@@ -15,10 +16,6 @@ from sklearn.model_selection import train_test_split
 
 import FileDownloader as fd
 
-# Filepaths and URLs
-# indus_filepath = 'Data/Masks/Indus_mask.nc'
-# ganges_filepath =
-# peru = 
 
 def download_data(location, xarray=False, ensemble=False, all_var=False):
     """
