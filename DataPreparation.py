@@ -214,14 +214,14 @@ def normal_transform(df, features):
     return df
 
 def log_transform(x):
-    """ Log transformation  for total precipitation """
-    tp_max = 0.02340308390557766
+    """ Log transformation from total precipitation in mm/day"""
+    tp_max = 23.40308390557766
     y = np.log(x*(np.e-1)/tp_max + 1)
     return y
 
 def inverse_log_transform(x):
-    """ Inverse log transformation for total precipitation """
-    tp_max = 0.02340308390557766
+    """ Inverse log transformation to total precipitation in mm/day """
+    tp_max = 23.40308390557766
     y = (np.exp(x)-1) * tp_max / (np.e-1)  # np.log(df[f]*(np.e-1)/df[f].max() + 1)
     return y
 
