@@ -7,10 +7,11 @@ Functions to help dowload data given
 import xarray as xr
 
 
-def select_basin(dataset, location):
+def select_basin(dataset, location, interpolate=False):
     """ Interpolate dataset at given coordinates """  
     mask_filepath = find_mask(location)
-    basin = apply_mask(dataset, mask_filepath) 
+    basin = apply_mask(dataset, mask_filepath, interp=interpolate) 
+    
     return basin
 
 
@@ -40,12 +41,13 @@ def basin_finder(loc):
         return 'indus'
 
 
-def apply_mask(data, mask_filepath):
+def apply_mask(data, mask_filepath, interp=False):
     """
-    Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
+    Opens NetCDF files and applies mask to data can also interp data to mask grid.
     Inputs:
-        Data filepath, NetCDF
-        Mask filepath, NetCDF
+        data (filepath string or NetCDF)
+        mask_filepath (filepath string)
+        interp (boolean): nearest-neighbour interpolation
     Return:
         A Data Array
     """
@@ -59,5 +61,9 @@ def apply_mask(data, mask_filepath):
     mask = xr.open_dataset(mask_filepath)
     mask = mask.rename({'latitude': 'lat', 'longitude': 'lon'})
     mask_da = mask.overlap
+
+    if interp == True:
+        da = da.interp_like(mask_da, method='nearest')
+
     masked_da = da.where(mask_da > 0, drop=True)
     return masked_da
