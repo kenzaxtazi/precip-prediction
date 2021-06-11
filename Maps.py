@@ -17,6 +17,7 @@ from scipy import signal
 import FileDownloader as fd
 import DataPreparation as dp
 import DataDownloader as dd
+from load import era5, cru, beas_sutlej_wrf
 
 data_filepath = fd.update_cds_monthly_data()
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
@@ -106,6 +107,9 @@ def change_maps(data_filepath, mask_filepath, variable):
         ax.gridlines()
         ax.set_extent([71, 83, 30, 38])
         ax.add_feature(cf.BORDERS)
+        ax.gridlines(draw_labels=True)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
 
     plt.show()
 
@@ -255,8 +259,6 @@ def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
     return pgon
 
 
-
-
 def cumulative_monthly(da):
     """ Multiplies monthly averages by the number of day in each month """
     x, y, z = np.shape(da.values)
@@ -271,4 +273,55 @@ def cumulative_monthly(da):
     dim_mesh = np.repeat(dim, y * z).reshape(x, y, z)
 
     return da * dim_mesh
+
+
+def multi_dataset_map():
+    """ 
+    Create maps of raw values from multiple datasets
+    - ERA5
+    - GPM PR
+    - APHRODITE
+    - CRU
+    - Bannister corrected WRF
+    """
+
+    # Load data 
+    era5_ds = era5.collect_ERA5('beas')
+    #gpm = load.gpm.collect_GPM('beas')
+    #aphr = load.aphrodite.collect_aphrodite('beas')
+    cru_ds= cru.collect_CRU('beas')
+    wrf_ds = beas_sutlej_wrf.bc_wrf_download('beas')
+
+    dataset_list = [era5_ds, cru_ds, wrf_ds]
+
+    # Slice and take averages
+    avg_list = []
+    for ds in dataset_list: 
+        ds_slice = ds.sel(time=slice(2000, 2011))
+        ds_avg =  ds_slice.tp.mean(dim='time')
+        avg_list.append(ds_avg)
+ 
+    # Plot maps
+
+    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF"], name="Datasets"))
+    
+    g = datasets.plot(
+        x="lon",
+        y="lat",
+        col="Dataset",
+        col_wrap=1,
+        cbar_kwargs={"label": " Total precipitation (mm/day)"},
+        subplot_kws={"projection": ccrs.PlateCarree()})
+
+    for ax in g.axes.flat:
+        ax.coastlines()
+        gl = ax.gridlines(draw_labels=True)
+        gl.top_labels = False
+        gl.right_labels = False
+        ax.set_extent([75, 80, 30, 35])
+        ax.add_feature(cf.BORDERS)
+        ax.set_xlabel("Longitude")
+        ax.set_ylabel("Latitude")
+
+    plt.show()
 
