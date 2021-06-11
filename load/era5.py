@@ -13,7 +13,9 @@ import xarray as xr
 import pandas as pd
 import ftplib
 import cdsapi
+
 import DataDownloader as dd
+import LocationSel as ls
 
 
 def update_cds_monthly_data(
@@ -204,11 +206,12 @@ def basin_extent(string):
     return basin_dic[string]
 
 
-def collect_ERA5():
-    """ Downloads data from ERA5 """
-    basin_filepath = "Data/Masks/Indus_mask.nc"
-    era5_ds= dd.download_data(basin_filepath, xarray=True) # in m/day
+def collect_ERA5(location):
+    """ Downloads data from ERA5 for a given location"""
+    era5_ds= dd.download_data(location, xarray=True) 
+    era5_ds = ls.select_basin(era5_ds, location)
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
+
     return era5_ds
 
 
