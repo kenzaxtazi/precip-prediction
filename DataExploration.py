@@ -276,7 +276,7 @@ def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total p
 
 
 
-def tp_vs(variable, longname="", location='uib'):
+def tp_vs(variable, longname="", location='uib', time=False):
 
     """
     df = dp.download_data(mask_filepath)
@@ -291,6 +291,9 @@ def tp_vs(variable, longname="", location='uib'):
         masked_ds = dd.apply_mask(ds, mask_filepath)
     else:
         masked_ds = ds.interp(coords={"lon": location[1], "lat": location[0]}, method="nearest")
+
+    if type(time) == str:
+        masked_ds = ds.isel(time=-6)
 
     multiindex_df = masked_ds.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
