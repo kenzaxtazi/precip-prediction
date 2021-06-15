@@ -1,4 +1,3 @@
-
 # Data Downloader
 
 import os
@@ -34,7 +33,7 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
 
     basin = basin_finder(location)
 
-    path = "Data/"
+    path = "Data/era5/"
     now = datetime.datetime.now()
 
     if ensemble == True:
@@ -167,44 +166,44 @@ def mean_downloader(basin):
 
     # EOFs for 200hPa
     eof1_z200_c = mean_formatter(
-        "Data/regional_z200_EOF1.nc", coords=[40, 60, 35, 70], name="EOF200C1"
+        "Data/era5/regional_z200_EOF1.nc", coords=[40, 60, 35, 70], name="EOF200C1"
     )
     eof1_z200_b = mean_formatter(
-        "Data/regional_z200_EOF1.nc", coords=[19, 83, 16, 93], name="EOF200B1"
+        "Data/era5/regional_z200_EOF1.nc", coords=[19, 83, 16, 93], name="EOF200B1"
     )
     eof2_z200_c = mean_formatter(
-        "Data/regional_z200_EOF2.nc", coords=[40, 60, 35, 70], name="EOF200C2"
+        "Data/era5/regional_z200_EOF2.nc", coords=[40, 60, 35, 70], name="EOF200C2"
     )
     eof2_z200_b = mean_formatter(
-        "Data/regional_z200_EOF2.nc", coords=[19, 83, 16, 93], name="EOF200B2"
+        "Data/era5/regional_z200_EOF2.nc", coords=[19, 83, 16, 93], name="EOF200B2"
     )
 
     # EOFs for 500hPa
     eof1_z500_c = mean_formatter(
-        "Data/regional_z500_EOF1.nc", coords=[40, 60, 35, 70], name="EOF500C1"
+        "Data/era5/regional_z500_EOF1.nc", coords=[40, 60, 35, 70], name="EOF500C1"
     )
     eof1_z500_b = mean_formatter(
-        "Data/regional_z500_EOF1.nc", coords=[19, 83, 16, 93], name="EOF500B1"
+        "Data/era5/regional_z500_EOF1.nc", coords=[19, 83, 16, 93], name="EOF500B1"
     )
     eof2_z500_c = mean_formatter(
-        "Data/regional_z500_EOF2.nc", coords=[40, 60, 35, 70], name="EOF500C2"
+        "Data/era5/regional_z500_EOF2.nc", coords=[40, 60, 35, 70], name="EOF500C2"
     )
     eof2_z500_b = mean_formatter(
-        "Data/regional_z500_EOF2.nc", coords=[19, 83, 16, 93], name="EOF500B2"
+        "Data/era5/regional_z500_EOF2.nc", coords=[19, 83, 16, 93], name="EOF500B2"
     )
 
     # EOFs for 850hPa
     eof1_z850_c = mean_formatter(
-        "Data/regional_z850_EOF1.nc", coords=[40, 60, 35, 70], name="EOF850C1"
+        "Data/era5/regional_z850_EOF1.nc", coords=[40, 60, 35, 70], name="EOF850C1"
     )
     eof1_z850_b = mean_formatter(
-        "Data/regional_z850_EOF1.nc", coords=[19, 83, 16, 93], name="EOF850B1"
+        "Data/era5/regional_z850_EOF1.nc", coords=[19, 83, 16, 93], name="EOF850B1"
     )
     eof2_z850_c = mean_formatter(
-        "Data/regional_z850_EOF2.nc", coords=[40, 60, 35, 70], name="EOF850C2"
+        "Data/era5/regional_z850_EOF2.nc", coords=[40, 60, 35, 70], name="EOF850C2"
     )
     eof2_z850_b = mean_formatter(
-        "Data/regional_z850_EOF2.nc", coords=[19, 83, 16, 93], name="EOF850B2"
+        "Data/era5/regional_z850_EOF2.nc", coords=[19, 83, 16, 93], name="EOF850B2"
     )
 
     eof_df = pd.concat(
@@ -334,8 +333,8 @@ def collect_ERA5():
 
 def collect_CMIP5():
     """ Downloads data from CMIP5 """
-    cmip_59_84_ds = xr.open_dataset("Data/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
-    cmip_84_05_ds = xr.open_dataset("Data/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
+    cmip_59_84_ds = xr.open_dataset("Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
+    cmip_84_05_ds = xr.open_dataset("Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
     cmip_ds = cmip_84_05_ds.merge(cmip_59_84_ds)  # in kg/m2/s
     cmip_ds = cmip_ds.assign_attrs(plot_legend="HadCM3 historical")
     cmip_ds = cmip_ds.rename({'pr': 'tp'})
@@ -345,10 +344,10 @@ def collect_CMIP5():
 
 def collect_CORDEX():
     """ Downloads data from CORDEX East Asia model """
-    cordex_90_ds = xr.open_dataset("Data/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
-    cordex_91_00_ds = xr.open_dataset("Data/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
-    cordex_01_ds = xr.open_dataset("Data/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_200101-201012.nc")
-    cordex_02_11_ds = xr.open_dataset("Data/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_201101-201111.nc")
+    cordex_90_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
+    cordex_91_00_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
+    cordex_01_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_200101-201012.nc")
+    cordex_02_11_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_201101-201111.nc")
     cordex_90_00_ds = cordex_90_ds.merge(cordex_91_00_ds)
     cordex_01_11_ds= cordex_01_ds.merge(cordex_02_11_ds)
     cordex_ds = cordex_01_11_ds.merge(cordex_90_00_ds)  # in kg/m2/s
@@ -370,7 +369,7 @@ def collect_APHRO():
 
 def collect_CRU():
     """ Downloads data from CRU model"""
-    cru_ds = xr.open_dataset("Data/cru_ts4.04.1901.2019.pre.dat.nc")
+    cru_ds = xr.open_dataset("Data/cru/cru_ts4.04.1901.2019.pre.dat.nc")
     cru_ds = cru_ds.assign_attrs(plot_legend="CRU") # in mm/month
     cru_ds = cru_ds.rename_vars({'pre': 'tp'})
     cru_ds['tp'] /= 30.437  #TODO apply proper function to get mm/day

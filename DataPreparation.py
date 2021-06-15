@@ -230,7 +230,7 @@ def find_mask(location):
 
     mask_dic = {'ngari':'Data/Masks/Ngari_mask.nc', 'khyber':'Data/Masks/Khyber_mask.nc', 
                 'gilgit':'Data/Masks/Gilgit_mask.nc', 'uib':'Data/Masks/ERA5_Upper_Indus_mask.nc',
-                'sutlej': 'Data/Masks/Sutlej_basin_overlap.nc', 'beas':'Data/Masks/Beas_basin_overlap.nc'}
+                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas':'Data/Masks/Beas_mask.nc'}
     mask_filepath = mask_dic[location]
     return mask_filepath
 

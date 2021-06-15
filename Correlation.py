@@ -22,9 +22,9 @@ import Clustering as cl
 
 
 ### Filepaths
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
 eof_filepath = "/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc"
-corr_filepath = "Data/EOF_corr_pval.csv"
+corr_filepath = "Data/Performance/EOF_corr_pval.csv"
 
 
 def input_correlation_heatmap():
