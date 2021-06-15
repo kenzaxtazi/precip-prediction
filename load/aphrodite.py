@@ -1,5 +1,7 @@
 """
-The APHRODITE dataset is available on in the BAS workspace on JASMIN
+The APHRODITE datasets over Monsoon Asia
+- V1101 from 1951 to 2007 
+- V1101_EXR from 2007-2016
 """
 
 import LocationSel as ls

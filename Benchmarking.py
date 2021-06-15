@@ -97,7 +97,7 @@ def single_location_comparison(model_filepath, lat, lon):
     cmip_ts = select_coords(cmip_ds, lat, lon)
     cordex_ts = select_coords(cordex_ds, lat, lon)
     cru_ts = select_coords(cru_ds, lat, lon)
-    #aphro_ts = select_coords(aphro_ds, lat, lon)
+    #aphro_ts =select_coords(aphro_ds, lat, lon)
 
     model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
     timeseries = [model_ts, era5_ts, cordex_ts] #, cmip_ts, cru_ts, aphro_ts]
