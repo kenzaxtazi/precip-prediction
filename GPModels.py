@@ -28,7 +28,7 @@ ngari_mask = "Data/Ngari_mask.nc"
 xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
 
 # Random sampling multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib')
+xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', lenght=14000, maxyear=1993)
 """
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):
