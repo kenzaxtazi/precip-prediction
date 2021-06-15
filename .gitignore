@@ -1,8 +1,12 @@
 .DS_Store
 
-**/Data
 **/Archive
+**/Credentials
+**/Data
 **/Models
 **__pycache__
 **/.vscode
 ktazi@jasmin-login1.ceda.ac.uk
+precip_toy.ipynb
+.gitignore
+.ipynb_checkpoints/precip_toy-checkpoint.ipynb
