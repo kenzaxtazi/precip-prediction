@@ -33,7 +33,7 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
 
     basin = basin_finder(location)
 
-    path = "Data/era5/"
+    path = "Data/ERA5/"
     now = datetime.datetime.now()
 
     if ensemble == True:
@@ -166,44 +166,44 @@ def mean_downloader(basin):
 
     # EOFs for 200hPa
     eof1_z200_c = mean_formatter(
-        "Data/era5/regional_z200_EOF1.nc", coords=[40, 60, 35, 70], name="EOF200C1"
+        "Data/ERA5/regional_z200_EOF1.nc", coords=[40, 60, 35, 70], name="EOF200C1"
     )
     eof1_z200_b = mean_formatter(
-        "Data/era5/regional_z200_EOF1.nc", coords=[19, 83, 16, 93], name="EOF200B1"
+        "Data/ERA5/regional_z200_EOF1.nc", coords=[19, 83, 16, 93], name="EOF200B1"
     )
     eof2_z200_c = mean_formatter(
-        "Data/era5/regional_z200_EOF2.nc", coords=[40, 60, 35, 70], name="EOF200C2"
+        "Data/ERA5/regional_z200_EOF2.nc", coords=[40, 60, 35, 70], name="EOF200C2"
     )
     eof2_z200_b = mean_formatter(
-        "Data/era5/regional_z200_EOF2.nc", coords=[19, 83, 16, 93], name="EOF200B2"
+        "Data/ERA5/regional_z200_EOF2.nc", coords=[19, 83, 16, 93], name="EOF200B2"
     )
 
     # EOFs for 500hPa
     eof1_z500_c = mean_formatter(
-        "Data/era5/regional_z500_EOF1.nc", coords=[40, 60, 35, 70], name="EOF500C1"
+        "Data/ERA5/regional_z500_EOF1.nc", coords=[40, 60, 35, 70], name="EOF500C1"
     )
     eof1_z500_b = mean_formatter(
-        "Data/era5/regional_z500_EOF1.nc", coords=[19, 83, 16, 93], name="EOF500B1"
+        "Data/ERA5/regional_z500_EOF1.nc", coords=[19, 83, 16, 93], name="EOF500B1"
     )
     eof2_z500_c = mean_formatter(
-        "Data/era5/regional_z500_EOF2.nc", coords=[40, 60, 35, 70], name="EOF500C2"
+        "Data/ERA5/regional_z500_EOF2.nc", coords=[40, 60, 35, 70], name="EOF500C2"
     )
     eof2_z500_b = mean_formatter(
-        "Data/era5/regional_z500_EOF2.nc", coords=[19, 83, 16, 93], name="EOF500B2"
+        "Data/ERA5/regional_z500_EOF2.nc", coords=[19, 83, 16, 93], name="EOF500B2"
     )
 
     # EOFs for 850hPa
     eof1_z850_c = mean_formatter(
-        "Data/era5/regional_z850_EOF1.nc", coords=[40, 60, 35, 70], name="EOF850C1"
+        "Data/ERA5/regional_z850_EOF1.nc", coords=[40, 60, 35, 70], name="EOF850C1"
     )
     eof1_z850_b = mean_formatter(
-        "Data/era5/regional_z850_EOF1.nc", coords=[19, 83, 16, 93], name="EOF850B1"
+        "Data/ERA5/regional_z850_EOF1.nc", coords=[19, 83, 16, 93], name="EOF850B1"
     )
     eof2_z850_c = mean_formatter(
-        "Data/era5/regional_z850_EOF2.nc", coords=[40, 60, 35, 70], name="EOF850C2"
+        "Data/ERA5/regional_z850_EOF2.nc", coords=[40, 60, 35, 70], name="EOF850C2"
     )
     eof2_z850_b = mean_formatter(
-        "Data/era5/regional_z850_EOF2.nc", coords=[19, 83, 16, 93], name="EOF850B2"
+        "Data/ERA5/regional_z850_EOF2.nc", coords=[19, 83, 16, 93], name="EOF850B2"
     )
 
     eof_df = pd.concat(

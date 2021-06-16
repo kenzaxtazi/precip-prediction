@@ -65,7 +65,7 @@ def update_cds_monthly_data(
     ],
     area=[40, 70, 30, 85],
     pressure_level=None,
-    path="Data/",
+    path="Data/ERA5/",
     qualifier=None,
 ):
     """
@@ -154,7 +154,7 @@ def update_cds_hourly_data(
     variables=["geopotential"],
     pressure_level="200",
     area=[90, -180, -90, 180],
-    path="Data/",
+    path="Data/ERA5/",
     qualifier=None,
 ):
     """
