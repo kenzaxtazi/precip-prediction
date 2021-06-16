@@ -4,11 +4,13 @@ The APHRODITE datasets over Monsoon Asia
 - V1101_EXR from 2007-2016
 """
 
-import LocationSel as ls
 import glob
 import xarray as xr
 import numpy as np
+
 from tqdm import tqdm
+
+import LocationSel as ls
 
 
 def collect_APHRO(location):
