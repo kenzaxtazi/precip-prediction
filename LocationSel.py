@@ -10,8 +10,7 @@ import xarray as xr
 def select_basin(dataset, location):
     """ Interpolate dataset at given coordinates """  
     mask_filepath = find_mask(location)
-    basin = apply_mask(dataset, mask_filepath) 
-    
+    basin = apply_mask(dataset, mask_filepath)   
     return basin
 
 
@@ -63,7 +62,11 @@ def apply_mask(data, mask_filepath):
     mask = mask.rename({'latitude': 'lat', 'longitude': 'lon'})
     mask_da = mask.overlap
 
-    masked_da = da.where(mask_da > 0, drop=True)
+    try:
+        masked_da = da.where(mask_da > 0, drop=True)
+    except:
+        interp_da = da.interp_like(mask_da)
+        masked_da = interp_da.where(mask_da > 0, drop=True)
     return masked_da
 
 
