@@ -21,7 +21,7 @@ def collect_APHRO(location, minyear, maxyear):
     aphro_ds = xr.open_dataset("Data/APHRODITE/aphrodite_indus_1951_2016.nc")
     
     if type(location) == str:
-        loc_ds = ls.select_basin(aphro_ds, location, interpolate=True)
+        loc_ds = ls.select_basin(aphro_ds, location)
     else:
         lat, lon = location
         loc_ds = aphro_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
