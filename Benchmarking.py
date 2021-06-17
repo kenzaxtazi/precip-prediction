@@ -5,19 +5,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
-import datetime
-import glob
 import seaborn as sns
 import cftime 
 from scipy import stats
 
+from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
+
 
 import DataDownloader as dd
 import DataPreparation as dp
-import GPModels as gpm
+import GPModels as gp
 import Correlation as corr
 import Timeseries as tims
 import PDF as pdf
+import Maps
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
@@ -42,7 +43,7 @@ def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepat
         model_df = pd.read_csv(data_filepath)
 
     else:
-        model = gpm.restore_model(model_filepath)
+        model = gp.restore_model(model_filepath)
 
         xtr, ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
         y_gpr, y_std = model.predict_y(xtr)
@@ -84,23 +85,22 @@ def dataset_stats(datasets):
         print('std = ', np.std(ds.tp.values), 'mm/day')
         print('slope = ', slope, 'mm/day/month')
 
-def single_location_comparison(model_filepath, lat, lon):
+
+def single_location_comparison(location=[31.65,77.34]):
     """ Plots model outputs for given coordinates over time """
     
-    era5_ds = dd.collect_ERA5()
-    cmip_ds = dd.collect_CMIP5()
-    cordex_ds = dd.collect_CORDEX()
-    cru_ds = dd.collect_CRU()
-    #aphro_ds = dd.collect_APHRO()
- 
-    era5_ts = select_coords(era5_ds, lat, lon)
-    cmip_ts = select_coords(cmip_ds, lat, lon)
-    cordex_ts = select_coords(cordex_ds, lat, lon)
-    cru_ts = select_coords(cru_ds, lat, lon)
-    #aphro_ts =select_coords(aphro_ds, lat, lon)
-
-    model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
-    timeseries = [model_ts, era5_ts, cordex_ts] #, cmip_ts, cru_ts, aphro_ts]
+    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
+    cru_ds= cru.collect_CRU(location, minyear=2000, maxyear=2011)
+    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
+    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
+    wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
+    gauge_ds = beas_sutlej_gauges.gauge_download('Banjar')
+    
+    # cmip_ds = dd.collect_CMIP5()
+    # cordex_ds = dd.collect_CORDEX()
+    # model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
+    
+    timeseries = [aphro_ds, cru_ds,  era5_ds, gpm_ds, wrf_ds, gauge_ds] #, cmip_ts, cru_ts, aphro_ts]
 
     tims.benchmarking_plot(timeseries)
     dataset_stats(timeseries)
@@ -111,26 +111,21 @@ def single_location_comparison(model_filepath, lat, lon):
 def basin_comparison(model_filepath, location):
     """ Plots model outputs for given coordinates over time """
     
-    era5_ds = dd.collect_ERA5()
-    cmip_ds = dd.collect_CMIP5()
-    cordex_ds = dd.collect_CORDEX()
-    cru_ds = dd.collect_CRU()
-    #aphro_ds = dd.collect_APHRO()
- 
-    era5_bs = select_basin(era5_ds, location)
-    cmip_bs = select_basin(cmip_ds, location)
-    cordex_bs = select_basin(cordex_ds, location)
-    cru_bs = select_basin(cru_ds, location)
-    #aphro_bs = select_basin(aphro_ds, location)
+    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
+    cru_ds= cru.collect_CRU(location, minyear=2000, maxyear=2011)
+    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
+    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
+    wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
+    
+    # cmip_ds = dd.collect_CMIP5()
+    # cordex_ds = dd.collect_CORDEX()
+    # cmip_bs = select_basin(cmip_ds, location)
+    # cordex_bs = select_basin(cordex_ds, location)
+    # model_bs = model_prep(location, model_filepath)
 
-    model_bs = model_prep(location, model_filepath)
-
-    basins = [model_bs, era5_bs, cmip_bs, cordex_bs, cru_bs] #, aphro_ts]
+    basins = [aphro_ds, cru_ds,  era5_ds, gpm_ds, wrf_ds]
 
     dataset_stats(basins)
-    tims.benchmarking_plot(basins)
-    corr.dataset_correlation(basins)
-    pdf.benchmarking_plot(basins)
 
 
 
