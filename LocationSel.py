@@ -7,10 +7,10 @@ Functions to help dowload data given
 import xarray as xr
 
 
-def select_basin(dataset, location, interpolate=False):
+def select_basin(dataset, location):
     """ Interpolate dataset at given coordinates """  
     mask_filepath = find_mask(location)
-    basin = apply_mask(dataset, mask_filepath, interp=interpolate) 
+    basin = apply_mask(dataset, mask_filepath) 
     
     return basin
 
