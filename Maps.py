@@ -1,5 +1,7 @@
 # Collection of map plotting functions
 
+import calendar
+
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -14,13 +16,11 @@ from cartopy.io import shapereader
 from cartopy import config
 from scipy import signal
 
-import FileDownloader as fd
-import DataPreparation as dp
 import DataDownloader as dd
-from load import era5, cru, beas_sutlej_wrf
+from load import era5, cru, beas_sutlej_wrf, gpm, aphrodite
 
-data_filepath = fd.update_cds_monthly_data()
-mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
+#data_filepath = fd.update_cds_monthly_data()
+# mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
 
 """
 tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
@@ -275,7 +275,7 @@ def cumulative_monthly(da):
     return da * dim_mesh
 
 
-def multi_dataset_map():
+def multi_dataset_map(location):
     """ 
     Create maps of raw values from multiple datasets
     - ERA5
@@ -286,13 +286,13 @@ def multi_dataset_map():
     """
 
     # Load data 
-    era5_ds = era5.collect_ERA5('beas')
-    #gpm = load.gpm.collect_GPM('beas')
-    #aphr = load.aphrodite.collect_aphrodite('beas')
-    cru_ds= cru.collect_CRU('beas')
-    wrf_ds = beas_sutlej_wrf.bc_wrf_download('beas')
+    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
+    cru_ds= cru.collect_CRU(location, minyear=2000, maxyear=2011)
+    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
+    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
+    wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
 
-    dataset_list = [era5_ds, cru_ds, wrf_ds]
+    dataset_list = [era5_ds, cru_ds, wrf_ds, aphro_ds, gpm_ds]
 
     # Slice and take averages
     avg_list = []
@@ -303,14 +303,15 @@ def multi_dataset_map():
  
     # Plot maps
 
-    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF"], name="Datasets"))
+    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF", "APHRO", "GPM"], name="Dataset"))
     
     g = datasets.plot(
         x="lon",
         y="lat",
         col="Dataset",
-        col_wrap=1,
-        cbar_kwargs={"label": " Total precipitation (mm/day)"},
+        col_wrap=3,
+        cbar_kwargs={"label": "Total precipitation (mm/day)"},
+        cmap="magma",
         subplot_kws={"projection": ccrs.PlateCarree()})
 
     for ax in g.axes.flat:
@@ -318,7 +319,7 @@ def multi_dataset_map():
         gl = ax.gridlines(draw_labels=True)
         gl.top_labels = False
         gl.right_labels = False
-        ax.set_extent([75, 80, 30, 35])
+        ax.set_extent([75, 83.5, 29, 34])
         ax.add_feature(cf.BORDERS)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
