@@ -2,6 +2,8 @@
 The APHRODITE datasets over Monsoon Asia
 - V1101 from 1951 to 2007 
 - V1101_EXR from 2007-2016
+
+Precipiation is in mm/day.
 """
 
 import glob
@@ -13,11 +15,19 @@ from tqdm import tqdm
 import LocationSel as ls
 
 
-def collect_APHRO(location):
+def collect_APHRO(location, minyear, maxyear):
     """ Downloads data from APHRODITE model"""
+    
     aphro_ds = xr.open_dataset("Data/APHRODITE/aphrodite_indus_1951_2016.nc")
-    masked_ds = ls.select_basin(aphro_ds, location, interpolate=True)
-    ds = masked_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
+    
+    if type(location) == str:
+        loc_ds = ls.select_basin(aphro_ds, location, interpolate=True)
+    else:
+        lat, lon = location
+        loc_ds = aphro_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
+    ds = tim_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
     return ds
 
 

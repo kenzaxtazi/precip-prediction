@@ -10,6 +10,7 @@ Delete HDF5 files after making netcdf files (they big).
 
 We are using the Ku beam and Near Surface Precipitation Rate for continutity with TRMM.
 
+GPM precipitation is in mm/hour.
 """
 
 import glob
@@ -24,6 +25,23 @@ import LocationSel as ls
 
 # trmm_filepath = 'Data/GPM/subset_GPM_3PR_06_20210611_090054.txt'
 # gpm_filepath = 'Data/GPM'
+
+
+def collect_GPM(location, minyear, maxyear):
+    """ Load GPM data """
+    gpm_ds = xr.open_dataset("Data/GPM/gpm_2000-2010.nc")
+
+    if type(location) == str:
+        loc_ds = ls.select_basin(gpm_ds, location)
+    else:
+        lat, lon = location
+        loc_ds = gpm_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
+    ds = tim_ds.assign_attrs(plot_legend="GPM") # in mm/day   
+    return ds
+
+
 
 def hdf5_download(url_filepath):
     """ Dowloads the monthly TRMM/GPM datasets """
@@ -77,16 +95,11 @@ def to_netcdf():
         ds_list.append(ds_cropped)
     
     ds_merged = xr.merge(ds_list)
-    ds_merged['tp'] = ds_merged['tp']*24  # to mm/day
+    ds_merged['tp'] = ds_merged['tp'] * 24  # to mm/day
     ds_merged.to_netcdf("Data/GPM/gpm_2000-2010.nc")
 
 
-def collect_GPM(location):
-    
-    gpm_ds = xr.open_dataset("Data/GPM/gpm_2000-2010.nc")
-    masked_ds = ls.select_basin(gpm_ds, location, interpolate=True)
-    ds = masked_ds.assign_attrs(plot_legend="GPM") # in mm/day   
-    return ds
+
 
 
     

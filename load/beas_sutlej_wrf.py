@@ -8,25 +8,42 @@ from scipy.interpolate import griddata
 
 import LocationSel as ls
 
-def wrf_download(lon, lat):
+def collect_WRF(location, minyear, maxyear):
+    """ Load uncorrected WRF run data """
+    wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_raw.nc')
 
-    ds = xr.open_dataset('Data/Bannister_WRF_raw.nc')
-    wrf_ds = ds.interp(coords={"x": lon, "y": lat}, method="nearest")
-    wrf_ds = wrf_ds.assign_attrs(plot_legend="WRF")
-    return wrf_ds
+    if type(location) == str:
+        loc_ds = ls.select_basin(wrf_ds, location)
+    else:
+        lat, lon = location
+        loc_ds = wrf_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
+    ds = tim_ds.assign_attrs(plot_legend="WRF")
+    return ds
 
 
-def bc_wrf_download(location):
-    ds = xr.open_dataset('Data/Bannister_WRF_corrected.nc')
-    bc_wrf_ds = ls.select_basin(ds, location)
-    bc_wrf_ds = bc_wrf_ds.assign_attrs(plot_legend="Bias-corrected WRF")
-    return bc_wrf_ds
+def collect_BC_WRF(location, minyear, maxyear):
+    """ Load bias corrected WRF run data """
+
+    bc_wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_corrected.nc')
+    
+    if type(location) == str:
+        loc_ds = ls.select_basin(bc_wrf_ds, location)
+    else:
+        lat, lon = location
+        loc_ds = bc_wrf_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
+    ds = tim_ds.assign_attrs(plot_legend="Bias corrected_WRF")
+    return ds
+
     
 
 def reformat_bannister_data():
     """ Saves data from Bannister et al with lon and lat instead of projections """
 
-    wrf_ds = xr.open_dataset('Data/Bannister_WRF.nc')
+    wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF.nc')
     XLAT =  wrf_ds.XLAT.values
     XLONG = wrf_ds.XLONG.values
     m_precip = wrf_ds.model_precipitation.values
@@ -42,13 +59,13 @@ def reformat_bannister_data():
     wrf_ds = ds2.drop('bias_corr_precip')
     wrf_ds = wrf_ds.rename({'m_precip':'tp'})
     wrf_ds = interp(wrf_ds)
-    wrf_ds.to_netcdf('Data/Bannister_WRF_raw.nc')
+    wrf_ds.to_netcdf('Data/Bannister/Bannister_WRF_raw.nc')
 
     # Bias corrected WRF data
     bc_ds = ds2.drop('m_precip')
     bc_ds = bc_ds.rename({'bias_corr_precip':'tp'})
     bc_ds = interp(bc_ds)
-    bc_ds.to_netcdf('Data/Bannister_WRF_corrected.nc')
+    bc_ds.to_netcdf('Data/Bannister/Bannister_WRF_corrected.nc')
 
 
 def interp(da):

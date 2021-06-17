@@ -1,7 +1,8 @@
 """
-ERA5 reanalysis is downloaded via the Copernicus Data store
-The files are updated monthly. 
+ERA5 reanalysis is downloaded via the Copernicus Data store.
 
+Variables
+    Total precipitation (tp) in m/day
 """
 
 import calendar
@@ -31,7 +32,7 @@ def update_cds_monthly_data(
     ],
     area=[40, 70, 30, 85],
     pressure_level=None,
-    path="Data/",
+    path="Data/ERA5/",
     qualifier=None):
     """
     Imports the most recent version of the given monthly ERA5 dataset as a netcdf from the CDS API.
@@ -49,7 +50,7 @@ def update_cds_monthly_data(
     """
     if type(area) == str:
         qualifier = area
-        area = basin_extent(area)
+        area = ls.basin_extent(area)
         
     now = datetime.datetime.now()
 
@@ -119,7 +120,7 @@ def update_cds_hourly_data(
     variables=["geopotential"],
     pressure_level="200",
     area=[90, -180, -90, 180],
-    path="Data/",
+    path="Data/ERA5/",
     qualifier=None):
     """
     Imports the most recent version of the given hourly ERA5 dataset as a netcdf from the CDS API.
@@ -200,19 +201,20 @@ def update_cds_hourly_data(
     return filepath
 
 
-def basin_extent(string):
-    """ Returns extent of basin to save data """
-    basin_dic = {'indus':[40, 65, 25, 85]}
-    return basin_dic[string]
 
-
-def collect_ERA5(location):
+def collect_ERA5(location, minyear, maxyear):
     """ Downloads data from ERA5 for a given location"""
     era5_ds= dd.download_data(location, xarray=True) 
-    era5_ds = ls.select_basin(era5_ds, location)
-    era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
 
-    return era5_ds
+    if type(location) == str:
+        loc_ds = ls.select_basin(era5_ds, location)
+    else:
+        lat, lon = location
+        loc_ds = era5_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
+    ds = tim_ds.assign_attrs(plot_legend="ERA5") # in mm/day   
+    return ds
 
 
 def gauge_download(station):
