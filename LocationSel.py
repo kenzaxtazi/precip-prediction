@@ -39,10 +39,10 @@ def basin_finder(loc):
         basin = basin_dic[loc]
         return basin
     if loc is not str: # fix to search with coords
-        return 'indus'
+        return 'Not a string'
 
 
-def apply_mask(data, mask_filepath, interp=False):
+def apply_mask(data, mask_filepath):
     """
     Opens NetCDF files and applies mask to data can also interp data to mask grid.
     Inputs:
@@ -63,9 +63,6 @@ def apply_mask(data, mask_filepath, interp=False):
     mask = mask.rename({'latitude': 'lat', 'longitude': 'lon'})
     mask_da = mask.overlap
 
-    if interp == True:
-        da = da.interp_like(mask_da, method='nearest')
-
     masked_da = da.where(mask_da > 0, drop=True)
     return masked_da
 
@@ -74,3 +71,4 @@ def basin_extent(string):
     """ Returns extent of basin to save data """
     basin_dic = {'indus':[40, 65, 25, 85]}
     return basin_dic[string]
+
