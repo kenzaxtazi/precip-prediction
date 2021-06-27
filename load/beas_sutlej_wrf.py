@@ -35,7 +35,7 @@ def collect_BC_WRF(location, minyear, maxyear):
         loc_ds = bc_wrf_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
 
     tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
-    ds = tim_ds.assign_attrs(plot_legend="Bias corrected_WRF")
+    ds = tim_ds.assign_attrs(plot_legend="Bias corrected WRF")
     return ds
 
     
@@ -68,9 +68,9 @@ def reformat_bannister_data():
     bc_ds.to_netcdf('Data/Bannister/Bannister_WRF_corrected.nc')
 
 
-def interp(da):
+def interp(ds):
     """ 
-    Interpolation scheme to match data to ERA5 grid.
+    Interpolation scheme to match dsta to ERA5 grid.
     Input:
         da (xarray DataArray): data we want to regrid
         mask_ds
@@ -82,10 +82,10 @@ def interp(da):
     grid_x, grid_y = np.meshgrid(y, x)
 
     # Create point coordinate pairs 
-    lats = da.lat.values.flatten()
-    lons = da.lon.values.flatten()
-    times = da.time.values
-    tp = da.tp.values.reshape(396, -1) 
+    lats = ds.lat.values.flatten()
+    lons = ds.lon.values.flatten()
+    times = ds.time.values
+    tp = ds.tp.values.reshape(396, -1) 
     points = np.stack((lats, lons), axis=-1)
 
     # Interpolate using nearest neigbours
@@ -96,9 +96,9 @@ def interp(da):
     interp_grid = np.array(grid_list)
 
     # Turn into xarray DataSet
-    ds = xr.Dataset(data_vars=dict(tp=(["time", "lon", "lat"], interp_grid)),
+    new_ds = xr.Dataset(data_vars=dict(tp=(["time", "lon", "lat"], interp_grid)),
                     coords=dict(lon=(["lon"], x), lat=(["lat"], y), time= (['time'],times)))
-    return ds
+    return new_ds
 
 
 
