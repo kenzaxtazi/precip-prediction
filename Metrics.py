@@ -48,11 +48,11 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     samples = model.predict_f_samples(xtr, 5)
 
     # to mm/day
-    y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
-    y_std_t = dp.inverse_log_transform(y_std) * 1000
-    samples_t = dp.inverse_log_transform(samples) * 1000
-    ytrain_t = dp.inverse_log_transform(ytrain) * 1000
-    yval_t = dp.inverse_log_transform(yval) * 1000
+    y_gpr_t = dp.inverse_log_transform(y_gpr)
+    y_std_t = dp.inverse_log_transform(y_std)
+    samples_t = dp.inverse_log_transform(samples)
+    ytrain_t = dp.inverse_log_transform(ytrain)
+    yval_t = dp.inverse_log_transform(yval)
 
     plt.figure()
 
@@ -77,10 +77,10 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     if posteriors == True:
         plt.plot(xtr[:, 0] + 1979, samples_t[:, :, 0].T, "C0", linewidth=0.5)
 
-    if coords == None:
+    if location == None:
         plt.title("GP fit")
     else:
-        plt.title("GP fit for " + str(coords[0]) + "°N " + str(coords[1]) + "°E")
+        plt.title("GP fit for " + str(location[0]) + "°N " + str(location[1]) + "°E")
 
     plt.ylabel("Precipitation [mm/day]")
     plt.xlabel("Year")
@@ -107,15 +107,17 @@ def ensemble_model_plot(location, models, slm=True):
         ytr = np.concatenate((ytrain, yval), axis=0)
 
         log_y_gpr, log_y_std = model.predict_y(xtr)
+        log_samples = model.m.predict_f_samples(xtr)
 
         # to mm/day
-        y_gpr_t = dp.inverse_log_transform(y_gpr) * 1000
-        y_std_t = dp.inverse_log_transform(y_std) * 1000
-        samples_t = dp.inverse_log_transform(samples) * 1000
-        ytr_t = dp.inverse_log_transform(ytr) * 1000
-        yval_t = dp.inverse_log_transform(yval) * 1000
+        y_gpr_t = dp.inverse_log_transform(log_y_gpr)
+        y_std_t = dp.inverse_log_transform(log_y_std)
+        samples_t = dp.inverse_log_transform(log_samples)
+        ytr_t = dp.inverse_log_transform(ytr)
+        #yval_t = dp.inverse_log_transform(yval)
         
         plt.scatter(xtr[:, 0] + 1979, ytr_t, label="ERA5 data", color=palette[i])
+        plt.plot(samples_t)
 
         plt.plot(
             xtr[:, 0] + 1981, y_gpr_t, color=palette[i], linestyle="-", label="Prediction"
