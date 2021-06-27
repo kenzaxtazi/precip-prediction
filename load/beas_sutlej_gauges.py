@@ -9,7 +9,7 @@ import pandas as pd
 station_dict = {'Banjar': [31.65,77.34], 'Sainj': [31.77,76.933], 'Ganguwal': [31.25,76.486]}
 
 
-def gauge_download(station, xarray=False):
+def gauge_download(station, minyear, maxyear):
     """ 
     Download and format raw gauge data 
     
@@ -30,17 +30,22 @@ def gauge_download(station, xarray=False):
     df_monthly = clean_df.resample('M').sum()/30.436875
     df = df_monthly.reset_index()
     df['Date'] = df['Date'].values.astype(float)/365/24/60/60/1e9 +1970
-    clean_df2 = df.dropna()
 
-    if xarray == False:
-        return clean_df2
-    
-    else:
-        lat, lon = station_dict[station]
-        df_ind = clean_df2.set_index('Date')
-        ds = df_ind.to_xarray()
-        ds = ds.assign_attrs(plot_legend="Gauge data")
-        ds = ds.assign_coords({'lon':lon})
-        ds = ds.assign_coords({'lat':lat})
-        ds = ds.rename({'Date': 'time'})
-        return ds
+    # to xarray DataSet
+    lat, lon = station_dict[station]
+    df_ind = df.set_index('Date')
+    ds = df_ind.to_xarray()
+    ds = ds.assign_attrs(plot_legend="Gauge data")
+    ds = ds.assign_coords({'lon':lon})
+    ds = ds.assign_coords({'lat':lat})
+    ds = ds.rename({'Date': 'time'})
+    tims_ds = ds.sel(time=slice(minyear, maxyear))
+
+    # fill in missing time values
+
+    return tims_ds
+
+
+def all_gauge_data():
+    filepath =
+

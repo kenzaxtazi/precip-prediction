@@ -217,7 +217,7 @@ def collect_ERA5(location, minyear, maxyear):
     return ds
 
 
-def gauge_download(station):
+def gauge_download(station, minyear, maxyear):
     """ 
     Download and format ERA5 data 
     
@@ -236,6 +236,7 @@ def gauge_download(station):
     
     # Interpolate at location
     lat, lon = station_dict[station]
-    ds = beas_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+    loc_ds = beas_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+    tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
 
-    return ds
+    return tim_ds
