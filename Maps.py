@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
+import matplotlib.colors as colors
 
 from shapely.geometry import Polygon, shape, LinearRing
 from cartopy.io import shapereader
@@ -114,30 +115,45 @@ def change_maps(data_filepath, mask_filepath, variable):
     plt.show()
 
 
-def global_map(shapefiles=["Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"]):
+def global_map(uib_only=False, bs_only=False):
     """ 
     Returns global map with study area(s) superimposed.
     """
-    # Shapefiles
+    # UIB shapefile
+    uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
+    uib_shape = shapereader.Reader(uib_path)
+
+    # Beas + Sutlej shapefile and projection
+    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
+    bs_shape = shapereader.Reader(bs_path)
+    bs_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
+    cranfield_crs = ccrs.LambertConformal(
+                central_longitude=82, central_latitude=20, false_easting=2000000.0, false_northing=2000000.0,
+                standard_parallels=[12.47294444444444,35.17280555555556], globe=bs_globe)
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree(central_longitude=70))
     ax.coastlines("50m", linewidth=0.5)
 
-    for s in shapefiles:
-        path = s
-        basin_shape = shapereader.Reader(path)
-
-        for rec in basin_shape.records():
+    if bs_only == False:
+        for rec in uib_shape.records():
             ax.add_geometries(
                 [rec.geometry],
                 ccrs.AlbersEqualArea(
                     central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
                 ),
-                edgecolor="red",
+                edgecolor=None,
                 facecolor="red",
-                alpha=0.1,
-            )
+                alpha=0.1)
+
+    if uib_only == False:
+        for rec in bs_shape.records():
+            ax.add_geometries(
+                [rec.geometry],
+                cranfield_crs,
+                edgecolor=None,
+                facecolor="green",
+                alpha=0.1)
 
     plt.show()
 
@@ -275,7 +291,7 @@ def cumulative_monthly(da):
     return da * dim_mesh
 
 
-def multi_dataset_map(location):
+def multi_dataset_map(location, seasonal=False):
     """ 
     Create maps of raw values from multiple datasets
     - ERA5
@@ -297,19 +313,38 @@ def multi_dataset_map(location):
     # Slice and take averages
     avg_list = []
     for ds in dataset_list: 
-        ds_slice = ds.sel(time=slice(2000, 2011))
-        ds_avg =  ds_slice.tp.mean(dim='time')
+        ds_avg =  ds.tp.mean(dim='time')
+
+        if seasonal == True:
+            ds_annual_avg = ds_avg
+            
+            ds_jun = ds.tp[5::12]
+            ds_jul = ds.tp[6::12]
+            ds_aug = ds.tp[7::12]
+            ds_sep = ds.tp[8::12]
+            ds_monsoon = xr.merge([ds_jun, ds_jul, ds_aug, ds_sep])
+            ds_monsoon_avg = ds_monsoon.tp.mean(dim='time')
+
+            ds_dec = ds.tp[11::12]
+            ds_jan = ds.tp[0::12]
+            ds_feb = ds.tp[1::12]
+            ds_mar = ds.tp[2::12]
+            ds_west = xr.merge([ds_dec, ds_jan, ds_feb, ds_mar])
+            ds_west_avg = ds_west.tp.mean(dim='time')
+
+            ds_avg = xr.concat([ds_annual_avg, ds_monsoon_avg, ds_west_avg], pd.Index(["annual", "monsoon", "winter"], name='Season'))
+
         avg_list.append(ds_avg)
- 
+
+    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF", "APHRO", "GPM"], name="Dataset")) 
+        
     # Plot maps
 
-    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF", "APHRO", "GPM"], name="Dataset"))
-    
     g = datasets.plot(
         x="lon",
         y="lat",
-        col="Dataset",
-        col_wrap=3,
+        col="Season",
+        row= "Dataset",
         cbar_kwargs={"label": "Total precipitation (mm/day)"},
         cmap="magma",
         subplot_kws={"projection": ccrs.PlateCarree()})
@@ -326,3 +361,47 @@ def multi_dataset_map(location):
 
     plt.show()
 
+
+def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker size
+    """ Maps of gauges used by Bannister """
+
+    # Gauges
+    filepath= 'Data/stations_MGM.xlsx'
+    df = pd.read_excel(filepath)
+
+    # Beas and Sutlej shapefile and projection
+    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
+    bs_shape = shapereader.Reader(bs_path)
+    bs_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
+    cranfield_crs = ccrs.LambertConformal(
+                central_longitude=82, central_latitude=20, false_easting=2000000.0, false_northing=2000000.0,
+                standard_parallels=[12.47294444444444,35.17280555555556], globe=bs_globe)
+
+    # Topography
+    top_ds = xr.open_dataset('/Users/kenzatazi/Downloads/GMTED2010_15n015_00625deg.nc')
+    top_ds = top_ds.assign_coords({'nlat': top_ds.latitude, 'nlon': top_ds.longitude})
+    top_ds = top_ds.sel(nlat=slice(29,34), nlon=slice(75, 83))
+
+    # Figure 
+    plt.figure("Gauge map")
+    ax = plt.subplot(projection=ccrs.PlateCarree())
+    ax.set_extent([75, 83, 29, 34])
+    
+    divnorm = colors.TwoSlopeNorm(vmin=-500., vcenter=0, vmax=6000.)
+    top_ds.elevation.plot.contourf(cmap='gist_earth', levels=np.arange(0, 6000, 100), norm=divnorm,
+                                   cbar_kwargs={'label': 'Elavation [m]'})
+    for rec in bs_shape.records():
+        ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None', facecolor="blue", alpha=0.2)
+    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=5, c='k', label="Gauge locations") 
+    
+    gl = ax.gridlines(draw_labels=True)
+    gl.top_labels = False
+    gl.right_labels = False
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    ax.add_feature(cf.BORDERS.with_scale("50m"), linewidth=0.5)
+    
+    plt.legend()
+    plt.show()
+
+     
