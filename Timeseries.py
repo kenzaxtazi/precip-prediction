@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import time
 import datetime
 import xarray as xr
+import seaborn as sns
 
 import FileDownloader as fd
 import DataDownloader as dd
@@ -110,7 +111,7 @@ def benchmarking_plot(timeseries):
         if len(np.shape(tp))>1:
             ts = dp.average_over_coords(ts)
         
-        plt.plot(ts.time.values, ts.tp.values, label=plot_label)
+        plt.plot(timeseries[0].time.values, ts.tp.values, label=plot_label)
 
         if 'tp_std' in (ts.variables):
             plt.fill_between(ts.time.values, ts.tp.values - 1.9600 * ts.tp_std.values, ts.tp.values + 1.9600 * ts.tp_std.values, 
@@ -120,6 +121,38 @@ def benchmarking_plot(timeseries):
     plt.ylabel('Precipitation mm/day')
     plt.legend()
     plt.show()
+
+
+
+def benchmarking_subplots(timeseries, reference_dataset):
+    """ 
+    Plot timeseries of model outputs.
+    Assumes that timeseries and model outputs are already formatted.
+    """
+    fig, axs = plt.subplots(len(timeseries), 1, sharex=True, sharey=True)
+    cpal = sns.color_palette("tab10")
+    
+    for i in range(len(timeseries)):
+
+        ts = timeseries[i]
+        tp = ts.tp.values
+        plot_label = ts.plot_legend
+        if len(np.shape(tp))>1:
+            ts = dp.average_over_coords(ts)
+        
+        axs[i].plot(timeseries[0].time.values, reference_dataset.tp.values, '--', c='grey')
+        axs[i].plot(timeseries[0].time.values, ts.tp.values, label=plot_label, c=cpal[i])
+        axs[i].legend()
+
+        if 'tp_std' in (ts.variables):
+            plt.fill_between(timeseries[0].time.values, ts.tp.values - 1.9600 * ts.tp_std.values, ts.tp.values + 1.9600 * ts.tp_std.values, 
+                                alpha=0.5, color="lightblue") #label="95% confidence interval")
+   
+    plt.xlabel('Time')
+    plt.ylabel('Precipitation mm/day')
+    plt.legend()
+    plt.show()
+
 
 
 
