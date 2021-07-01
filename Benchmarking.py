@@ -35,7 +35,7 @@ def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepat
     else:
         model = gp.restore_model(model_filepath)
 
-        xtr, ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
+        xtr, _ytr = dp.areal_model_eval(location, minyear=minyear, maxyear=maxyear)
         y_gpr, y_std = model.predict_y(xtr)
     
         # to mm/day
@@ -70,7 +70,7 @@ def dataset_stats(datasets, ref_ds=None):
             ds = dp.average_over_coords(ds)
         da = ds['tp'].dropna(dim='time')
 
-        slope, intercept, r_value, p_value, std_err = stats.linregress(da.time.values, da.values)
+        slope, _intercept, _r_value, _p_value, _std_err = stats.linregress(da.time.values, da.values)
         print(name)
         print('mean = ', np.mean(da.values),'mm/day')
         print('std = ', np.std(da.values), 'mm/day')
@@ -174,34 +174,5 @@ def multi_location_comparison():
     wrf_mer_ds = xr.concat(wrf_sets, dim='lon')
     wrf_mer_ds.attrs['plot_legend'] = 'WRF_BC'
      
-    timeseries = [gauge_ds, era5_mer_ds, gpm_mer_ds, aphro_mer_ds, cru_mer_ds, wrf_mer_ds]
-    pdf.mult_gauge_loc_plot((timeseries)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    timeseries = [era5_mer_ds, gpm_mer_ds, aphro_mer_ds, cru_mer_ds, wrf_mer_ds]
+    pdf.mult_gauge_loc_plot(gauge_ds, timeseries)

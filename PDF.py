@@ -22,7 +22,7 @@ import DataDownloader as dd
 
 # Open data
 # data_filepath = fd.update_cds_monthly_data()
-# mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 
 
 month_labels = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
@@ -80,7 +80,7 @@ def monthly_PDF(timeseries, variable="tp", longname=""):
         axs[i].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1)
     """
     
-    fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
+    _fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
 
     for i in range(12):
         x = (i) % 3
@@ -131,7 +131,7 @@ def benchmarking_plot(timeseries, kernel_density=False):
         grouped_dfs.append(month_df)
     
     # Plot 
-    fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
+    _fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
     
     for i in range(12):
         x = (i) % 3
@@ -195,7 +195,7 @@ def cdf_benchmarking_plot(timeseries, kernel_density=False):
         grouped_dfs.append(month_df)
     
     # Plot 
-    fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
+    _fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
     
     
     for i in range(12):
@@ -205,11 +205,11 @@ def cdf_benchmarking_plot(timeseries, kernel_density=False):
             
             data = grouped_dfs[i][b].values
             X_plot = np.linspace(0, data.max(), 1000)[:, np.newaxis]
-            data_sorted = np.sort(data)
-            p = 1. * np.arange(len(data)) / (len(data) - 1)
+            #data_sorted = np.sort(data)
+            _p = 1. * np.arange(len(data)) / (len(data) - 1)
 
             if kernel_density == True:
-                n, bins, patches = np.hist((grouped_dfs[i])[b], cumulative=True, density=True, label=b)
+                n, _bins, _patches = np.hist((grouped_dfs[i])[b], cumulative=True, density=True, label=b)
                 X = n.reshape(-1, 1)
                 kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(X)
                 log_dens = kde.score_samples(X_plot)
@@ -262,7 +262,7 @@ def mult_gauge_loc_plot(gauge_ds, other_datasets):
         month_list.append(month_df)
         
     # Plot 
-    fig, axs = plt.subplots(3, 4)#, sharex=True, sharey=True)
+    _fig, axs = plt.subplots(3, 4)#, sharex=True, sharey=True)
     
     for i in range(12):
         x = (i) % 3
