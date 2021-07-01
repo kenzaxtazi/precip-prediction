@@ -6,8 +6,9 @@
 **/Models
 **__pycache__
 **/.vscode
+**/.ipynb_checkpoints/
 ktazi@jasmin-login1.ceda.ac.uk
 precip_toy.ipynb
 .gitignore
-**/.ipynb_checkpoints/
 ML_Bench.ipynb
+Untitled.ipynb
