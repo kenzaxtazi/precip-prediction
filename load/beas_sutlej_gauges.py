@@ -21,7 +21,7 @@ def gauge_download(station, minyear, maxyear):
     """
     filepath= 'Data/RawGauge_BeasSutlej_.xlsx'
     daily_df= pd.read_excel(filepath, sheet_name=station)
-    daily_df.dropna(inplace=True)
+    # daily_df.dropna(inplace=True)
 
     # To months
     daily_df.set_index('Date', inplace=True)
@@ -41,11 +41,30 @@ def gauge_download(station, minyear, maxyear):
     ds = ds.rename({'Date': 'time'})
     tims_ds = ds.sel(time=slice(minyear, maxyear))
 
-    # fill in missing time values
-
     return tims_ds
 
 
-def all_gauge_data():
-    filepath =
+def all_gauge_data(minyear, maxyear):
+    """ Download data between specified dates for all active stations """
+
+    filepath = "Data/qc_sushiwat_observations_MGM.xlsx"
+    daily_df= pd.read_excel(filepath)
+
+    mask = (daily_df['Date'] >= '2000-01-01') & (daily_df['Date'] < '2011-01-01')
+    df_masked = daily_df[mask]
+    df_masked.set_index('Date', inplace=True)
+    for col in list(df_masked):
+        df_masked[col] = pd.to_numeric(df_masked[col], errors='coerce')
+    clean_df = df_masked.dropna(axis=1, thresh=3653)
+    clean_df.index = pd.to_datetime(clean_df.index)
+    df_monthly = clean_df.resample('M').sum()/30.436875
+    df = df_monthly.reset_index()
+    df['Date'] = df['Date'].values.astype(float)/365/24/60/60/1e9 +1970
+
+    df_ind = df.set_index('Date')
+    ds = df_ind.to_xarray()
+    ds = ds.assign_attrs(plot_legend="Gauge data")
+    ds = ds.rename({'Date': 'time'})
+
+    return ds
 
