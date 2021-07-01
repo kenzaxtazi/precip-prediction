@@ -20,6 +20,7 @@ import requests
 import xarray as xr
 import numpy as np
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 import LocationSel as ls
 
@@ -29,7 +30,7 @@ import LocationSel as ls
 
 def collect_GPM(location, minyear, maxyear):
     """ Load GPM data """
-    gpm_ds = xr.open_dataset("Data/GPM/gpm_2000-2010.nc")
+    gpm_ds = xr.open_dataset("Data/GPM/gpm_pr_unc_2000-2010.nc")
 
     if type(location) == str:
         loc_ds = ls.select_basin(gpm_ds, location)
@@ -83,20 +84,22 @@ def to_netcdf():
     lon_arr = np.arange(-180, 180, 0.25)
     lat_arr = np.arange(-67, 67, 0.25)
 
-    for file in tqdm(glob.glob('Data/GPM/*.HDF5')):   
+    for file in tqdm(glob.glob('Data/GPM/PR_2000-2010/*')):   
+        
         f = h5py.File(file, 'r')
         dset = f['Grids']
-        tp_arr = dset['G2']['precipRateNearSurface']['mean'].value
-        time = float(file[35:39]) + float(file[39:41])/12.0
-        ds = xr.Dataset(data_vars= dict(tp=(["time", "lon", "lat"], [tp_arr[2,0,:,:]])),
+        tp_arr = dset['G2']['precipRateNearSurfaceUnconditional'].value
+        time = float(file[48:52]) + float(file[52:54])/12.0
+        ds = xr.Dataset(data_vars= dict(tp=(["time", "lon", "lat"], [tp_arr[0,:,:]])),
                         coords=dict(time=(["time"], [time]), lat=(['lat'], lat_arr), lon=(['lon'], lon_arr)))
         ds_tr = ds.transpose('time', 'lat', 'lon')
         ds_cropped = ds_tr.sel(lon=slice(extent[1], extent[3]), lat=slice(extent[2], 36.0))
         ds_list.append(ds_cropped)
     
     ds_merged = xr.merge(ds_list)
-    ds_merged['tp'] = ds_merged['tp'] * 24  # to mm/day
-    ds_merged.to_netcdf("Data/GPM/gpm_2000-2010.nc")
+    print(ds_merged)
+    ds_merged['tp'] = ds_merged['tp'] * 24 #to mm/day
+    ds_merged.to_netcdf("Data/GPM/gpm_pr_unc_2000-2010.nc")
 
 
 
