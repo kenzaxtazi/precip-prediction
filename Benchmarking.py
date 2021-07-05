@@ -2,12 +2,14 @@
 
 import os
 import numpy as np
+from numpy.ma.core import append
 import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
 import seaborn as sns
 import cftime 
 from scipy import stats
+from tqdm import tqdm
 
 from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
 
@@ -59,8 +61,11 @@ def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepat
     return model_ds
 
 
-def dataset_stats(datasets, ref_ds=None):
+def dataset_stats(datasets, ref_ds=None, ret=False):
     """ Print mean, standard deviations and slope for datasets """
+
+    r2_list = []
+    rmse_list = []
 
     for ds in datasets:
 
@@ -84,7 +89,12 @@ def dataset_stats(datasets, ref_ds=None):
             rmse = mean_squared_error(df['tp_ref'].values, df['tp'].values, squared=False)
             print('R2 = ', r2)
             print('RMSE = ', rmse)
+            r2_list.append(r2)
+            rmse_list.append(rmse)
 
+    if ret == True:
+        return [r2_list, rmse_list]
+    
 
 
 def single_location_comparison(location=[31.77,76.933]):
@@ -115,7 +125,7 @@ def basin_comparison(model_filepath, location):
     aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
     cru_ds= cru.collect_CRU(location, minyear=2000, maxyear=2011)
     era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
-    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2010.99)
+    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
     wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
     
     # cmip_ds = dd.collect_CMIP5()
@@ -132,7 +142,7 @@ def basin_comparison(model_filepath, location):
 def multi_location_comparison():
     """ Plots model outputs for given coordinates over time """
 
-    gauge_ds = beas_sutlej_gauges.all_gauge_data(minyear=2000, maxyear=2011)
+    gauge_ds = beas_sutlej_gauges.all_gauge_data(minyear=2000, maxyear=2011, threshold=3653)
     locations = [[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.57, 77.22], 
                  [31.67,77.06], [31.454,77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]]
 
@@ -176,3 +186,56 @@ def multi_location_comparison():
      
     timeseries = [era5_mer_ds, gpm_mer_ds, aphro_mer_ds, cru_mer_ds, wrf_mer_ds]
     pdf.mult_gauge_loc_plot(gauge_ds, timeseries)
+    
+
+
+def gauge_stats():
+    """ Print mean, standard deviations and slope for datasets """
+
+    bs_station_dict = {'Arki':[31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar IMD': [31.637, 77.344],  
+                'Berthin':[31.471, 76.622], 'Bhakra':[31.424, 76.417], 'Barantargh': [31.087, 76.608], 
+                'Bhoranj':[31.648, 76.698], 'Bhunthar': [31.88, 77.15], 'Daslehra': [31.4, 76.55], 
+                'Dehra': [31.885, 76.218], 'Ganguwal': [31.25, 76.486], 'Ghanauli': [30.994, 76.527], 
+                'Ghumarwin': [31.436, 76.708], 'Hamirpur': [31.684, 76.519], 'Janjehl': [31.52, 77.22], 
+                'Jogindernagar': [32.036, 76.734],'Kalatop': [32.552, 76.018], 'Kalpa': [31.54, 78.258],
+                'Kangra': [32.103, 76.271], 'Karsog': [31.383, 77.2], 'Kasol': [31.357, 76.878], 
+                'Kaza': [32.225, 78.072], 'Kotata': [31.233, 76.534], 'Kumarsain': [31.317, 77.45], 
+                'Larji': [31.80, 77.19], 'Lohard': [31.204, 76.561], 'Mashobra': [31.13, 77.229], 
+                'Nadaun': [31.783, 76.35], 'Naina Devi': [31.279, 76.554], 'Nangal': [31.368, 76.404], 
+                'Olinda': [31.401, 76.385], 'Palampur': [32.107, 76.543], 'Pandoh':[31.67,77.06], 
+                'Rampur': [31.454,77.644], 'Rampur IMD': [31.452, 77.633], 'Sadar-Bilarspur':[31.348, 76.762], 
+                'Sadar-Mandi': [31.712, 76.933], 'Sainj': [31.77, 76.933], 'Salooni':[32.728, 76.034],
+                'Sarkaghat': [31.704, 76.812], 'Sujanpur':[31.832, 76.503], 'Sundernargar': [31.534, 76.905], 
+                'Suni':[31.238,77.108], 'Suni IMD':[31.23, 77.164], 'Swaghat': [31.713, 76.746], 
+                'Theog': [31.124, 77.347]}
+
+    r2_list = []
+    rmse_list = []
+
+    for s in tqdm(bs_station_dict):
+
+        gauge_ds = beas_sutlej_gauges.gauge_download(s, minyear=2000, maxyear=2011)
+        gauge_maxy = gauge_ds.time.max().values
+        gauge_miny = gauge_ds.time.min().values
+        if gauge_miny > 2000:
+            miny = gauge_miny
+        if gauge_maxy < 2010.95:
+            maxy =  gauge_maxy + 0.07 # make sure it work for weird times 
+        
+        location = bs_station_dict[s]
+
+        aphro_ds = aphrodite.collect_APHRO(location, minyear=miny, maxyear=maxy)
+        cru_ds= cru.collect_CRU(location, minyear=miny, maxyear=maxy)
+        era5_ds = era5.collect_ERA5(location, minyear=miny, maxyear=maxy)
+        gpm_ds = gpm.collect_GPM(location,  minyear=miny, maxyear=maxy)
+        wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=miny, maxyear=maxy)
+
+        timeseries = [era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds]
+        r2s, rmses= dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
+        r2_list.append(r2s)
+        rmse_list.append(rmses)
+
+    avg_r2 = np.array(r2_list).mean(axis=0)
+    avg_rmse = np.array(rmse_list).mean(axis=0)
+
+    return avg_r2, avg_rmse 
