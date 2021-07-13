@@ -392,7 +392,16 @@ def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker s
                                    cbar_kwargs={'label': 'Elavation [m]'})
     for rec in bs_shape.records():
         ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None', facecolor="blue", alpha=0.2)
-    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=5, c='k', label="Gauge locations") 
+    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=5, c='k', label="Gauge locations")
+
+
+    # df_train = df[df['Longitude (o)'] > 77]
+    # ax.scatter(df_train['Longitude (o)'],  df['Latitude (o)'], s=5, c='y', label='Test locations')
+    # df_validation = df[df['Longitude (o)'] < 77]
+    # ax.scatter(df_validation['Longitude (o)'],  df_validation['Latitude (o)'], s=5, c='b', label='Val locations')
+    test_set = np.array([[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.57, 77.22], 
+                 [31.67,77.06], [31.454,77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]])
+    ax.scatter(test_set[:,1], test_set[:,0], s=5, c='r', label='Test locations')
     
     gl = ax.gridlines(draw_labels=True)
     gl.top_labels = False
