@@ -55,6 +55,12 @@ def reformat_bannister_data():
     ds2 = (ds.resample(time="M")).mean()
     ds2['time'] = ds2.time.astype(float)/365/24/60/60/1e9 +1970
 
+    # Standardise time resolution
+    maxyear = ds2.time.max()
+    minyear = ds2.time.min()
+    time_arr = np.arange(round(minyear) + 1./24., round(maxyear), 1./12.)
+    ds2['time'] = time_arr
+
     # Raw WRF data
     wrf_ds = ds2.drop('bias_corr_precip')
     wrf_ds = wrf_ds.rename({'m_precip':'tp'})

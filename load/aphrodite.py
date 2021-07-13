@@ -56,4 +56,13 @@ def merge_og_files():
         ds_list.append(ds_resampled)
     
     ds_merged = xr.merge(ds_list)
+
+    # Standardise time resolution
+    maxyear = float(ds_merged.time.max())
+    minyear = float(ds_merged.time.min())
+    time_arr = np.arange(round(minyear) + 1./24., round(maxyear), 1./12.)
+    ds_merged['time'] = time_arr
+
     ds_merged.to_netcdf("Data/APHRODITE/aphrodite_indus_1951_2016.nc")
+
+

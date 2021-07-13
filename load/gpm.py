@@ -89,7 +89,9 @@ def to_netcdf():
         f = h5py.File(file, 'r')
         dset = f['Grids']
         tp_arr = dset['G2']['precipRateNearSurfaceUnconditional'].value
-        time = float(file[48:52]) + float(file[52:54])/12.0
+        month_arr = np.arange(1./24., 1, 1./12.)
+        month = month_arr[int(file[52:54])-1]
+        time = float(file[48:52]) + month
         ds = xr.Dataset(data_vars= dict(tp=(["time", "lon", "lat"], [tp_arr[0,:,:]])),
                         coords=dict(time=(["time"], [time]), lat=(['lat'], lat_arr), lon=(['lon'], lon_arr)))
         ds_tr = ds.transpose('time', 'lat', 'lon')

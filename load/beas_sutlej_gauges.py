@@ -2,7 +2,7 @@
 Raw gauge measurements from the Beas and Sutlej valleys
 
 """
-
+import numpy as np
 import pandas as pd
 
 
@@ -58,8 +58,14 @@ def gauge_download(station, minyear, maxyear):
     ds = ds.assign_coords({'lon':lon})
     ds = ds.assign_coords({'lat':lat})
     ds = ds.rename({'Date': 'time'})
+    
+    # Standardise time resolution
+    raw_maxyear = float(ds.time.max())
+    raw_minyear = float(ds.time.min())
+    time_arr = np.arange(round(raw_minyear) + 1./24., raw_maxyear, 1./12.)
+    ds['time'] = time_arr
+    
     tims_ds = ds.sel(time=slice(minyear, maxyear))
-
     return tims_ds
 
 
@@ -94,6 +100,10 @@ def all_gauge_data(minyear, maxyear, threshold=None):  #
     ds = df_ind.to_xarray()
     ds = ds.assign_attrs(plot_legend="Gauge data")
     ds = ds.rename({'Date': 'time'})
+
+    # Standardise time resolution
+    time_arr = np.arange(round(minyear) + 1./24., maxyear, 1./12.)
+    ds['time'] = time_arr
 
     return ds
 

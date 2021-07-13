@@ -30,6 +30,13 @@ def download():
     ds_cropped = ds.sel(lon=slice(extent[1], extent[3]), lat=slice(extent[2], extent[0]))
     ds_cropped['pre'] /= 30.437  #TODO apply proper function to get mm/day
     ds_cropped['time'] = standardised_time(ds_cropped)
+
+    # Standardise time resolution
+    maxyear = float(ds_cropped.time.max())
+    minyear = float(ds_cropped.time.min())
+    time_arr = np.arange(round(minyear) + 1./24., round(maxyear), 1./12.)
+    ds_cropped['time'] = time_arr
+
     ds = ds_cropped.rename_vars({'pre': 'tp'})
     x = np.arange(70, 85, 0.25)
     y = np.arange(25, 35, 0.25)

@@ -27,7 +27,7 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
         all_var: boolean
 
     Returns
-        df: DataFrame of data, or
+        df: DataFrame of data (!time not standardised!), or
         ds: DataArray of data
     """
 
@@ -85,6 +85,12 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
             else:
                 df_multi = df_clean.set_index(["time", "lon", "lat"])
             ds = df_multi.to_xarray()
+            # Standardise time resolution
+            maxyear = float(ds.time.max())
+            minyear = float(ds.time.min())
+            time_arr = np.arange(round(minyear) + 1./24., maxyear+0.05, 1./12.)
+            print(ds)
+            ds['time'] = time_arr
             return ds
         else:
             return df_clean
@@ -101,6 +107,11 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
             else:
                 df_multi = df_clean.set_index(["time", "lon", "lat"])
             ds = df_multi.to_xarray()
+            # Standardise time resolution
+            maxyear = float(ds.time.max())
+            minyear = float(ds.time.min())
+            time_arr = np.arange(round(minyear) + 1./24., maxyear +0.05, 1./12.)
+            ds['time'] = time_arr
             return ds
         else:
             return df_clean
