@@ -8,7 +8,7 @@ import pandas as pd
 
 all_station_dict = {'Arki':[31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar IMD': [31.637, 77.344],  
                 'Berthin':[31.471, 76.622], 'Bhakra':[31.424, 76.417], 'Barantargh': [31.087, 76.608], 
-                'Bharmaur': [32.45, 76.533], 'Bhoranj':[31.648, 76.698], 'Bhunthar': [31.88, 77.15], 
+                'Bharmaur': [32.45, 76.533], 'Bhoranj':[31.648, 76.698], 'Bhuntar': [31.88, 77.15], 
                 'Churah': [32.833, 76.167], 'Dadahu':[30.599, 77.437], 'Daslehra': [31.4, 76.55], 
                 'Dehra': [31.885, 76.218], 'Dhaula Kuan': [30.517, 77.479], 'Ganguwal': [31.25, 76.486], 
                 'Ghanauli': [30.994, 76.527], 'Ghumarwin': [31.436, 76.708], 'Hamirpur': [31.684, 76.519], 
@@ -22,7 +22,7 @@ all_station_dict = {'Arki':[31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar I
                 'Pachhad': [30.777, 77.164], 'Palampur': [32.107, 76.543], 'Pandoh':[31.67,77.06], 
                 'Paonta Sahib': [30.47, 77.625], 'Rakuna': [30.605, 77.473], 'Rampur': [31.454,77.644],
                 'Rampur IMD': [31.452, 77.633], 'Rohru':[31.204, 77.751], 'Sadar-Bilarspur':[31.348, 76.762], 
-                'Sadar-Mandi': [31.712, 76.933], 'Sainj': [31.77, 76.933], 'Salooni':[32.728, 76.034],
+                'Sadar-Mandi': [31.712, 76.933], 'Sainj': [31.77, 77.31] , 'Salooni':[32.728, 76.034],
                 'Sarkaghat': [31.704, 76.812], 'Sujanpur':[31.832, 76.503], 'Sundernargar': [31.534, 76.905], 
                 'Suni':[31.238,77.108], 'Suni IMD':[31.23, 77.164], 'Swaghat': [31.713, 76.746], 
                 'Theog': [31.124, 77.347]}
