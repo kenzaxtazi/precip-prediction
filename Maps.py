@@ -386,7 +386,7 @@ def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker s
     plt.figure("Gauge map")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([75, 83, 29, 34])
-    
+ 
     divnorm = colors.TwoSlopeNorm(vmin=-500., vcenter=0, vmax=6000.)
     top_ds.elevation.plot.contourf(cmap='gist_earth', levels=np.arange(0, 6000, 100), norm=divnorm,
                                    cbar_kwargs={'label': 'Elavation [m]'})
@@ -394,13 +394,20 @@ def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker s
         ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None', facecolor="blue", alpha=0.2)
     ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=5, c='k', label="Gauge locations")
 
+    mask_filepath = 'Data/Masks/Beas_Sutlej_mask.nc'
+    mask = xr.open_dataset(mask_filepath)
+    mask = mask.rename({'latitude': 'nlat', 'longitude': 'nlon'})
+    elv_da = top_ds.elevation.interp_like(mask)
+    mask_da = mask.overlap
+    masked_da = elv_da.where(mask_da > 0, drop=True)
+    print(masked_da.median(skipna=True))
 
     # df_train = df[df['Longitude (o)'] > 77]
     # ax.scatter(df_train['Longitude (o)'],  df['Latitude (o)'], s=5, c='y', label='Test locations')
     # df_validation = df[df['Longitude (o)'] < 77]
     # ax.scatter(df_validation['Longitude (o)'],  df_validation['Latitude (o)'], s=5, c='b', label='Val locations')
-    test_set = np.array([[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.57, 77.22], 
-                 [31.67,77.06], [31.454,77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]])
+    test_set = np.array([[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.52, 77.22], 
+                 [31.67, 77.06], [31.454, 77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]])
     ax.scatter(test_set[:,1], test_set[:,0], s=5, c='r', label='Test locations')
     
     gl = ax.gridlines(draw_labels=True)
