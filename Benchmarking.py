@@ -97,15 +97,15 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
     
 
 
-def single_location_comparison(location=[31.77,76.933]):
+def single_location_comparison(location=[31.77, 76.933], station='Sainj', min_year=2000, max_year=2011):
     """ Plots model outputs for given coordinates over time """
     
-    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
-    cru_ds= cru.collect_CRU(location, minyear=2000, maxyear=2011)
-    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
-    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
-    wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
-    gauge_ds = beas_sutlej_gauges.gauge_download('Banjar', minyear=2000, maxyear=2011)
+    aphro_ds = aphrodite.collect_APHRO(location, minyear=min_year, maxyear=max_year)
+    cru_ds= cru.collect_CRU(location, minyear=min_year, maxyear=max_year)
+    era5_ds = era5.collect_ERA5(location, minyear=min_year, maxyear=max_year)
+    gpm_ds = gpm.collect_GPM(location,  minyear=min_year, maxyear=max_year)
+    wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=min_year, maxyear=max_year)
+    gauge_ds = beas_sutlej_gauges.gauge_download(station, minyear=min_year, maxyear=max_year)
     
     # cmip_ds = dd.collect_CMIP5()
     # cordex_ds = dd.collect_CORDEX()
@@ -113,10 +113,10 @@ def single_location_comparison(location=[31.77,76.933]):
     
     timeseries = [gauge_ds, era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds, ]
 
-    tims.benchmarking_subplots(timeseries, reference_dataset=gauge_ds)
+    # tims.benchmarking_subplots(timeseries, reference_dataset=gauge_ds)
     dataset_stats(timeseries, ref_ds=gauge_ds)
     # corr.dataset_correlation(timeseries)
-    pdf.benchmarking_plot(timeseries, kernel_density=False)
+    # pdf.benchmarking_plot(timeseries, kernel_density=False)
 
 
 def basin_comparison(model_filepath, location):
@@ -143,7 +143,7 @@ def multi_location_comparison():
     """ Plots model outputs for given coordinates over time """
 
     gauge_ds = beas_sutlej_gauges.all_gauge_data(minyear=2000, maxyear=2011, threshold=3653)
-    locations = [[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.57, 77.22], 
+    locations = [[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.52, 77.22], 
                  [31.67,77.06], [31.454,77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]]
 
     aphro_sets = []
