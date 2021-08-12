@@ -155,6 +155,12 @@ def linear_reg(hf_x_train, hf_y_train):
     linear_m.fit(hf_x_train, hf_y_train)
     return linear_m
 
+# Log linear model 
+def linear_reg(hf_x_train, hf_y_train):
+    linear_m = LinearRegression()
+    linear_m.fit(hf_x_train, hf_y_train)
+    return linear_m
+
 
 #### Train models​
 
@@ -191,8 +197,8 @@ nl_mf_h_y_pred, mf_h_y_std_pred = nonlin_mf_model.predict(x_met[n:])
 log_gp_y, log_gp_var = dp.inverse_log_transform(log_gp_m.predict(x_val))
 gp_y, gp_var = gp_m.predict(x_val)
 
-log_lin_y = dp.inverse_log_transform(log_linear_m.predict(x_val.reshape(-1,1)))
-lin_y = linear_m.predict(x_val.reshape(-1,1))
+log_lin_y = dp.inverse_log_transform(log_linear_m.predict(x_val.reshape(-1,3)))
+lin_y = linear_m.predict(x_val.reshape(-1,3))
 
 
 ## R2
