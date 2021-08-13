@@ -33,8 +33,13 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # Gauge data
 hf_train_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj']
-lf_train_sations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Suni', 'Pandoh', 'Janjehl', 'Bhuntar', 'Rampur']
-hf_val_stations = ['Bhakra', 'Suni', 'Pandoh', 'Janjehl', 'Bhuntar', 'Rampur']
+lf_train_sations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
+hf_val_stations = ['Bhakra', 'Suni', 'Pandoh', 'Janjehl', 'Kasol', 'Rampur']
+
+alt_dic = {'Banjar': 1914, 'Larji': 975, 'Bhuntar': 1100, 
+           'Sainj': 1280, 'Bhakra': 518, 'Suni': 655, 
+           'Pandoh':899, 'Janjehl':2071, 'Kasol': 662, 
+           'Rampur': 976}
 
 hf_train_list = []
 for station in hf_train_stations:
@@ -150,12 +155,6 @@ def gp(x_train_h, y_train_h):
     return m 
 
 # Linear model 
-def linear_reg(hf_x_train, hf_y_train):
-    linear_m = LinearRegression()
-    linear_m.fit(hf_x_train, hf_y_train)
-    return linear_m
-
-# Log linear model 
 def linear_reg(hf_x_train, hf_y_train):
     linear_m = LinearRegression()
     linear_m.fit(hf_x_train, hf_y_train)
