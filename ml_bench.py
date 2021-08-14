@@ -13,16 +13,13 @@ import matplotlib.pyplot as plt
 import GPy
 
 import DataPreparation as dp
-from load import beas_sutlej_gauges, era5
+from load import beas_sutlej_gauges, era5, srtm
 
 import emukit
 from emukit.multi_fidelity.convert_lists_to_array import convert_x_list_to_array, convert_xy_lists_to_arrays
 from emukit.model_wrappers.gpy_model_wrappers import GPyMultiOutputWrapper
 from emukit.multi_fidelity.models import GPyLinearMultiFidelityModel
 from emukit.multi_fidelity.models.non_linear_multi_fidelity_model import make_non_linear_kernels, NonLinearMultiFidelityModel
-
-import matplotlib
-matplotlib.rcParams.update({'font.size': 22})
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -38,15 +35,17 @@ hf_val_stations = ['Bhakra', 'Suni', 'Pandoh', 'Janjehl', 'Kasol', 'Rampur']
 
 alt_dic = {'Banjar': 1914, 'Larji': 975, 'Bhuntar': 1100, 
            'Sainj': 1280, 'Bhakra': 518, 'Suni': 655, 
-           'Pandoh':899, 'Janjehl':2071, 'Kasol': 662, 
+           'Pandoh': 899, 'Janjehl': 2071, 'Kasol': 662, 
            'Rampur': 976}
 
 hf_train_list = []
 for station in hf_train_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
+    station_ds['slope'] = srtm.find_slope(station)
     station_ds = station_ds.set_coords('z')
-    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1})
+    station_ds = station_ds.set_coords('slope')
+    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
     hf_train_list.append(station_ds)
 hf_train_ds = xr.merge(hf_train_list)
 
@@ -54,8 +53,10 @@ hf_val_list = []
 for station in hf_val_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
+    station_ds['slope'] = srtm.find_slope(station)
     station_ds = station_ds.set_coords('z')
-    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1})
+    station_ds = station_ds.set_coords('slope')
+    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
     hf_val_list.append(station_ds)
 hf_val_ds = xr.merge(hf_val_list)
 
@@ -64,8 +65,10 @@ lf_train_list = []
 for station in lf_train_sations:
     station_ds =  era5.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
+    station_ds['slope'] = srtm.find_slope(station)
     station_ds = station_ds.set_coords('z')
-    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1})
+    station_ds = station_ds.set_coords('slope')
+    station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
     lf_train_list.append(station_ds)
 lf_train_ds = xr.merge(lf_train_list)
 
@@ -82,16 +85,16 @@ lf_train['tp_tr'] = dp.log_transform(lf_train['tp'].values)
 val_df['tp_tr'] = dp.log_transform(val_df['tp'].values)
 
 # To arrays
-hf_x_train = hf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,4)
+hf_x_train = hf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
 hf_y_train = hf_train['tp'].values.reshape(-1,1)
 
 lf_y_train_log = lf_train.tp_tr.values.reshape(-1, 1)
 hf_y_train_log = hf_train.tp_tr.values.reshape(-1,1)
 
-lf_x_train = lf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,4)
+lf_x_train = lf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
 lf_y_train = lf_train['tp'].values.reshape(-1,1)
 
-x_val = val_df[['time', 'lon', 'lat', 'z']].values.reshape(-1,4)
+x_val = val_df[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
 y_val = val_df['tp'].values.reshape(-1,1)
 
 X_train, Y_train = convert_xy_lists_to_arrays([lf_x_train, hf_x_train], [lf_y_train, hf_y_train])
@@ -102,7 +105,7 @@ X_train, Y_train_log = convert_xy_lists_to_arrays([lf_x_train, hf_x_train], [lf_
 
 # Linear MFDGP 
 def linear_mfdgp(X_train, Y_train):
-    kernels = [GPy.kern.RBF(4), GPy.kern.RBF(4)]
+    kernels = [GPy.kern.RBF(5), GPy.kern.RBF(5)]
     lin_mf_kernel = emukit.multi_fidelity.kernels.LinearMultiFidelityKernel(kernels)
     gpy_lin_mf_model = GPyLinearMultiFidelityModel(X_train, Y_train, lin_mf_kernel, n_fidelities=2)
     gpy_lin_mf_model.mixed_noise.Gaussian_noise.fix(0)
@@ -113,7 +116,7 @@ def linear_mfdgp(X_train, Y_train):
 
 # Linear MFDGP with log transform
 def log_linear_mfdgp(X_train, Y_train):
-    kernels = [GPy.kern.RBF(4), GPy.kern.RBF(4)]
+    kernels = [GPy.kern.RBF(5), GPy.kern.RBF(5)]
     lin_mf_kernel = emukit.multi_fidelity.kernels.LinearMultiFidelityKernel(kernels)
     gpy_lin_mf_model = GPyLinearMultiFidelityModel(X_train, Y_train, lin_mf_kernel, n_fidelities=2)
     gpy_lin_mf_model.mixed_noise.Gaussian_noise.fix(0)
@@ -146,7 +149,7 @@ def log_nonlinear_mfdgp(X_train, Y_train):
 
 # Simple GP with log transform
 def log_gp(x_train_h, y_train_h):
-    kernel = GPy.kern.StdPeriodic(1, period=1) * GPy.kern.RBF(1) + GPy.kern.RBF(4)
+    kernel = GPy.kern.StdPeriodic(1, period=1) * GPy.kern.RBF(1) + GPy.kern.RBF(5)
     m = GPy.models.GPRegression(x_train_h, y_train_h, kernel)
     m.Gaussian_noise.fix(0)
     m.optimize_restarts(num_restarts=5)
@@ -154,7 +157,7 @@ def log_gp(x_train_h, y_train_h):
 
 # Simple GP
 def gp(x_train_h, y_train_h):
-    kernel = GPy.kern.StdPeriodic(1, period=1) * GPy.kern.RBF(1) + GPy.kern.RBF(4)
+    kernel = GPy.kern.StdPeriodic(1, period=1) * GPy.kern.RBF(1) + GPy.kern.RBF(5)
     m = GPy.models.GPRegression(x_train_h, y_train_h, kernel)
     m.Gaussian_noise.fix(0)
     m.optimize_restarts(num_restarts=5)
@@ -202,8 +205,8 @@ nl_mf_h_y_pred, mf_h_y_std_pred = nonlin_mf_model.predict(x_met[n:])
 log_gp_y, log_gp_var = dp.inverse_log_transform(log_gp_m.predict(x_val))
 gp_y, gp_var = gp_m.predict(x_val)
 
-log_lin_y = dp.inverse_log_transform(log_linear_m.predict(x_val.reshape(-1,4)))
-lin_y = linear_m.predict(x_val.reshape(-1,4))
+log_lin_y = dp.inverse_log_transform(log_linear_m.predict(x_val.reshape(-1,5)))
+lin_y = linear_m.predict(x_val.reshape(-1,5))
 
 
 ## R2
