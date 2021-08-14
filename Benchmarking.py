@@ -143,8 +143,8 @@ def multi_location_comparison():
     """ Plots model outputs for given coordinates over time """
 
     gauge_ds = beas_sutlej_gauges.all_gauge_data(minyear=2000, maxyear=2011, threshold=3653)
-    locations = [[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.52, 77.22], 
-                 [31.67,77.06], [31.454,77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]]
+    locations = [ [31.424, 76.417], [31.357, 76.878], [31.52, 77.22], 
+                 [31.67,77.06], [31.454,77.644], [31.238, 77.108] ] #[31.65, 77.34], [31.88, 77.15], [31.77, 77.31], [31.80, 77.19]
 
     aphro_sets = []
     cru_sets = []
@@ -194,7 +194,7 @@ def gauge_stats():
 
     bs_station_dict = {'Arki':[31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar IMD': [31.637, 77.344],  
                 'Berthin':[31.471, 76.622], 'Bhakra':[31.424, 76.417], 'Barantargh': [31.087, 76.608], 
-                'Bhoranj':[31.648, 76.698], 'Bhunthar': [31.88, 77.15], 'Daslehra': [31.4, 76.55], 
+                'Bhoranj':[31.648, 76.698], 'Bhuntar': [31.88, 77.15], 'Daslehra': [31.4, 76.55], 
                 'Dehra': [31.885, 76.218], 'Ganguwal': [31.25, 76.486], 'Ghanauli': [30.994, 76.527], 
                 'Ghumarwin': [31.436, 76.708], 'Hamirpur': [31.684, 76.519], 'Janjehl': [31.52, 77.22], 
                 'Jogindernagar': [32.036, 76.734],'Kalatop': [32.552, 76.018], 'Kalpa': [31.54, 78.258],
@@ -208,19 +208,20 @@ def gauge_stats():
                 'Sarkaghat': [31.704, 76.812], 'Sujanpur':[31.832, 76.503], 'Sundernargar': [31.534, 76.905], 
                 'Suni':[31.238,77.108], 'Suni IMD':[31.23, 77.164], 'Swaghat': [31.713, 76.746], 
                 'Theog': [31.124, 77.347]}
+    
+    mlm_val_stations = {'Bhakra':[31.424, 76.417], 'Suni':[31.238,77.108], 'Pandoh':[31.67,77.06], 
+                        'Janjehl': [31.52, 77.22], 'Bhuntar': [31.88, 77.15], 'Rampur': [31.454,77.644]}
 
     r2_list = []
     rmse_list = []
 
-    for s in tqdm(bs_station_dict):
+    for s in tqdm(mlm_val_stations):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(s, minyear=2000, maxyear=2011)
         gauge_maxy = gauge_ds.time.max().values
         gauge_miny = gauge_ds.time.min().values
-        if gauge_miny > 2000:
-            miny = gauge_miny
-        if gauge_maxy < 2010.95:
-            maxy =  gauge_maxy + 0.07 # make sure it work for weird times 
+        miny = gauge_miny - 0.0001
+        maxy =  gauge_maxy + 0.0001
         
         location = bs_station_dict[s]
 
@@ -231,7 +232,7 @@ def gauge_stats():
         wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=miny, maxyear=maxy)
 
         timeseries = [era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds]
-        r2s, rmses= dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
+        r2s, rmses = dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
         r2_list.append(r2s)
         rmse_list.append(rmses)
 
