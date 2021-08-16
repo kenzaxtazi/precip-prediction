@@ -85,16 +85,16 @@ lf_train['tp_tr'] = dp.log_transform(lf_train['tp'].values)
 val_df['tp_tr'] = dp.log_transform(val_df['tp'].values)
 
 # To arrays
-hf_x_train = hf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
+hf_x_train = hf_train[['time', 'lon', 'lat', 'z', 'slope']].values.reshape(-1,5)
 hf_y_train = hf_train['tp'].values.reshape(-1,1)
 
 lf_y_train_log = lf_train.tp_tr.values.reshape(-1, 1)
 hf_y_train_log = hf_train.tp_tr.values.reshape(-1,1)
 
-lf_x_train = lf_train[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
+lf_x_train = lf_train[['time', 'lon', 'lat', 'z', 'slope']].values.reshape(-1,5)
 lf_y_train = lf_train['tp'].values.reshape(-1,1)
 
-x_val = val_df[['time', 'lon', 'lat', 'z']].values.reshape(-1,5)
+x_val = val_df[['time', 'lon', 'lat', 'z', 'slope']].values.reshape(-1,5)
 y_val = val_df['tp'].values.reshape(-1,1)
 
 X_train, Y_train = convert_xy_lists_to_arrays([lf_x_train, hf_x_train], [lf_y_train, hf_y_train])
