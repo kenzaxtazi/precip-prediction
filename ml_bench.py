@@ -42,7 +42,7 @@ hf_train_list = []
 for station in hf_train_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
-    station_ds['slope'] = srtm.find_slope(station)
+    station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
     station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
@@ -53,7 +53,7 @@ hf_val_list = []
 for station in hf_val_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
-    station_ds['slope'] = srtm.find_slope(station)
+    station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
     station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
@@ -65,7 +65,7 @@ lf_train_list = []
 for station in lf_train_sations:
     station_ds =  era5.gauge_download(station, minyear=1980, maxyear=2010)
     station_ds['z'] = alt_dic[station]
-    station_ds['slope'] = srtm.find_slope(station)
+    station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
     station_ds = station_ds.expand_dims(dim={'lat': 1, 'lon':1, 'z':1, 'slope':1})
