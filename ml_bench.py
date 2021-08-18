@@ -31,7 +31,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # Gauge data
 
-all_station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914], 'Banjar IMD':[31.637, 77.344, 1427],  
+station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914], 'Banjar IMD':[31.637, 77.344, 1427],  
                 'Berthin':[31.471, 76.622, 657], 'Bhakra':[31.424, 76.417, 518], 'Barantargh': [31.087, 76.608, 285], 
                 'Bharmaur': [32.45, 76.533, 1867], 'Bhoranj':[31.648, 76.698, 834], 'Bhuntar': [31.88, 77.15, 1100], 
                 'Churah': [32.833, 76.167, 1358], 'Dadahu':[30.599, 77.437, 635], 'Daslehra': [31.4, 76.55, 561], 
@@ -52,7 +52,7 @@ all_station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914
                 'Suni':[31.238,77.108, 655], 'Suni IMD':[31.23, 77.164, 765], 'Swaghat': [31.713, 76.746, 991], 
                 'Theog': [31.124, 77.347, 2101]}
 
-station_df = pd.DataFrame.from_dict(all_station_dict, orient='index',columns=['lat', 'lon', 'elv'])
+station_df = pd.DataFrame.from_dict(station_dict, orient='index',columns=['lat', 'lon', 'elv'])
 station_df = station_df.reset_index()
 hf_train_df = station_df[(station_df['lon']< 78.0) & ((station_df['lat']> 32) | (station_df['lat']< 31))]
 hf_train_stations = list(hf_train_df['index'].values)
@@ -62,7 +62,7 @@ hf_val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Kasol', 'Su
 hf_train_list = []
 for station in hf_train_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
-    station_ds['z'] = all_station_dict[station][2]
+    station_ds['z'] = station_dict[station][2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
@@ -73,7 +73,7 @@ hf_train_ds = xr.merge(hf_train_list)
 hf_val_list = []
 for station in hf_val_stations:
     station_ds = beas_sutlej_gauges.gauge_download(station, minyear=1980, maxyear=2010)
-    station_ds['z'] = all_station_dict[station][2]
+    station_ds['z'] = station_dict[station][2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
@@ -85,7 +85,7 @@ hf_val_ds = xr.merge(hf_val_list)
 lf_train_list = []
 for station in lf_train_stations:
     station_ds =  era5.gauge_download(station, minyear=1980, maxyear=2010)
-    station_ds['z'] = all_station_dict[station][2]
+    station_ds['z'] = station_dict[station][2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
