@@ -61,9 +61,9 @@ def gauge_download(station, minyear, maxyear):
     ds = ds.rename({'Date': 'time'})
     
     # Standardise time resolution
-    raw_maxyear = float(ds.time.max()) + 0.001
+    raw_maxyear = float(ds.time.max())
     raw_minyear = float(ds.time.min())
-    time_arr = np.arange(floor(raw_minyear) + 1./24., raw_maxyear, 1./12.)
+    time_arr = np.arange(round(raw_minyear*12)/12 + 1./24., round(raw_maxyear*12)/12, 1./12.)
     ds['time'] = time_arr
     
     tims_ds = ds.sel(time=slice(minyear, maxyear))
