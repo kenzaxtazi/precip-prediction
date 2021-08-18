@@ -52,7 +52,7 @@ def gauge_download(station, minyear, maxyear):
     df['Date'] = df['Date'].values.astype(float)/365/24/60/60/1e9 +1970
 
     # to xarray DataSet
-    lat, lon = all_station_dict[station]
+    lat, lon, _elv = all_station_dict[station]
     df_ind = df.set_index('Date')
     ds = df_ind.to_xarray()
     ds = ds.assign_attrs(plot_legend="Gauge data")
