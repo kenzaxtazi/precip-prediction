@@ -9,7 +9,7 @@ from math import floor, ceil
 
 all_station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914], 'Banjar IMD': [31.637, 77.344, 1427],  
                 'Berthin':[31.471, 76.622, 657], 'Bhakra':[31.424, 76.417, 518], 'Barantargh': [31.087, 76.608, 285], 
-                'Bharmaur': [32.45, 76.533, 1867], 'Bhoranj':[31.648, 76.698, 834], 'Bhuntar': [31.88, 77.15,834, 1100], 
+                'Bharmaur': [32.45, 76.533, 1867], 'Bhoranj':[31.648, 76.698, 834], 'Bhuntar': [31.88, 77.15, 1100], 
                 'Churah': [32.833, 76.167, 1358], 'Dadahu':[30.599, 77.437, 635], 'Daslehra': [31.4, 76.55, 561], 
                 'Dehra': [31.885, 76.218, 472], 'Dhaula Kuan': [30.517, 77.479, 443], 'Ganguwal': [31.25, 76.486, 345], 
                 'Ghanauli': [30.994, 76.527, 284], 'Ghumarwin': [31.436, 76.708, 640], 'Hamirpur': [31.684, 76.519, 763], 
@@ -62,11 +62,8 @@ def gauge_download(station, minyear, maxyear):
     
     # Standardise time resolution
     raw_maxyear = float(ds.time.max())
-    print('max year', raw_maxyear)
     raw_minyear = float(ds.time.min())
-    print('min year', raw_minyear)
     time_arr = np.arange(floor(raw_minyear*12)/12 + 1./24., ceil(raw_maxyear*12)/12, 1./12.)
-    print(time_arr[0:5], time_arr[-1])
     ds['time'] = time_arr
     
     tims_ds = ds.sel(time=slice(minyear, maxyear))
