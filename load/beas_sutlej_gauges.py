@@ -4,7 +4,7 @@ Raw gauge measurements from the Beas and Sutlej valleys
 """
 import numpy as np
 import pandas as pd
-from math import floor
+from math import floor, ceil
 
 
 all_station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914], 'Banjar IMD': [31.637, 77.344, 1427],  
@@ -65,7 +65,7 @@ def gauge_download(station, minyear, maxyear):
     print('max year', raw_maxyear)
     raw_minyear = float(ds.time.min())
     print('min year', raw_minyear)
-    time_arr = np.arange(round(raw_minyear*12)/12 + 1./24., round(raw_maxyear*12)/12, 1./12.)
+    time_arr = np.arange(floor(raw_minyear*12)/12 + 1./24., ceil(raw_maxyear*12)/12, 1./12.)
     print(time_arr[0:5], time_arr[-1])
     ds['time'] = time_arr
     
