@@ -54,8 +54,14 @@ station_dict = {'Arki':[31.154, 76.964, 1176], 'Banjar': [31.65, 77.34, 1914], '
 
 station_df = pd.DataFrame.from_dict(station_dict, orient='index',columns=['lat', 'lon', 'elv'])
 station_df = station_df.reset_index()
-hf_train_df = station_df[(station_df['lon']< 78.0) & ((station_df['lat']> 32) | (station_df['lat']< 31))]
-hf_train_stations = list(hf_train_df['index'].values)
+
+hf_train_df1 = station_df[(station_df['lon']< 77.0) & (station_df['lat']> 32)]
+hf_train_df2 = station_df[(station_df['lon']< 76.60) & ((station_df['lat']< 32) & (station_df['lat']> 31.6))]
+hf_train_df3 = station_df[(station_df['lon']> 77.0) & (station_df['lat']< 31)]
+hf_train_df4 = station_df[(station_df['lon']< 78.0) & (station_df['lon']> 77.0) & (station_df['lat']> 31) & (station_df['lat']< 31.23)]
+hf_train_df5 = station_df[(station_df['lon']> 78.2)]
+hf_train_stations = list(hf_train_df1['index'].values) + list(hf_train_df2['index'].values) + list(hf_train_df3['index'].values) + list(hf_train_df4['index'].values) + list(hf_train_df5['index'].values)
+
 lf_train_stations = hf_train_stations + (['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur'])
 hf_val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
 
