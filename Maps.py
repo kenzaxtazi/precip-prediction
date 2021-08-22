@@ -308,7 +308,7 @@ def multi_dataset_map(location, seasonal=False):
     gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
     wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear=2000, maxyear=2011)
 
-    dataset_list = [era5_ds, cru_ds, wrf_ds, aphro_ds, gpm_ds]
+    dataset_list = [gpm_ds, era5_ds, wrf_ds, aphro_ds, cru_ds]
 
     # Slice and take averages
     avg_list = []
@@ -332,18 +332,18 @@ def multi_dataset_map(location, seasonal=False):
             ds_west = xr.merge([ds_dec, ds_jan, ds_feb, ds_mar])
             ds_west_avg = ds_west.tp.mean(dim='time')
 
-            ds_avg = xr.concat([ds_annual_avg, ds_monsoon_avg, ds_west_avg], pd.Index(["annual", "monsoon", "winter"], name='Season'))
+            ds_avg = xr.concat([ds_annual_avg, ds_monsoon_avg, ds_west_avg], pd.Index(["Annual", "Monsoon (JJAS)", "Winter (DJFM)"], name='t'))
 
         avg_list.append(ds_avg)
 
-    datasets = xr.concat(avg_list, pd.Index(["ERA5", "CRU", "BC_WRF", "APHRO", "GPM"], name="Dataset")) 
+    datasets = xr.concat(avg_list, pd.Index(["TRMM", "ERA5", "BC_WRF", "APHRO", "CRU" ], name="Dataset")) 
         
     # Plot maps
 
     g = datasets.plot(
         x="lon",
         y="lat",
-        col="Season",
+        col="t",
         row= "Dataset",
         cbar_kwargs={"label": "Total precipitation (mm/day)"},
         cmap="magma",

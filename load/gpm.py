@@ -39,7 +39,7 @@ def collect_GPM(location, minyear, maxyear):
         loc_ds = gpm_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
 
     tim_ds = loc_ds.sel(time= slice(minyear, maxyear))
-    ds = tim_ds.assign_attrs(plot_legend="GPM") # in mm/day   
+    ds = tim_ds.assign_attrs(plot_legend="TRMM") # in mm/day   
     return ds
 
 
