@@ -2,13 +2,8 @@
 
 import datetime
 import numpy as np
-import pandas as pd
-import sklearn as sk
-import matplotlib.pyplot as plt
 
-import DataExploration as de
 import DataPreparation as dp
-import FileDownloader as fd
 import Metrics as me
 
 import gpflow
@@ -28,29 +23,26 @@ ngari_mask = "Data/Ngari_mask.nc"
 xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
 
 # Random sampling multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', lenght=14000, maxyear=1993)
+xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000, maxyear=1993)
 """
 
 def multi_gp(xtrain, xval, ytrain, yval, save=False):
     """ Returns simple GP model """
 
     # model construction
-    k1 = gpflow.kernels.Periodic(
-        gpflow.kernels.RBF(lengthscales=0.3, variance=1, active_dims=[0])
-    )
+    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(lengthscales=1, variance=1, active_dims=[0]))
+    k1b = gpflow.kernels.RBF(lengthscales=2, variance=1, active_dims=[0])
     k2 = gpflow.kernels.RBF(lengthscales= np.ones(len(xval[0])-1), active_dims=np.arange(1, len(xval[0])))
     # k3 = gpflow.kernels.White()
 
-    k = k1 + k2  # +k
+    k = k1 * k1b + k2  # +k
 
     # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]), 1)), b=[1])
 
-    m = gpflow.models.GPR(
-        data=(xtrain, ytrain.reshape(-1, 1)), kernel=k) #, mean_function=mean_function)
+    m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k) #, mean_function=mean_function)
 
     opt = gpflow.optimizers.Scipy()
-    opt_logs = opt.minimize(
-        m.training_loss, m.trainable_variables) #, options=dict(maxiter=1000)
+    opt_logs = opt.minimize(m.training_loss, m.trainable_variables) #, options=dict(maxiter=1000)
     # print_summary(m)
 
     x_plot = np.concatenate((xtrain, xval))
