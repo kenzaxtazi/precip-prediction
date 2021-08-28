@@ -141,7 +141,7 @@ def benchmarking_subplots(timeseries, reference_dataset):
             ts = dp.average_over_coords(ts)
         
         axs[i].plot(timeseries[0].time.values, reference_dataset.tp.values, '--', c='grey')
-        axs[i].plot(timeseries[0].time.values, ts.tp.values, label=plot_label, c=cpal[i])
+        axs[i].plot(ts.time.values, ts.tp.values, label=plot_label, c=cpal[i])
         axs[i].legend()
 
         if 'tp_std' in (ts.variables):
