@@ -333,3 +333,9 @@ def slm_hpar_plots(da):
     ax.set_ylabel("Latitude")
     """
     plt.show()
+
+
+def test_log_likelihood(model, X_test, y_test):
+    """ Marginal log likelihood for GPy model on test data"""
+    _, test_log_likelihood, _ = model.inference_method.inference(model.kern, X_test, model.likelihood, y_test, model.mean_function, model.Y_metadata)
+    return test_log_likelihood
