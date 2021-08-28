@@ -1,4 +1,4 @@
-#  Precipitation Prediction
+#  Precipitation prediction
 
 Application of probabilistic machine learning methods to predicting local precipitation over the Upper Indus Basin.
 
