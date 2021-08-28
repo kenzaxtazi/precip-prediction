@@ -217,8 +217,8 @@ log_linear_m = linear_reg(hf_x_train, hf_y_train_log)
 x_met = convert_x_list_to_array([x_val, x_val])
 n = x_val.shape[0]
 
-log_lin_mf_l_y_pred, log_mf_l_y_std_pred = dp.inverse_log_transform(lin_mf_model.predict(x_met[:n]))
-log_lin_mf_h_y_pred, log_mf_h_y_std_pred = dp.inverse_log_transform(lin_mf_model.predict(x_met[n:]))
+log_lin_mf_l_y_pred, log_mf_l_y_std_pred = dp.inverse_log_transform(log_lin_mf_model.predict(x_met[:n]))
+log_lin_mf_h_y_pred, log_mf_h_y_std_pred = dp.inverse_log_transform(log_lin_mf_model.predict(x_met[n:]))
 
 lin_mf_l_y_pred, mf_l_y_std_pred = lin_mf_model.predict(x_met[:n])
 lin_mf_h_y_pred, mf_h_y_std_pred = lin_mf_model.predict(x_met[n:])
