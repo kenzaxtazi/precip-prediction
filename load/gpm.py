@@ -14,7 +14,7 @@ GPM precipitation is in mm/hour.
 """
 
 import glob
-import h5py
+#import h5py
 import requests
 
 import xarray as xr
