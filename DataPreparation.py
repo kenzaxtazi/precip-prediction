@@ -78,7 +78,7 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
     y_eval = eval_df["tp"].values
 
     # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
+    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=False)
 
     return xtrain, xval, xtest, ytrain, yval, ytest
 
