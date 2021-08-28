@@ -97,7 +97,7 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
     
 
 
-def single_location_comparison(location=[31.77, 76.933], station='Sainj', min_year=2000, max_year=2011):
+def single_location_comparison(location=[31.65, 77.34], station='Banjar', min_year=2000, max_year=2011):
     """ Plots model outputs for given coordinates over time """
     
     aphro_ds = aphrodite.collect_APHRO(location, minyear=min_year, maxyear=max_year)
@@ -111,9 +111,9 @@ def single_location_comparison(location=[31.77, 76.933], station='Sainj', min_ye
     # cordex_ds = dd.collect_CORDEX()
     # model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
     
-    timeseries = [gauge_ds, era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds, ]
+    timeseries = [gauge_ds, gpm_ds, era5_ds, wrf_ds, aphro_ds, cru_ds]
 
-    # tims.benchmarking_subplots(timeseries, reference_dataset=gauge_ds)
+    tims.benchmarking_subplots(timeseries, reference_dataset=gauge_ds)
     dataset_stats(timeseries, ref_ds=gauge_ds)
     # corr.dataset_correlation(timeseries)
     # pdf.benchmarking_plot(timeseries, kernel_density=False)
@@ -143,8 +143,8 @@ def multi_location_comparison():
     """ Plots model outputs for given coordinates over time """
 
     gauge_ds = beas_sutlej_gauges.all_gauge_data(minyear=2000, maxyear=2011, threshold=3653)
-    locations = [ [31.424, 76.417], [31.357, 76.878], [31.52, 77.22], 
-                 [31.67,77.06], [31.454,77.644], [31.238, 77.108] ] #[31.65, 77.34], [31.88, 77.15], [31.77, 77.31], [31.80, 77.19]
+    locations = [[31.424, 76.417], [31.357, 76.878], [31.52, 77.22], [31.67,77.06], [31.454,77.644], 
+                 [31.238, 77.108], [31.65, 77.34], [31.88, 77.15], [31.77, 77.31], [31.80, 77.19]]
 
     aphro_sets = []
     cru_sets = []
@@ -179,12 +179,12 @@ def multi_location_comparison():
     era5_mer_ds.attrs['plot_legend'] = 'ERA5'
 
     gpm_mer_ds = xr.concat(gpm_sets, dim='lon')
-    gpm_mer_ds.attrs['plot_legend'] = 'GPM'
+    gpm_mer_ds.attrs['plot_legend'] = 'TRMM'
 
     wrf_mer_ds = xr.concat(wrf_sets, dim='lon')
-    wrf_mer_ds.attrs['plot_legend'] = 'WRF_BC'
+    wrf_mer_ds.attrs['plot_legend'] = 'BC WRF'
      
-    timeseries = [era5_mer_ds, gpm_mer_ds, aphro_mer_ds, cru_mer_ds, wrf_mer_ds]
+    timeseries = [gpm_mer_ds, era5_mer_ds, wrf_mer_ds, aphro_mer_ds, cru_mer_ds]
     pdf.mult_gauge_loc_plot(gauge_ds, timeseries)
     
 
@@ -212,10 +212,12 @@ def gauge_stats():
     mlm_val_stations = {'Bhakra':[31.424, 76.417], 'Suni':[31.238,77.108], 'Pandoh':[31.67,77.06], 
                         'Janjehl': [31.52, 77.22], 'Bhuntar': [31.88, 77.15], 'Rampur': [31.454,77.644]}
 
+    val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
+
     r2_list = []
     rmse_list = []
 
-    for s in tqdm(mlm_val_stations):
+    for s in tqdm(bs_station_dict):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(s, minyear=2000, maxyear=2011)
         gauge_maxy = gauge_ds.time.max().values
