@@ -158,7 +158,7 @@ def global_map(uib_only=False, bs_only=False):
     plt.show()
 
 
-def indus_map(uib_only=False, bs_only=False):
+def indus_map():
     """ Returns two maps: global map with box, zoomed in map of the Upper Indus Basin """
 
     # River shapefiles
@@ -169,13 +169,21 @@ def indus_map(uib_only=False, bs_only=False):
     uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     uib_shape = shapereader.Reader(uib_path)
 
-    # Beas + Sutlej shapefile and projection
-    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
-    bs_shape = shapereader.Reader(bs_path)
-    bs_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
-    cranfield_crs = ccrs.LambertConformal(
-                central_longitude=82, central_latitude=20, false_easting=2000000.0, false_northing=2000000.0,
-                standard_parallels=[12.47294444444444,35.17280555555556], globe=bs_globe)
+    # Beas shapefile and projection
+    beas_path = "Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/beas_watershed.shp"
+    beas_shape = shapereader.Reader(beas_path)
+    beas_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
+    beas_cranfield_crs = ccrs.LambertConformal(
+                central_longitude=80, central_latitude=23, false_easting=0.0, false_northing=0.0,
+                standard_parallels=[30,30], globe=beas_globe)
+
+    # Sutlej shapefile and projection
+    stlj_path = "Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/sutlej_watershed.shp"
+    stlj_shape = shapereader.Reader(stlj_path)
+    stlj_globe = ccrs.Globe(semimajor_axis=6377276.345, inverse_flattening=300.8017)
+    stlj_cranfield_crs = ccrs.LambertConformal(
+                central_longitude=80, central_latitude=23, false_easting=0.0, false_northing=0.0,
+                standard_parallels=[30,30], globe=stlj_globe)
 
     # Other phyical features
     land_50m = cf.NaturalEarthFeature("physical", "land", "50m", edgecolor="face", facecolor=cf.COLORS["land"])
@@ -204,31 +212,37 @@ def indus_map(uib_only=False, bs_only=False):
     ax.add_feature(cf.BORDERS.with_scale("50m"), linewidth=0.5)
     ax.coastlines("50m", linewidth=0.5)
 
-    if bs_only == False:
-        for rec in uib_shape.records():
-            ax.add_geometries(
-                [rec.geometry],
-                ccrs.AlbersEqualArea(
-                    central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
-                ),
-                edgecolor="red",
-                facecolor="red",
-                alpha=0.1,
+    for rec in uib_shape.records():
+        ax.add_geometries(
+            [rec.geometry],
+            ccrs.AlbersEqualArea(
+                central_longitude=125, central_latitude=-15, standard_parallels=(7, -32)
+            ),
+            edgecolor="red",
+            facecolor="red",
+            alpha=0.1,
+        )
+    for rec in beas_shape.records():
+        ax.add_geometries(
+            [rec.geometry],
+            beas_cranfield_crs,
+            edgecolor="green",
+            facecolor="green",
+            alpha=0.1,
             )
 
-    if uib_only == False:
-        for rec in bs_shape.records():
-            ax.add_geometries(
-                [rec.geometry],
-                cranfield_crs,
-                edgecolor=None,
-                facecolor="green",
-                alpha=0.1,
-                )
+    for rec in stlj_shape.records():
+        ax.add_geometries(
+            [rec.geometry],
+            stlj_cranfield_crs,
+            edgecolor="blue",
+            facecolor="blue",
+            alpha=0.1,
+            )
 
     # ax.add_feature(rivers)
     for rec in as_shp.records():
-        if rec.attributes["name"] == "Indus":
+        if (rec.attributes["name"] == "Indus") | (rec.attributes["name"] == 'Beas')| (rec.attributes["name"] == 'Sutlej'):
             ax.add_geometries(
                 [rec.geometry],
                 ccrs.PlateCarree(),
@@ -415,15 +429,16 @@ def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker s
 
     # Figure 
     plt.figure("Gauge map")
+    
     ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([75, 83, 29, 34])
- 
+    ax.set_extent([75.5, 78.5, 30.25, 33.5])
+    gl = ax.gridlines(draw_labels=True)
     divnorm = colors.TwoSlopeNorm(vmin=-500., vcenter=0, vmax=6000.)
     top_ds.elevation.plot.contourf(cmap='gist_earth', levels=np.arange(0, 6000, 100), norm=divnorm,
-                                   cbar_kwargs={'label': 'Elavation [m]'})
-    for rec in bs_shape.records():
-        ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None', facecolor="blue", alpha=0.2)
-    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=5, c='k', label="Gauge locations")
+                                   cbar_kwargs={'label': 'Elevation [m]'})
+    #for rec in bs_shape.records():
+        #ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None', facecolor="grey", alpha=0.2)
+    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=10, c='k', label="Gauge locations", zorder=9, linewidths=0.5)
 
     mask_filepath = 'Data/Masks/Beas_Sutlej_mask.nc'
     mask = xr.open_dataset(mask_filepath)
@@ -440,10 +455,10 @@ def beas_sutlej_gauge_map(): # TODO could include length of datasets as marker s
     val_set = np.array([[31.65, 77.34], [31.424, 76.417], [31.80, 77.19], [31.357, 76.878], [31.52, 77.22], 
                  [31.67, 77.06], [31.454, 77.644], [31.77, 77.31], [31.238,77.108], [31.88, 77.15]])
 
-    ax.scatter(val_set[:,1], val_set[:,0], s=5, c='r', label='Validation locations')
-    ax.scatter(hf_train_stations['lon'], hf_train_stations['lat'], s=5, c='deepskyblue', label='Training locations')
+    ax.scatter(val_set[:,1], val_set[:,0], s=10, c='r', edgecolors='k', label='Validation locations', linewidths=0.5, zorder=9)
+    ax.scatter(hf_train_stations['lon'], hf_train_stations['lat'], s=10, c='dodgerblue', edgecolors='k', label='Training locations', linewidths=0.5, zorder=9)
     
-    gl = ax.gridlines(draw_labels=True)
+    
     gl.top_labels = False
     gl.right_labels = False
     ax.set_xlabel("Longitude")
