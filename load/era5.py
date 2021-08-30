@@ -23,9 +23,9 @@ def update_cds_monthly_data(
     dataset_name="reanalysis-era5-single-levels-monthly-means",
     product_type="monthly_averaged_reanalysis",
     variables=[
+        "geopotential",
         "2m_dewpoint_temperature",
         "angle_of_sub_gridscale_orography",
-        "geopotential",
         "slope_of_sub_gridscale_orography",
         "total_column_water_vapour",
         "total_precipitation",
@@ -94,11 +94,12 @@ def update_cds_monthly_data(
                     "area": area,
                 },
                 filepath,
+                
             )
         else:
             c.retrieve(
                 "reanalysis-era5-single-levels-monthly-means",
-                {
+                {   
                     "format": "netcdf",
                     "product_type": product_type,
                     "variable": variables,

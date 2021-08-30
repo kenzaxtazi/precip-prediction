@@ -58,7 +58,7 @@ def update_cds_monthly_data(
     variables=[
         "2m_dewpoint_temperature",
         "angle_of_sub_gridscale_orography",
-        "orography",
+        "geopotential",
         "slope_of_sub_gridscale_orography",
         "total_column_water_vapour",
         "total_precipitation",
