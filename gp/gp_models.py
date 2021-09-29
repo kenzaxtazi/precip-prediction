@@ -10,10 +10,10 @@ from gpflow.utilities import positive
 
 
 # Filepaths and URLs
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-khyber_mask = "Data/Khyber_mask.nc"
-gilgit_mask = "Data/Gilgit_mask.nc"
-ngari_mask = "Data/Ngari_mask.nc"
+mask_filepath = "_Data/ERA5_Upper_Indus_mask.nc"
+khyber_mask = "_Data/Khyber_mask.nc"
+gilgit_mask = "_Data/Gilgit_mask.nc"
+ngari_mask = "_Data/Ngari_mask.nc"
 
 
 """

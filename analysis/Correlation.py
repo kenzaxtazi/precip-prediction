@@ -14,9 +14,9 @@ from tqdm import tqdm
 
 
 # Filepaths
-mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "_Data/Masks/ERA5_Upper_Indus_mask.nc"
 eof_filepath = "/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc"
-corr_filepath = "Data/Performance/EOF_corr_pval.csv"
+corr_filepath = "_Data/Performance/EOF_corr_pval.csv"
 
 
 def input_correlation_heatmap():
@@ -152,7 +152,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     corr_df = corr_s.to_frame(name="corr")
     corr_df["pvalue"] = pvalue(df_clean)
 
-    filepath = "Data/EOF_corr_pval.csv"
+    filepath = "_Data/EOF_corr_pval.csv"
     corr_df.to_csv(filepath)
 
     return filepath

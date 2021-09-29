@@ -14,7 +14,7 @@ import gp_models as gpm
 import sampling as sa
 
 
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "_Data/ERA5_Upper_Indus_mask.nc"
 
 
 def single_loc_evaluation(location, perf_plot=False, hpar_plot=False):
@@ -88,7 +88,7 @@ def single_loc_evaluation(location, perf_plot=False, hpar_plot=False):
     )
 
     now = datetime.datetime.now()
-    df.to_csv("Data/single-locations-eval-" +
+    df.to_csv("_Data/single-locations-eval-" +
               now.strftime("%Y-%m-%d") + ".csv")
 
     print(df.mean(axis=0))

@@ -13,8 +13,8 @@ from load import era5
 from maps.plot_data import cumulative_monthly
 
 # Filepaths
-mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
-dem_filepath = "Data/elev.0.25-deg.nc"
+mask_filepath = "_Data/Masks/ERA5_Upper_Indus_mask.nc"
+dem_filepath = "_Data/elev.0.25-deg.nc"
 
 
 # Function inputs
@@ -435,7 +435,7 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
         df_pv = cluster_df.pivot(index="latitude", columns="longitude")
         df_pv = df_pv.droplevel(0, axis=1) + 1
         cluster_da = xr.DataArray(data=df_pv, name="overlap")
-        cluster_da.to_netcdf(path="Data/Masks/" + names[i] + "_mask.nc")
+        cluster_da.to_netcdf(path="_Data/Masks/" + names[i] + "_mask.nc")
         clusters.append(cluster_da)
 
     if plot is True:

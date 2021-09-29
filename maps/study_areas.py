@@ -17,11 +17,11 @@ from shapely.geometry import LinearRing
 def global_map(uib_only=False, bs_only=False):
     """ Return global map with study area(s) superimposed."""
     # UIB shapefile
-    uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
+    uib_path = "_Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     uib_shape = shapereader.Reader(uib_path)
 
     # Beas + Sutlej shapefile and projection
-    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
+    bs_path = "_Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
     bs_shape = shapereader.Reader(bs_path)
     bs_globe = ccrs.Globe(semimajor_axis=6377276.345,
                           inverse_flattening=300.8017)
@@ -62,15 +62,15 @@ def indus_map():
     """Return two maps: global map with box, zoomed in map of the Upper Indus Basin."""
 
     # River shapefiles
-    fpath = "Data/Shapefiles/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
+    fpath = "_Data/Shapefiles/ne_50m_rivers_lake_centerlines_scale_rank/ne_50m_rivers_lake_centerlines_scale_rank.shp"
     as_shp = shapereader.Reader(fpath)
 
     # UIB shapefile
-    uib_path = "Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
+    uib_path = "_Data/Shapefiles/UpperIndus_HP_shapefile/UpperIndus_HP.shp"
     uib_shape = shapereader.Reader(uib_path)
 
     # Beas shapefile and projection
-    beas_path = "Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/beas_watershed.shp"
+    beas_path = "_Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/beas_watershed.shp"
     beas_shape = shapereader.Reader(beas_path)
     beas_globe = ccrs.Globe(semimajor_axis=6377276.345,
                             inverse_flattening=300.8017)
@@ -79,7 +79,7 @@ def indus_map():
         false_northing=0.0, standard_parallels=[30, 30], globe=beas_globe)
 
     # Sutlej shapefile and projection
-    stlj_path = "Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/sutlej_watershed.shp"
+    stlj_path = "_Data/Shapefiles/beas-sutlej-shapefile/beas_sutlej_basins/sutlej_watershed.shp"
     stlj_shape = shapereader.Reader(stlj_path)
     stlj_globe = ccrs.Globe(semimajor_axis=6377276.345,
                             inverse_flattening=300.8017)
@@ -221,7 +221,7 @@ def beas_sutlej_gauge_map():
     df = pd.read_excel(filepath)
 
     # Beas and Sutlej shapefile and projection
-    bs_path = "Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
+    bs_path = "_Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
     bs_shape = shapereader.Reader(bs_path)
     bs_globe = ccrs.Globe(semimajor_axis=6377276.345,
                           inverse_flattening=300.8017)

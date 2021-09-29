@@ -31,7 +31,7 @@ import location_sel as ls
 
 def collect_GPM(location, minyear, maxyear):
     """ Load GPM data """
-    gpm_ds = xr.open_dataset("Data/GPM/gpm_pr_unc_2000-2010.nc")
+    gpm_ds = xr.open_dataset("_Data/GPM/gpm_pr_unc_2000-2010.nc")
 
     if type(location) == str:
         loc_ds = ls.select_basin(gpm_ds, location)
@@ -109,4 +109,4 @@ def to_netcdf():
     ds_merged = xr.merge(ds_list)
     print(ds_merged)
     ds_merged['tp'] = ds_merged['tp'] * 24  # to mm/day
-    ds_merged.to_netcdf("Data/GPM/gpm_pr_unc_2000-2010.nc")
+    ds_merged.to_netcdf("_Data/GPM/gpm_pr_unc_2000-2010.nc")

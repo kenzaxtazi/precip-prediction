@@ -6,16 +6,16 @@ import datetime
 def collect_CORDEX():
     """ Downloads data from CORDEX East Asia model """
     cordex_90_ds = xr.open_dataset(
-        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
+        "_Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
         "HadRM3P_v1_mon_199001-199012.nc")
     cordex_91_00_ds = xr.open_dataset(
-        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
+        "_Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
         "HadRM3P_v1_mon_199101-200012.nc")
     cordex_01_ds = xr.open_dataset(
-        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
+        "_Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
         "HadRM3P_v1_mon_200101-201012.nc")
     cordex_02_11_ds = xr.open_dataset(
-        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
+        "_Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-"
         "HadRM3P_v1_mon_201101-201111.nc")
     cordex_90_00_ds = cordex_90_ds.merge(cordex_91_00_ds)
     cordex_01_11_ds = cordex_01_ds.merge(cordex_02_11_ds)

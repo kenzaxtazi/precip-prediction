@@ -11,7 +11,7 @@ import location_sel as ls
 
 def collect_CRU(location, minyear, maxyear):
     """ Downloads interpolated data from CRU model"""
-    cru_ds = xr.open_dataset("Data/CRU/interpolated_cru_1901-2019.nc")
+    cru_ds = xr.open_dataset("_Data/CRU/interpolated_cru_1901-2019.nc")
 
     if type(location) == str:
         loc_ds = ls.select_basin(cru_ds, location)
@@ -28,7 +28,7 @@ def collect_CRU(location, minyear, maxyear):
 def download():
     """ Returns CRU data on a 0.25° by 0.25° grid """
     extent = ls.basin_extent('indus')
-    ds = xr.open_dataset("Data/CRU/cru_ts4.04.1901.2019.pre.dat.nc")
+    ds = xr.open_dataset("_Data/CRU/cru_ts4.04.1901.2019.pre.dat.nc")
     ds_cropped = ds.sel(
         lon=slice(extent[1], extent[3]), lat=slice(extent[2], extent[0]))
     ds_cropped['pre'] /= 30.437  # TODO apply proper function to get mm/day
@@ -44,7 +44,7 @@ def download():
     x = np.arange(70, 85, 0.25)
     y = np.arange(25, 35, 0.25)
     interp_ds = ds.interp(lon=x, lat=y, method="nearest")
-    interp_ds.to_netcdf("Data/CRU/interpolated_cru_1901-2019.nc")
+    interp_ds.to_netcdf("_Data/CRU/interpolated_cru_1901-2019.nc")
 
 
 def standardised_time(dataset):

@@ -10,14 +10,13 @@ import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 
-from load import era5
-from load import era5, cru, beas_sutlej_wrf, gpm, aphrodite
+from load import era5, cru, beas_sutlej_wrf, gpm, aphrodite, location_sel
 
 
 def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
     """ Annual map """
 
-    da = dd.apply_mask(data_filepath, mask_filepath)
+    da = location_sel.apply_mask(data_filepath, mask_filepath)
     ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00",
                      str(year + 1) + "-01-01T12:00:00"))
     ds_var = ds_year[variable] * 1000  # to mm/day
@@ -49,7 +48,7 @@ def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
 def change_maps(data_filepath, mask_filepath, variable):
     """ Average annual change from 1979 to 1989, 1999, 2009 and 2019 """
 
-    da = dd.apply_mask(data_filepath, mask_filepath)
+    da = location_sel.apply_mask(data_filepath, mask_filepath)
     da_var = da[variable] * 1000  # to mm/day
 
     da_1979 = da_var.sel(

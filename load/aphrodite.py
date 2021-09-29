@@ -16,7 +16,7 @@ import location_sel as ls
 def collect_APHRO(location, minyear, maxyear):
     """ Downloads data from APHRODITE model"""
 
-    aphro_ds = xr.open_dataset("Data/APHRODITE/aphrodite_indus_1951_2016.nc")
+    aphro_ds = xr.open_dataset("_Data/APHRODITE/aphrodite_indus_1951_2016.nc")
 
     if type(location) == str:
         loc_ds = ls.select_basin(aphro_ds, location)
@@ -67,4 +67,4 @@ def merge_og_files():
     time_arr = np.arange(round(minyear) + 1./24., round(maxyear), 1./12.)
     ds_merged['time'] = time_arr
 
-    ds_merged.to_netcdf("Data/APHRODITE/aphrodite_indus_1951_2016.nc")
+    ds_merged.to_netcdf("_Data/APHRODITE/aphrodite_indus_1951_2016.nc")

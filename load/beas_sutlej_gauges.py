@@ -60,7 +60,7 @@ def all_gauge_data(minyear, maxyear, threshold=None):
     e.g. for 10 year period -> 4018 - 365 = 3653
     """
 
-    filepath = "Data/qc_sushiwat_observations_MGM.xlsx"
+    filepath = "_Data/qc_sushiwat_observations_MGM.xlsx"
     daily_df = pd.read_excel(filepath)
 
     maxy_str = str(maxyear) + '-01-01'

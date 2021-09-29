@@ -11,7 +11,7 @@ from load import era5
 
 # Open data
 # data_filepath = fd.update_cds_monthly_data()
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "_Data/ERA5_Upper_Indus_mask.nc"
 
 
 month_labels = ["01", "02", "03", "04", "05",

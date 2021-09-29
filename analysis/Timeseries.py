@@ -76,7 +76,7 @@ def uib_sample_linreg():
     """ Plots sample timeseries for UIB clusters """
 
     # Open data
-    mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
+    mask_filepath = "_Data/Masks/ERA5_Upper_Indus_mask.nc"
     tp = era5.dodownload_data(mask_filepath, xarray=True)
     tp_da = tp.tp * 1000  # convert from m/day to mm/day
 

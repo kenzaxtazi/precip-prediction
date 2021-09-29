@@ -13,7 +13,7 @@ import gp.data_prep as dp
 
 
 data_filepath = era5.update_cds_monthly_data()
-mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
+mask_filepath = "_Data/ERA5_Upper_Indus_mask.nc"
 
 
 def sample_timeseries(
