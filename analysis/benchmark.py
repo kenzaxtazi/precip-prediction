@@ -198,33 +198,18 @@ def multi_location_comparison():
 def gauge_stats():
     """Print mean, standard deviations and slope for datasets."""
 
-    bs_station_dict = {'Arki': [31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar IMD': [31.637, 77.344],
-                       'Berthin': [31.471, 76.622], 'Bhakra': [31.424, 76.417], 'Barantargh': [31.087, 76.608],
-                       'Bhoranj': [31.648, 76.698], 'Bhuntar': [31.88, 77.15], 'Daslehra': [31.4, 76.55],
-                       'Dehra': [31.885, 76.218], 'Ganguwal': [31.25, 76.486], 'Ghanauli': [30.994, 76.527],
-                       'Ghumarwin': [31.436, 76.708], 'Hamirpur': [31.684, 76.519], 'Janjehl': [31.52, 77.22],
-                       'Jogindernagar': [32.036, 76.734], 'Kalatop': [32.552, 76.018], 'Kalpa': [31.54, 78.258],
-                       'Kangra': [32.103, 76.271], 'Karsog': [31.383, 77.2], 'Kasol': [31.357, 76.878],
-                       'Kaza': [32.225, 78.072], 'Kotata': [31.233, 76.534], 'Kumarsain': [31.317, 77.45],
-                       'Larji': [31.80, 77.19], 'Lohard': [31.204, 76.561], 'Mashobra': [31.13, 77.229],
-                       'Nadaun': [31.783, 76.35], 'Naina Devi': [31.279, 76.554], 'Nangal': [31.368, 76.404],
-                       'Olinda': [31.401, 76.385], 'Palampur': [32.107, 76.543], 'Pandoh': [31.67, 77.06],
-                       'Rampur': [31.454, 77.644], 'Rampur IMD': [31.452, 77.633], 'Sadar-Bilarspur': [31.348, 76.762],
-                       'Sadar-Mandi': [31.712, 76.933], 'Sainj': [31.77, 76.933], 'Salooni': [32.728, 76.034],
-                       'Sarkaghat': [31.704, 76.812], 'Sujanpur': [31.832, 76.503], 'Sundernargar': [31.534, 76.905],
-                       'Suni': [31.238, 77.108], 'Suni IMD': [31.23, 77.164], 'Swaghat': [31.713, 76.746],
-                       'Theog': [31.124, 77.347]}
-
-    mlm_val_stations = {'Bhakra': [31.424, 76.417], 'Suni': [31.238, 77.108], 'Pandoh': [31.67, 77.06],
-                        'Janjehl': [31.52, 77.22], 'Bhuntar': [31.88, 77.15], 'Rampur': [31.454, 77.644]}
-
+    bs_station_df = pd.DataFrame.from_csv('_Data/bs_only_gauge_info.csv')
+    '''
+    mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
+                        'Rampur']
     val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj',
                     'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
+    '''
 
     r2_list = []
     rmse_list = []
 
-    for s in tqdm(bs_station_dict):
+    for s in tqdm(bs_station_df):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(
             s, minyear=2000, maxyear=2011)
@@ -233,7 +218,7 @@ def gauge_stats():
         miny = gauge_miny - 0.0001
         maxy = gauge_maxy + 0.0001
 
-        location = bs_station_dict[s]
+        location = bs_station_df[s].values
 
         aphro_ds = aphrodite.collect_APHRO(
             location, minyear=miny, maxyear=maxy)
