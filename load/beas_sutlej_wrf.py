@@ -52,8 +52,10 @@ def reformat_bannister_data():
     bias_corr_precip = wrf_ds.bias_corrected_precipitation.values
     time = wrf_ds.time.values
 
-    ds = xr.Dataset(data_vars=dict(m_precip=(["time", "x", "y"], m_precip), bias_corr_precip=(["time", "x", "y"], bias_corr_precip)),
-                    coords=dict(lon=(["x", "y"], XLONG), lat=(["x", "y"], XLAT), time=time))
+    ds = xr.Dataset(data_vars=dict(m_precip=(["time", "x", "y"], m_precip),
+                    bias_corr_precip=(["time", "x", "y"], bias_corr_precip)),
+                    coords=dict(lon=(["x", "y"], XLONG),
+                    lat=(["x", "y"], XLAT), time=time))
     ds2 = (ds.resample(time="M")).mean()
     ds2['time'] = ds2.time.astype(float)/365/24/60/60/1e9 + 1970
 
@@ -99,6 +101,8 @@ def interp(ds):
     interp_grid = np.array(grid_list)
 
     # Turn into xarray DataSet
-    new_ds = xr.Dataset(data_vars=dict(tp=(["time", "lon", "lat"], interp_grid)),
-                        coords=dict(lon=(["lon"], x), lat=(["lat"], y), time=(['time'], times)))
+    new_ds = xr.Dataset(data_vars=dict(
+        tp=(["time", "lon", "lat"], interp_grid)),
+        coords=dict(lon=(["lon"], x), lat=(["lat"], y),
+                    time=(['time'], times)))
     return new_ds
