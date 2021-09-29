@@ -1,4 +1,4 @@
-""" 
+"""
 Functions to help dowload data given
 - Basin name
 - Sub-basin name
@@ -8,36 +8,36 @@ import xarray as xr
 
 
 def select_basin(dataset, location):
-    """ Interpolate dataset at given coordinates """  
+    """ Interpolate dataset at given coordinates """
     mask_filepath = find_mask(location)
-    basin = apply_mask(dataset, mask_filepath)   
+    basin = apply_mask(dataset, mask_filepath)
     return basin
 
 
 def find_mask(location):
     """ Returns a mask filepath for given location """
-    mask_dic = {'ngari':'Data/Masks/Ngari_mask.nc', 'khyber':'Data/Masks/Khyber_mask.nc', 
-                'gilgit':'Data/Masks/Gilgit_mask.nc', 'uib':'Data/Masks/ERA5_Upper_Indus_mask.nc',
-                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas':'Data/Masks/Beas_mask.nc',
+    mask_dic = {'ngari': 'Data/Masks/Ngari_mask.nc', 'khyber': 'Data/Masks/Khyber_mask.nc',
+                'gilgit': 'Data/Masks/Gilgit_mask.nc', 'uib': 'Data/Masks/ERA5_Upper_Indus_mask.nc',
+                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas': 'Data/Masks/Beas_mask.nc',
                 'beas_sutlej': 'Data/Masks/Beas_Sutlej_mask.nc'}
     mask_filepath = mask_dic[location]
     return mask_filepath
 
 
 def basin_finder(loc):
-    """ 
+    """
     Finds basin to load data from.
     Input
         loc: list of coordinates [lat, lon] or string refering to an area.
     Output
         basin , string: name of the basin.
     """
-    basin_dic ={'indus': 'indus', 'uib': 'indus', 'sutlej':'indus', 'beas':'indus',
-                'beas_sutlej':'indus', 'khyber': 'indus', 'ngari': 'indus', 'gilgit':'indus'}
+    basin_dic = {'indus': 'indus', 'uib': 'indus', 'sutlej': 'indus', 'beas': 'indus',
+                 'beas_sutlej': 'indus', 'khyber': 'indus', 'ngari': 'indus', 'gilgit': 'indus'}
     if loc is str:
         basin = basin_dic[loc]
         return basin
-    if loc is not str: # fix to search with coords
+    if loc is not str:  # fix to search with coords
         return 'Not a string'
 
 
@@ -72,6 +72,5 @@ def apply_mask(data, mask_filepath):
 
 def basin_extent(string):
     """ Returns extent of basin to save data """
-    basin_dic = {'indus':[40, 65, 25, 85]}
+    basin_dic = {'indus': [40, 65, 25, 85]}
     return basin_dic[string]
-

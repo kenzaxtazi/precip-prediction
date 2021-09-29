@@ -1,5 +1,6 @@
 # Correlation
 
+from load import era5
 import scipy as sp
 import numpy as np
 import xarray as xr
@@ -9,13 +10,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cf
 import matplotlib.pyplot as plt
 
-from sklearn.cluster import KMeans
 from tqdm import tqdm
-
-import DataExploration as de
-import DataDownloader as dd
-import FileDownloader as fd
-import Clustering as cl
 
 
 # Filepaths
@@ -26,7 +21,7 @@ corr_filepath = "Data/Performance/EOF_corr_pval.csv"
 
 def input_correlation_heatmap():
 
-    df = dd.download_data(mask_filepath, all_var=True)
+    df = era5.download_data(mask_filepath, all_var=True)
 
     # create lags
     df["N34-1"] = df["N34"].shift(periods=393)
@@ -69,7 +64,7 @@ def cluster_correlation_heatmap():
     names = ["Gilgit regime", "Ngari regime", "Khyber regime"]
 
     for i in range(3):
-        cluster_df = dd.download_data(masks[i])
+        cluster_df = era5.download_data(masks[i])
 
         # create lags
         cluster_df["CGTI-1"] = cluster_df["CGTI"].shift(periods=1)
@@ -131,7 +126,7 @@ def eof_correlation(eof_filepath, mask_filepath):
     """ Returns plot and DataArray of areas with p<0.05 """
 
     print("processing precipitation")
-    da = dd.download_data(mask_filepath, xarray=True)
+    da = era5.download_data(mask_filepath, xarray=True)
     tp_ds = da.mean(dim=["latitude", "longitude"]).tp
     tp = tp_ds.assign_coords(time=(tp_ds.time.astype("datetime64")))
     tp_df = tp.to_dataframe()

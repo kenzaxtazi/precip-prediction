@@ -10,7 +10,7 @@ import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 
-import DataDownloader as dd
+from load import era5
 from load import era5, cru, beas_sutlej_wrf, gpm, aphrodite
 
 

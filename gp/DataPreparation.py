@@ -12,7 +12,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 
-import DataDownloader as dd
+from load import era5
 import Sampling as sa
 import Clustering as cl
 
@@ -38,13 +38,13 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         y_test: testing output vector, numpy array
     """
     if number is notNone:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
     if EDA_average is True:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
-        da = dd.download_data(location, xarray=True)
+        da = era5.download_data(location, xarray=True)
 
     if location is str:
         multiindex_df = da.to_dataframe()
@@ -105,14 +105,14 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
     """
 
     if number is notNone:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
 
     if EDA_average is True:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
-        da = dd.download_data(location, xarray=True)
+        da = era5.download_data(location, xarray=True)
 
     # apply mask
     mask_filepath = find_mask(location)
@@ -166,13 +166,13 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
         y_tr: evaluation output vector, numpy array
     """
     if number is notNone:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
     if EDA_average is True:
-        da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
-        da = dd.download_data(location, xarray=True)
+        da = era5.download_data(location, xarray=True)
 
     sliced_da = da.sel(time=slice(minyear, maxyear))
 

@@ -16,7 +16,7 @@ from sklearn.model_selection import GridSearchCV
 
 import FileDownloader as fd
 import DataPreparation as dp
-import DataDownloader as dd
+from load import era5
 
 
 # Open data
@@ -40,7 +40,7 @@ def monthly_PDF(timeseries, variable="tp", longname=""):
         df3 = df2.drop(["time", "lon", "lat"], axis=1)
         combined_df[ts.plot_legend] = df3[ts.plot_legend]
 
-    df = dd.download_data(mask_filepath)
+    df = era5.download_data(mask_filepath)
     clean_df = df.dropna()
     df_var = clean_df[["time", variable]]
     reduced_df = df_var.reset_index()

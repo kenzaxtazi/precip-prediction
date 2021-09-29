@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import DataDownloader as dd
+from load import era5
 
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 
@@ -36,7 +36,7 @@ def random_location_generator(location, N=50):
 
     coord_list = []
 
-    df = dd.download_data(location)
+    df = era5.download_data(location)
     df_squished = df[["lat", "lon"]].reset_index()
     df_s_reset = df_squished.drop_duplicates(subset=["lat", "lon"])
 

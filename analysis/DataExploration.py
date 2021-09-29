@@ -16,7 +16,7 @@ from scipy import signal
 
 import FileDownloader as fd
 import DataPreparation as dp
-import DataDownloader as dd
+from load import era5
 
 data_filepath = fd.update_cds_monthly_data()
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
@@ -26,8 +26,9 @@ tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
 mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
 """
 
+
 def sample_timeseries(
-    data_filepath, variable="tp", longname="Total precipitation [m/day]"):
+        data_filepath, variable="tp", longname="Total precipitation [m/day]"):
     """ Timeseries for Gilgit, Skardu and Leh"""
 
     da = xr.open_dataset(data_filepath)
@@ -74,7 +75,7 @@ def nans_in_data():  # TODO
 def averaged_timeseries(mask_filepath, variable="tp", longname="Total precipitation [m/day]"):
     """ Timeseries for the Upper Indus Basin"""
 
-    df = dd.download_data(mask_filepath)
+    df = era5.download_data(mask_filepath)
 
     df_var = df[["time", variable]]
 
@@ -102,12 +103,14 @@ def zeros_in_data(da):
     df = da.to_dataframe("Precipitation")
 
     # Bar chart
-    reduced_df = (df.reset_index()).drop(labels=["latitude", "longitude"], axis=1)
+    reduced_df = (df.reset_index()).drop(
+        labels=["latitude", "longitude"], axis=1)
     clean_df = reduced_df.dropna()
 
     zeros = clean_df[clean_df["Precipitation"] <= 0.00000]
     zeros["ones"] = np.ones(len(zeros))
-    zeros["time"] = pd.to_datetime(zeros["time"].astype(int)).dt.strftime("%Y-%m")
+    zeros["time"] = pd.to_datetime(
+        zeros["time"].astype(int)).dt.strftime("%Y-%m")
     gr_zeros = zeros.groupby("time").sum()
 
     gr_zeros.plot.bar(y="ones", rot=0, legend=False)
@@ -154,7 +157,8 @@ def zeros_in_data(da):
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([70, 83, 30, 38])
-    g = UIB_outline.plot(cmap="Blues_r", vmax=-0.5, vmin=-5, add_colorbar=False)
+    g = UIB_outline.plot(cmap="Blues_r", vmax=-0.5,
+                         vmin=-5, add_colorbar=False)
     g.cmap.set_over("white")
     w = West_da.plot(
         cmap="magma_r",
@@ -182,7 +186,7 @@ def detrend(df, axis):
 def spatial_autocorr(variable, mask_filepath):  # TODO
     """ Plots spatial autocorrelation """
 
-    df = dd.download_data(mask_filepath)
+    df = era5.download_data(mask_filepath)
     # detrend
     table = pd.pivot_table(
         df, values="tp", index=["latitude", "longitude"], columns=["time"]
@@ -227,7 +231,8 @@ def spatial_autocorr(variable, mask_filepath):  # TODO
     plt.show()
 
 
-def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total precipitation [m/day]"):  # TODO
+# TODO
+def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total precipitation [m/day]"):
     """ Plots temporal autocorrelation """
 
     da = xr.open_dataset(data_filepath)
@@ -253,17 +258,20 @@ def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total p
 
     fig, axs = plt.subplots(3, sharex=True, sharey=True)
 
-    axs[0].acorr(gilgit_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    axs[0].acorr(gilgit_df[variable], usevlines=True,
+                 normed=True, maxlags=50, lw=2)
     axs[0].set_title("Gilgit (35.8884°N, 74.4584°E, 1500m)")
     axs[0].set_xlabel(" ")
     axs[0].grid(True)
 
-    axs[1].acorr(skardu_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    axs[1].acorr(skardu_df[variable], usevlines=True,
+                 normed=True, maxlags=50, lw=2)
     axs[1].set_title("Skardu (35.3197°N, 75.5550°E, 2228m)")
     axs[1].set_xlabel(" ")
     axs[1].grid(True)
 
-    a = axs[2].acorr(leh_df[variable], usevlines=True, normed=True, maxlags=50, lw=2)
+    a = axs[2].acorr(leh_df[variable], usevlines=True,
+                     normed=True, maxlags=50, lw=2)
     axs[2].set_title("Leh (34.1536°N, 77.5706°E, 3500m)")
     axs[2].set_xlabel("Year")
     axs[2].grid(True)
@@ -275,22 +283,21 @@ def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total p
     return a
 
 
-
 def tp_vs(variable, longname="", location='uib', time=False):
-
     """
     df = dp.download_data(mask_filepath)
     df_var = df[['time','tp', variable]]
     #df_mean = df_var.groupby('time').mean()
     """
 
-    ds = dd.download_data(location, xarray=True)
+    ds = era5.download_data(location, xarray=True)
 
-    if type(location) is str: 
+    if type(location) is str:
         mask_filepath = dp.find_mask(location)
         masked_ds = dd.apply_mask(ds, mask_filepath)
     else:
-        masked_ds = ds.interp(coords={"lon": location[1], "lat": location[0]}, method="nearest")
+        masked_ds = ds.interp(
+            coords={"lon": location[1], "lat": location[0]}, method="nearest")
 
     if type(time) == str:
         masked_ds = ds.isel(time=-6)
@@ -303,7 +310,7 @@ def tp_vs(variable, longname="", location='uib', time=False):
 
     # Plot
     df_var.plot.scatter(x=variable, y="tp", alpha=0.2, c="b")
-    if type(location) is str: 
+    if type(location) is str:
         plt.title(location)
     else:
         plt.title(str(location[0]) + '°N, ' + str(location[1]) + '°E')

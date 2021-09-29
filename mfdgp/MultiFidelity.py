@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import GPy
 
-import DataDownloader as dd
+from load import era5
 import DataPreparation as dp
 
 import emukit

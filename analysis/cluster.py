@@ -1,5 +1,6 @@
 # Clustering
 
+
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -8,7 +9,7 @@ import cartopy.crs as ccrs
 
 from sklearn.cluster import KMeans
 
-import load.DataDownloader as dd
+from load import era5
 from maps.plot_data import cumulative_monthly
 
 # Filepaths
@@ -24,7 +25,7 @@ dem_da = (dem.data).sum(dim="time")
 sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
 # Precipitation data
-da = dd.download_data(mask_filepath, xarray=True)
+da = era5.download_data(mask_filepath, xarray=True)
 tp_da = da.tp
 
 # Decade list
