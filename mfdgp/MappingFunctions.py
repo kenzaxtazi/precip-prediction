@@ -4,17 +4,14 @@ import matplotlib.pyplot as plt
 import GPy
 import pandas as pd
 
-import data_prep as dp
+import gp.data_prep as dp
 from load import beas_sutlej_gauges, era5, srtm
 
 import emukit
-from emukit.multi_fidelity.convert_lists_to_array import convert_x_list_to_array, convert_xy_lists_to_arrays
+from emukit.multi_fidelity.convert_lists_to_array \
+    import convert_x_list_to_array, convert_xy_lists_to_arrays
 from emukit.model_wrappers.gpy_model_wrappers import GPyMultiOutputWrapper
 from emukit.multi_fidelity.models import GPyLinearMultiFidelityModel
-from emukit.multi_fidelity.models.non_linear_multi_fidelity_model import make_non_linear_kernels, NonLinearMultiFidelityModel
-
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
 
 # Prepare Data
 
@@ -31,10 +28,14 @@ hf_train_df2 = station_df[(station_df['lon'] < 76.60) & (
 hf_train_df3 = station_df[(station_df['lon'] > 77.0)
                           & (station_df['lat'] < 31)]
 hf_train_df4 = station_df[(station_df['lon'] < 78.0) & (
-    station_df['lon'] > 77.0) & (station_df['lat'] > 31) & (station_df['lat'] < 31.23)]
+    station_df['lon'] > 77.0) & (station_df['lat'] > 31)
+    & (station_df['lat'] < 31.23)]
 hf_train_df5 = station_df[(station_df['lon'] > 78.2)]
-hf_train_stations = list(hf_train_df1['index'].values) + list(hf_train_df2['index'].values) + list(
-    hf_train_df3['index'].values) + list(hf_train_df4['index'].values) + list(hf_train_df5['index'].values)
+hf_train_stations = list(hf_train_df1['index'].values)
++ list(hf_train_df2['index'].values)
++ list(hf_train_df3['index'].values)
++ list(hf_train_df4['index'].values)
++ list(hf_train_df5['index'].values)
 
 lf_train_stations = hf_train_stations + \
     (['Banjar', 'Larji', 'Bhuntar', 'Sainj', 'Bhakra',
@@ -46,7 +47,7 @@ hf_train_list = []
 for station in hf_train_stations:
     station_ds = beas_sutlej_gauges.gauge_download(
         station, minyear=1980, maxyear=2010)
-    station_ds['z'] = station_dict[station][2]
+    station_ds['z'] = station_df[station].values[2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
@@ -59,7 +60,7 @@ hf_val_list = []
 for station in hf_val_stations:
     station_ds = beas_sutlej_gauges.gauge_download(
         station, minyear=1980, maxyear=2010)
-    station_ds['z'] = station_dict[station][2]
+    station_ds['z'] = station_df[station].values[2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')
@@ -72,7 +73,7 @@ hf_val_ds = xr.merge(hf_val_list)
 lf_train_list = []
 for station in lf_train_stations:
     station_ds = era5.gauge_download(station, minyear=1980, maxyear=2010)
-    station_ds['z'] = station_dict[station][2]
+    station_ds['z'] = station_df[station].values[2]
     station_ds['slope'] = srtm.find_slope(station).slope.values
     station_ds = station_ds.set_coords('z')
     station_ds = station_ds.set_coords('slope')

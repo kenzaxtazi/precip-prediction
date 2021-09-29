@@ -1,36 +1,20 @@
 # Multi fidelity modeling
 
-import pandas as pd
-import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import GPy
 
-from load import era5
-import data_prep as dp
-
 import emukit
 from emukit.model_wrappers.gpy_model_wrappers import GPyMultiOutputWrapper
 from emukit.multi_fidelity.models import GPyLinearMultiFidelityModel
-from emukit.multi_fidelity.models.non_linear_multi_fidelity_model import make_non_linear_kernels, NonLinearMultiFidelityModel
+from emukit.multi_fidelity.models.non_linear_multi_fidelity_model \
+    import make_non_linear_kernels, NonLinearMultiFidelityModel
 
-
-def hf_lf_data_plot(lf_arr, hf_arr):
-
-    x_max = lf_arr.max()
-    x = np.linspace(0, x_max, 2)
-
-    plt.figure(figsize=(10, 10))
-    plt.scatter(lf_arr, hf_arr, c='purple', label='HF-LF Correlation')
-    plt.plot(x, x, 'k--', alpha=0.25)
-    plt.xlabel('LF(x)')
-    plt.ylabel('HF(x)')
-    plt.legend()
-    plt.show()
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 def linear_model(X_train, Y_train, save=False):
-    """ Returns GPy model of linear multi fidelity GP (Kennedy and O'Hagan 2000) """
+    """ Returns GPy model of linear multi fidelity GP."""
 
     kernels = [GPy.kern.RBF(1), GPy.kern.RBF(1)]
     lin_mf_kernel = emukit.multi_fidelity.kernels.LinearMultiFidelityKernel(
@@ -47,7 +31,7 @@ def linear_model(X_train, Y_train, save=False):
         gpy_lin_mf_model, 2, n_optimization_restarts=5)
     lin_mf_model.optimize()
 
-    if save is notFalse:
+    if save is not False:
         lin_mf_model.save_model(save)
 
     return lin_mf_model
@@ -59,7 +43,8 @@ def nonlinear_model(X_train, Y_train, save=False):
     base_kernel = GPy.kern.RBF
     kernels = make_non_linear_kernels(base_kernel, 2, X_train.shape[1] - 1)
     nonlin_mf_model = NonLinearMultiFidelityModel(
-        X_train, Y_train, n_fidelities=2, kernels=kernels, verbose=True, optimization_restarts=5)
+        X_train, Y_train, n_fidelities=2, kernels=kernels, verbose=True,
+        optimization_restarts=5)
 
     for m in nonlin_mf_model.models:
         m.Gaussian_noise.variance.fix(0)
@@ -67,13 +52,15 @@ def nonlinear_model(X_train, Y_train, save=False):
     # Optimise
     nonlin_mf_model.optimize()
 
-    if save is notFalse:
+    if save is not False:
         nonlin_mf_model.save_model(save)
 
     return nonlin_mf_model
 
 
-def unseen_data_plot(x_train_l, y_train_l, x_train_h, y_train_h, xval, yval, x_plot):
+def unseen_data_plot(x_train_l, y_train_l, x_train_h, y_train_h, x_val, y_val,
+                     x_plot, lf_mean_model, hf_mean_model, lf_std_model,
+                     hf_std_model):
 
     plt.figure(figsize=(20, 20))
 
@@ -85,15 +72,19 @@ def unseen_data_plot(x_train_l, y_train_l, x_train_h, y_train_h, xval, yval, x_p
     plt.plot(x_plot, hf_mean_model, '--y', label='Predicted High Fidelity')
 
     oned_x_plot = x_plot.flatten()
-    oned_lf_mean_mf_model = lf_mean_mf_model.flatten()
-    oned_lf_std_mf_model = lf_std_mf_model.flatten()
-    oned_hf_mean_mf_model = hf_mean_mf_model.flatten()
-    oned_hf_std_mf_model = hf_std_mf_model.flatten()
+    oned_lf_mean_mf_model = lf_mean_model.flatten()
+    oned_lf_std_mf_model = lf_std_model.flatten()
+    oned_hf_mean_mf_model = hf_mean_model.flatten()
+    oned_hf_std_mf_model = hf_std_model.flatten()
 
-    plt.fill_between(oned_x_plot, oned_lf_mean_mf_model - 1.96 * oned_lf_std_mf_model,
-                     oned_lf_mean_mf_model + 1.96 * oned_lf_std_mf_model, color='mediumseagreen', alpha=0.2)
-    plt.fill_between(oned_x_plot, oned_hf_mean_mf_model - 1.96 * oned_hf_std_mf_model,
-                     oned_hf_mean_mf_model + 1.96 * oned_hf_std_mf_model, color='y', alpha=0.2)
+    plt.fill_between(oned_x_plot,
+                     oned_lf_mean_mf_model - 1.96 * oned_lf_std_mf_model,
+                     oned_lf_mean_mf_model + 1.96 * oned_lf_std_mf_model,
+                     color='mediumseagreen', alpha=0.2)
+    plt.fill_between(oned_x_plot,
+                     oned_hf_mean_mf_model - 1.96 * oned_hf_std_mf_model,
+                     oned_hf_mean_mf_model + 1.96 * oned_hf_std_mf_model,
+                     color='y', alpha=0.2)
 
     plt.xlabel('x')
     plt.ylabel('Precipitation (mm/day)')
@@ -108,3 +99,17 @@ def metrics(y_val, y_pred):
 
     R2 = r2_score(y_val, y_pred)
     print(R2)
+
+
+def hf_lf_data_plot(lf_arr, hf_arr):
+
+    x_max = lf_arr.max()
+    x = np.linspace(0, x_max, 2)
+
+    plt.figure(figsize=(10, 10))
+    plt.scatter(lf_arr, hf_arr, c='purple', label='HF-LF Correlation')
+    plt.plot(x, x, 'k--', alpha=0.25)
+    plt.xlabel('LF(x)')
+    plt.ylabel('HF(x)')
+    plt.legend()
+    plt.show()
