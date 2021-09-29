@@ -1,7 +1,29 @@
-#  Precipitation prediction
+# Precipitation prediction
 
 Application of probabilistic machine learning methods to predicting local precipitation over the Upper Indus Basin (Himalayas).
 
-The scripts use ERA5 re-analysis data (see <https://cds.climate.copernicus.eu>). You will need to create an account and a credentials file to use the API included in the code (see <https://cds.climate.copernicus.eu/api-how-to>).
+## analysis
 
-Please get in touch for the basin masks and shapefiles.
+Functions to analyse data including:
+
+- clustering
+- correlation
+- principal component analysis
+- probability distribution functions
+- timeseries
+
+## gp
+
+Functions to train and evaluate GPs using GPflow for precicting precipitation from other ERA5 climatic variables.
+
+## load
+
+Functions to load data and format data. The source of the different datasets used can be found in the submodule files. Please get in touch for the basin masks and shapefiles.
+
+## maps
+
+Functions to plot maps data and study areas.
+
+## mfdgp
+
+Functions to train and evalute Multi-Fidelity Deep Gaussian Processes using GPy and emukit.
