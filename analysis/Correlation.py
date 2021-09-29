@@ -20,6 +20,7 @@ corr_filepath = "Data/Performance/EOF_corr_pval.csv"
 
 
 def input_correlation_heatmap():
+    """Plot correlation heatmap for model inputs."""
 
     df = era5.download_data(mask_filepath, all_var=True)
 
@@ -59,6 +60,7 @@ def input_correlation_heatmap():
 
 
 def cluster_correlation_heatmap():
+    """Plot correlation heatmap for the three clusters."""
 
     masks = ["Khyber_mask.nc", "Gilgit_mask.nc", "Ngari_mask.nc"]
     names = ["Gilgit regime", "Ngari regime", "Khyber regime"]
@@ -123,7 +125,7 @@ def cluster_correlation_heatmap():
 
 
 def eof_correlation(eof_filepath, mask_filepath):
-    """ Returns plot and DataArray of areas with p<0.05 """
+    """ Returns plot and DataArray of areas with p<0.05."""
 
     print("processing precipitation")
     da = era5.download_data(mask_filepath, xarray=True)
@@ -157,6 +159,7 @@ def eof_correlation(eof_filepath, mask_filepath):
 
 
 def eof_correlation_map(corr_filepath):
+    """Plots map of correlation for EOFs."""
 
     raw_df = pd.read_csv(corr_filepath, names=["coords", "corr", "pvalue"])
     corr_df = raw_df[2:]
@@ -201,7 +204,7 @@ def pvalue(df):
 
 
 def dataset_correlation(timeseries):
-    """ Plots correlation heatmap for datasets """
+    """Plots correlation heatmap for datasets."""
 
     dataframes = []
 

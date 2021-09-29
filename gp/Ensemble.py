@@ -7,11 +7,10 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 import GPModels as gpm
 import DataPreparation as dp
-import Metrics as me
+import metrics as me
 
 
-
-## Empty lists
+# Empty lists
 model_list = []
 
 ytrain_list = []
@@ -23,13 +22,13 @@ yval_pred_list = []
 yval_std_pred_list = []
 
 
-## Runs
+# Runs
 
 for i in range(10):
 
     xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib',
-        number=i, length=10000
-    )
+                                                              number=i, length=10000
+                                                              )
 
     ytrain_list.append(ytrain)
     yval_list.append(yval)
@@ -46,7 +45,7 @@ for i in range(10):
     yval_std_pred_list.append(yval_std_pred)
     """
 
-## Ensemble
+# Ensemble
 
 yval_array = np.array(yval_list)
 yval_df = pd.DataFrame(yval_array.reshape(10, -1))
@@ -89,5 +88,6 @@ std_mean = np.concatenate((ytrain_std_pred_df['mean'], yval_std_pred_df['mean'])
 """
 # me.ensemble_model_plot(model_list)
 
-## Averaged EDA Data
-m_a = gpm.multi_gp(xtrain, xval, ytrain_df["mean"].values, yval_df["mean"].values)
+# Averaged EDA Data
+m_a = gpm.multi_gp(
+    xtrain, xval, ytrain_df["mean"].values, yval_df["mean"].values)

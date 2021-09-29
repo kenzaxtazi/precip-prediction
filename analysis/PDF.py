@@ -1,21 +1,11 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import xarray as xr
-import cartopy.crs as ccrs
 import pandas as pd
-import cartopy.feature as cf
-import matplotlib.ticker as tck
-import matplotlib.cm as cm
-import DataExploration as de
-
-import matplotlib
 
 from sklearn.neighbors import KernelDensity
 from sklearn.model_selection import GridSearchCV
 
-import FileDownloader as fd
-import DataPreparation as dp
 from load import era5
 
 
@@ -26,8 +16,9 @@ mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
 
 month_labels = ["01", "02", "03", "04", "05",
                 "06", "07", "08", "09", "10", "11", "12"]
-month_dict = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June",
-              6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"}
+month_dict = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May",
+              5: "June", 6: "July", 7: "August", 8: "September",
+              9: "October", 10: "November", 11: "December"}
 
 
 def monthly_PDF(timeseries, variable="tp", longname=""):
@@ -53,7 +44,7 @@ def monthly_PDF(timeseries, variable="tp", longname=""):
         month_df = reduced_df[reduced_df["time"] == m]
         grouped_dfs.append(month_df[variable])
 
-   # PDF for each month
+    # PDF for each month
 
     """
     fig, axs = plt.subplots(4, 3, sharex=True, sharey=True)
@@ -66,7 +57,8 @@ def monthly_PDF(timeseries, variable="tp", longname=""):
         axs[x,y].set_title(month_dict[i])
         axs[x,y].set_xlabel('Total precipation [m]')
         axs[x,y].set_ylabel('Probability density')
-        axs[x,y].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1)
+        axs[x,y].axvline(np.percentile(grouped_dfs[i], 95), color='k',
+        linestyle='dashed', linewidth=1)
     """
 
     """
@@ -78,7 +70,8 @@ def monthly_PDF(timeseries, variable="tp", longname=""):
         axs[i].set_title(month_dict[i])
         axs[i].set_xlabel('Total precipation [m]')
         axs[i].set_ylabel('Probability density')
-        axs[i].axvline(np.percentile(grouped_dfs[i], 95), color='k', linestyle='dashed', linewidth=1)
+        axs[i].axvline(np.percentile(grouped_dfs[i], 95), color='k',
+        linestyle='dashed', linewidth=1)
     """
 
     _fig, axs = plt.subplots(3, 4, sharex=True, sharey=True)
@@ -150,8 +143,9 @@ def benchmarking_plot(timeseries, kernel_density=False):
                 log_dens = kde.score_samples(X_plot)
                 axs[x, y].fill(X_plot[:, 0], np.exp(log_dens), label=b)
             else:
-                axs[x, y].hist((grouped_dfs[i])[b], density=True, label=b, bins=np.arange(
-                    0, int(combined_df.max().max())))  # alpha=.5)
+                axs[x, y].hist((grouped_dfs[i])[b], density=True, label=b,
+                               bins=np.arange(0, int(combined_df.max().max())))
+                # alpha=.5)
         axs[x, y].set_title(month_dict[i])
         axs[x, y].set_title(month_dict[i])
         axs[x, y].xaxis.set_tick_params(which="both", labelbottom=True)
@@ -206,12 +200,13 @@ def cdf_benchmarking_plot(timeseries, kernel_density=False):
 
             data = grouped_dfs[i][b].values
             X_plot = np.linspace(0, data.max(), 1000)[:, np.newaxis]
-            #data_sorted = np.sort(data)
-            _p = 1. * np.arange(len(data)) / (len(data) - 1)
+            # data_sorted = np.sort(data)
+            # p = 1. * np.arange(len(data)) / (len(data) - 1)
 
             if kernel_density is True:
                 n, _bins, _patches = np.hist(
-                    (grouped_dfs[i])[b], cumulative=True, density=True, label=b)
+                    (grouped_dfs[i])[b], cumulative=True, density=True,
+                    label=b)
                 X = n.reshape(-1, 1)
                 kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(X)
                 log_dens = kde.score_samples(X_plot)
@@ -241,7 +236,7 @@ def cdf_benchmarking_plot(timeseries, kernel_density=False):
 
 
 def mult_gauge_loc_plot(gauge_ds, other_datasets):
-    """ Plot probability distribution of datasets for mulitple gauge locations """
+    """ Plot pdf of datasets for mulitple gauge locations."""
 
     gauge_df = gauge_ds.to_dataframe()
     ind_df = gauge_df.reset_index()
@@ -276,8 +271,9 @@ def mult_gauge_loc_plot(gauge_ds, other_datasets):
         else:
             leg = False
 
-        sns.kdeplot(data=month_list[i].drop(['Gauge data'], axis=1), linestyle='--',
-                    ax=axs[x, y], bw_adjust=1, legend=leg, common_norm=False)
+        sns.kdeplot(data=month_list[i].drop(['Gauge data'], axis=1),
+                    linestyle='--', ax=axs[x, y], bw_adjust=1, legend=leg,
+                    common_norm=False)
         sns.kdeplot(data=month_list[i]['Gauge data'],
                     c='k', ax=axs[x, y], bw_adjust=1, legend=leg)
 

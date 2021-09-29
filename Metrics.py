@@ -1,15 +1,10 @@
 # Metrics
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import DataExploration as de
-import DataPreparation as dp
-import FileDownloader as fd
-import Clustering as cl
-import GPModels as gpm
+import gp.DataPreparation as dp
 
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -33,13 +28,13 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     """ Returns plot for multivariate GP for a single loation """
 
     if slm is True:
-        if number == None:
+        if number is None:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
                 location, number=number)
         else:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
     else:
-        if number == None:
+        if number is None:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
                 location, number=number)
         else:
@@ -68,10 +63,12 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     )
 
     plt.scatter(
-        xtrain[:, 0] + 1979, ytrain_t, color="green", label="ERA5 training data", s=10
+        xtrain[:, 0] + 1979, ytrain_t, color="green",
+        label="ERA5 training data", s=10
     )
     plt.scatter(
-        xval[:, 0] + 1979, yval_t, color="orange", label="ERA5 validation data", s=10
+        xval[:, 0] + 1979, yval_t, color="orange",
+        label="ERA5 validation data", s=10
     )
 
     plt.plot(xtr[:, 0] + 1979, y_gpr_t, color="C0",
@@ -80,7 +77,7 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     if posteriors is True:
         plt.plot(xtr[:, 0] + 1979, samples_t[:, :, 0].T, "C0", linewidth=0.5)
 
-    if location == None:
+    if location is None:
         plt.title("GP fit")
     else:
         plt.title("GP fit for " +
@@ -93,7 +90,7 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
     plt.show()
 
 
-def ensemble_model_plot(location, models, slm=True):
+def ensemble_model_plot(location, model, slm=True):
     """ Returns plot for ensemble of multivariate GP for a single loation """
 
     palette = sns.color_palette("husl", 10)
@@ -120,14 +117,15 @@ def ensemble_model_plot(location, models, slm=True):
         y_std_t = dp.inverse_log_transform(log_y_std)
         samples_t = dp.inverse_log_transform(log_samples)
         ytr_t = dp.inverse_log_transform(ytr)
-        #yval_t = dp.inverse_log_transform(yval)
+        # yval_t = dp.inverse_log_transform(yval)
 
         plt.scatter(xtr[:, 0] + 1979, ytr_t,
                     label="ERA5 data", color=palette[i])
         plt.plot(samples_t)
 
         plt.plot(
-            xtr[:, 0] + 1981, y_gpr_t, color=palette[i], linestyle="-", label="Prediction"
+            xtr[:, 0] + 1981, y_gpr_t, color=palette[i], linestyle="-",
+            label="Prediction"
         )
         plt.fill_between(
             xtr[:, 0] + 1981,
@@ -173,8 +171,8 @@ def plot_residuals(x_train, y_train, x_test, y_test, m):
     y_train_t = dp.inverse_log_transform(y_train) * 1000
     y_test_pred_t = dp.inverse_log_transform(y_test_pred) * 1000
     y_train_pred_t = dp.inverse_log_transform(y_train_pred) * 1000
-    y_test_std_t = dp.inverse_log_transform(y_test_std) * 1000
-    y_train_std_t = dp.inverse_log_transform(y_train_std) * 1000
+    # y_test_std_t = dp.inverse_log_transform(y_test_std) * 1000
+    # y_train_std_t = dp.inverse_log_transform(y_train_std) * 1000
 
     plt.figure()
     plt.title("Residuals")

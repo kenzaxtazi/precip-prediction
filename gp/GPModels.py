@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 
 import DataPreparation as dp
-import Metrics as me
+import metrics as me
 
 import gpflow
 import tensorflow as tf

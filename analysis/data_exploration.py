@@ -4,27 +4,16 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 import cartopy.crs as ccrs
-import matplotlib.cm as cm
 import cartopy.feature as cf
 import matplotlib.pyplot as plt
-import matplotlib.ticker as tck
-
-from shapely.geometry import Polygon, shape, LinearRing
-from cartopy.io import shapereader
-from cartopy import config
 from scipy import signal
 
-import FileDownloader as fd
-import DataPreparation as dp
-from load import era5
+from load import era5, location_sel
+import gp.DataPreparation as dp
 
-data_filepath = fd.update_cds_monthly_data()
+
+data_filepath = era5.update_cds_monthly_data()
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
-
-"""
-tp_filepath = 'Data/era5_tp_monthly_1979-2019.nc'
-mpl_filepath = 'Data/era5_msl_monthly_1979-2019.nc'
-"""
 
 
 def sample_timeseries(
@@ -72,7 +61,8 @@ def nans_in_data():  # TODO
     """ Returns number of nans in data with plots for UIB """
 
 
-def averaged_timeseries(mask_filepath, variable="tp", longname="Total precipitation [m/day]"):
+def averaged_timeseries(mask_filepath, variable="tp",
+                        longname="Total precipitation [m/day]"):
     """ Timeseries for the Upper Indus Basin"""
 
     df = era5.download_data(mask_filepath)
@@ -152,7 +142,7 @@ def zeros_in_data(da):
 
     UIB_sum = da.sum(dim="time")
     UIB_outline = UIB_sum.where(UIB_sum <= 0, -1)
-    UIB_borders = UIB_sum.where(UIB_sum > 0, -10)
+    # UIB_borders = UIB_sum.where(UIB_sum > 0, -10)
 
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
@@ -214,7 +204,7 @@ def spatial_autocorr(variable, mask_filepath):  # TODO
         plt.figure()
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
-        g = da.plot(
+        da.plot(
             x="longitude",
             y="latitude",
             add_colorbar=True,
@@ -231,9 +221,9 @@ def spatial_autocorr(variable, mask_filepath):  # TODO
     plt.show()
 
 
-# TODO
-def temp_autocorr(data_filepath, mask_filepath, variable="tp", longname="Total precipitation [m/day]"):
-    """ Plots temporal autocorrelation """
+def temp_autocorr(data_filepath, mask_filepath, variable="tp",
+                  longname="Total precipitation [m/day]"):
+    """Plots temporal autocorrelation."""
 
     da = xr.open_dataset(data_filepath)
     if "expver" in list(da.dims):
@@ -294,7 +284,7 @@ def tp_vs(variable, longname="", location='uib', time=False):
 
     if type(location) is str:
         mask_filepath = dp.find_mask(location)
-        masked_ds = dd.apply_mask(ds, mask_filepath)
+        masked_ds = location_sel.apply_mask(ds, mask_filepath)
     else:
         masked_ds = ds.interp(
             coords={"lon": location[1], "lat": location[0]}, method="nearest")

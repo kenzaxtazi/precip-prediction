@@ -125,7 +125,7 @@ def benchmarking_plot(timeseries):
 
 
 def benchmarking_subplots(timeseries, reference_dataset):
-    """ 
+    """
     Plot timeseries of model outputs.
     Assumes that timeseries and model outputs are already formatted.
     """
@@ -160,5 +160,5 @@ def benchmarking_subplots(timeseries, reference_dataset):
 
 def rolling_timseries_comparison(timeseries, xtr, y_gpr_t, y_std_t):
     """ Plot rolling averaged timeseries of model outputs """
-
+    # TODO
     return 1
