@@ -146,8 +146,11 @@ def benchmarking_subplots(timeseries, reference_dataset):
         axs[i].legend()
 
         if 'tp_std' in (ts.variables):
-            plt.fill_between(timeseries[0].time.values, ts.tp.values - 1.9600 * ts.tp_std.values, ts.tp.values + 1.9600 * ts.tp_std.values,
-                             alpha=0.5, color="lightblue")  # label="95% confidence interval")
+            plt.fill_between(timeseries[0].time.values,
+                             ts.tp.values - 1.9600 * ts.tp_std.values,
+                             ts.tp.values + 1.9600 * ts.tp_std.values,
+                             alpha=0.5, color="lightblue")
+            # label="95% confidence interval")
 
     plt.xlabel('Time')
     plt.ylabel('Precipitation mm/day')

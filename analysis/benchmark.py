@@ -107,8 +107,8 @@ def single_location_comparison(location=[31.65, 77.34], station='Banjar',
     gauge_ds = beas_sutlej_gauges.gauge_download(
         station, minyear=min_year, maxyear=max_year)
 
-    # cmip_ds = dd.collect_CMIP5()
-    # cordex_ds = dd.collect_CORDEX()
+    # cmip_ds = cmip5.collect_CMIP5()
+    # cordex_ds = cordex.collect_CORDEX()
     # model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', \
     # model_filepath=model_filepath)
 
@@ -130,8 +130,8 @@ def basin_comparison(model_filepath, location):
     wrf_ds = beas_sutlej_wrf.collect_BC_WRF(
         location, minyear=2000, maxyear=2011)
 
-    # cmip_ds = dd.collect_CMIP5()
-    # cordex_ds = dd.collect_CORDEX()
+    # cmip_ds = cmip5.collect_CMIP5()
+    # cordex_ds = cordex.collect_CORDEX()
     # cmip_bs = select_basin(cmip_ds, location)
     # cordex_bs = select_basin(cordex_ds, location)
     # model_bs = model_prep(location, model_filepath)
