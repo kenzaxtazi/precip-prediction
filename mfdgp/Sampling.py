@@ -40,7 +40,7 @@ def random_location_generator(location, N=50):
     df_squished = df[["lat", "lon"]].reset_index()
     df_s_reset = df_squished.drop_duplicates(subset=["lat", "lon"])
 
-    if UIB == True:
+    if UIB is True:
         coord_list = df_s_reset[["lat", "lon"]].values
 
     else:

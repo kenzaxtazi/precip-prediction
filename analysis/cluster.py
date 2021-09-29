@@ -3,45 +3,42 @@
 import numpy as np
 import xarray as xr
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import cartopy.feature as cf
 
 from sklearn.cluster import KMeans
 
-import DataExploration as de
-import DataPreparation as dp
-import DataDownloader as dd
-import Maps as maps
+import load.DataDownloader as dd
+from maps.plot_data import cumulative_monthly
 
-## Filepaths
+# Filepaths
 mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
 dem_filepath = "Data/elev.0.25-deg.nc"
 
 
-## Function inputs
+# Function inputs
 
-### Digital Elevation Model data
+# Digital Elevation Model data
 dem = xr.open_dataset(dem_filepath)
 dem_da = (dem.data).sum(dim="time")
 sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
-### Precipitation data
+# Precipitation data
 da = dd.download_data(mask_filepath, xarray=True)
 tp_da = da.tp
 
-### Decade list
+# Decade list
 decades = [1980, 1990, 2000, 2010]
 
-### Cluster list
+# Cluster list
 N = np.arange(2, 11, 1)
 
 
 def seasonal_clusters(tp_da, sliced_dem, N, decades):
     """
-    K-means clustering of precipitation data as a function of seasons, decades and number of clusters.
-    Returns spatial graphs, overlayed with the local topography contours.
+    K-means clustering of precipitation data as a function of seasons, decades
+    and number of clusters. Returns spatial graphs, overlayed with the local
+    topography contours.
 
     Inputs:
         UIB_cum: precipitation data (data array)
@@ -53,13 +50,15 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
         FacetGrid plots
     """
 
-    UIB_cum = maps.cumulative_monthly(tp_da)
+    UIB_cum = cumulative_monthly(tp_da)
 
     # Seperation into seasons
     JFM = UIB_cum.where(UIB_cum.time.dt.month <= 3)
     OND = UIB_cum.where(UIB_cum.time.dt.month >= 10)
-    AMJ = UIB_cum.where(UIB_cum.time.dt.month < 7).where(UIB_cum.time.dt.month > 3)
-    JAS = UIB_cum.where(UIB_cum.time.dt.month < 10).where(UIB_cum.time.dt.month > 6)
+    AMJ = UIB_cum.where(UIB_cum.time.dt.month < 7).where(
+        UIB_cum.time.dt.month > 3)
+    JAS = UIB_cum.where(UIB_cum.time.dt.month < 10).where(
+        UIB_cum.time.dt.month > 6)
 
     seasons = [JFM, AMJ, JAS, OND]
     scmap = {0: "Reds", 1: "Oranges", 2: "Blues", 3: "Greens"}
@@ -76,7 +75,8 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
                 # Median cumulative rainfall for decades
                 UIB_d = seasons[s].sel(
                     time=slice(
-                        str(d) + "-01-01T12:00:00", str(d + 10) + "-01-01T12:00:00"
+                        str(d) + "-01-01T12:00:00", str(d + 10) +
+                        "-01-01T12:00:00"
                     )
                 )
                 UIB_median = UIB_d.median(dim="time")
@@ -102,7 +102,8 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
             UIB_cluster_list.append(
                 xr.concat(
                     UIB_dec_list,
-                    pd.Index(["1980s", "1990s", "2000s", "2010s"], name="Decade"),
+                    pd.Index(["1980s", "1990s", "2000s",
+                             "2010s"], name="Decade"),
                 )
             )
 
@@ -168,8 +169,9 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
 
 def annual_clusters(UIB_cum, sliced_dem, N, decades):
     """
-    K-means clustering of annual precipitation data as a function of decades and number of clusters.
-    Returns spatial graphs, overlayed with the local topography.
+    K-means clustering of annual precipitation data as a function of decades
+    and number of clusters. Returns spatial graphs, overlayed with the local
+    topography.
 
     Inputs:
         UIB_cum: precipitation data (data array)
@@ -190,7 +192,8 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
         for d in decades:
             # Median cumulative rainfall for decades
             UIB_d = UIB_cum.sel(
-                time=slice(str(d) + "-01-01T12:00:00", str(d + 10) + "-01-01T12:00:00")
+                time=slice(str(d) + "-01-01T12:00:00",
+                           str(d + 10) + "-01-01T12:00:00")
             )
             UIB_median = UIB_d.median(dim="time")
 
@@ -273,15 +276,17 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
 
 def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
     """
-    Soft k-means clustering of precipitation timeseries as a function of decades and number of clusters.
-    Returns spatial graphs, overlayed with the local topography.
+    Soft k-means clustering of precipitation timeseries as a function of
+    decades and number of clusters. Returns spatial graphs, overlayed with
+    the local topography.
 
     Inputs:
         UIB_cum: precipitation data (data array)
         sliced_dem: local topography data (data array)
         N: number of cluster to perform kmeans on (list)
         decades: decades to analyse (list)
-        filter: probabilty filtering threshold for soft kmeans (float btw 0 (no filtering) and 1)
+        filter: probabilty filtering threshold for soft kmeans
+        (float between 0 (no filtering) and 1)
 
     Returns:
         FacetGrid plots
@@ -296,7 +301,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
         for d in decades:
             # Median cumulative rainfall for decades
             UIB_d = UIB_cum.sel(
-                time=slice(str(d) + "-01-01T12:00:00", str(d + 10) + "-01-01T12:00:00")
+                time=slice(str(d) + "-01-01T12:00:00",
+                           str(d + 10) + "-01-01T12:00:00")
             )
 
             # To DataFrame
@@ -322,7 +328,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
                 filtered_df = filtering(X, kmeans, thresh=filter)
 
             # To DataArray
-            df_plot = filtered_df.reset_index()[["Labels", "latitude", "longitude"]]
+            df_plot = filtered_df.reset_index(
+            )[["Labels", "latitude", "longitude"]]
             df_pv = df_plot.pivot(index="latitude", columns="longitude")
             df_pv = df_pv.droplevel(0, axis=1)
             da = xr.DataArray(data=df_pv, name=str(d) + "s")
@@ -394,7 +401,8 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
     Inputs:
         tp_da: total precipitation data array
         N: number of clusters (integer)
-        filter: soft k-means filtering threshold, float btw 0 (no filtering) and 1
+        filter: soft k-means filtering threshold, float between 0 (no
+        filtering) and 1
         plot: boolean for plotting
         confidence_plot: boolean for plotting the k-means weights
 
@@ -409,8 +417,8 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
     df = multi_index_df.reset_index()
     df_clean = df[df["tp"] > 0]
     table = pd.pivot_table(
-        df_clean, values="tp", index=["latitude", "longitude"], columns=["time"]
-    )
+        df_clean, values="tp", index=["latitude", "longitude"],
+        columns=["time"])
     X = table.interpolate()
 
     # Soft k-means
@@ -429,7 +437,7 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
         cluster_da.to_netcdf(path="Data/Masks/" + names[i] + "_mask.nc")
         clusters.append(cluster_da)
 
-    if plot == True:
+    if plot is True:
 
         df_pv = reset_df.pivot(index="latitude", columns="longitude")
         df_pv = df_pv.droplevel(0, axis=1)
@@ -439,28 +447,31 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
         plt.figure()
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
-        c = ["#2460A7FF", "#85B3D1FF", "#D9B48FFF"]
+        # c = ["#2460A7FF", "#85B3D1FF", "#D9B48FFF"]
         g = da.plot(
-            x="longitude", y="latitude", add_colorbar=False, ax=ax, levels=N + 1
-        )  # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
+            x="longitude", y="latitude", add_colorbar=False, ax=ax,
+            levels=N + 1)
+        # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
         cbar = plt.colorbar(g, ticks=[0.4, 1.2, 2], pad=0.10)
-        cbar.ax.set_yticklabels(["Gilgit regime", "Ngari regime", "Khyber regime"])
+        cbar.ax.set_yticklabels(
+            ["Gilgit regime", "Ngari regime", "Khyber regime"])
         ax.gridlines(draw_labels=True)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
         plt.show()
 
-    if confidence_plot == True:
+    if confidence_plot is True:
         df_clean = df[df["tp"] > 0]
         table = pd.pivot_table(
-            df_clean, values="tp", index=["latitude", "longitude"], columns=["time"]
-        )
+            df_clean, values="tp", index=["latitude", "longitude"],
+            columns=["time"])
         X = table.interpolate()
         # Soft k-means
         kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
         unfiltered_df = filtering(X, kmeans, thresh=0)
 
-        conf_df = unfiltered_df.reset_index()[["weights", "latitude", "longitude"]]
+        conf_df = unfiltered_df.reset_index(
+        )[["weights", "latitude", "longitude"]]
         df_pv = conf_df.pivot(index="latitude", columns="longitude")
         df_pv = df_pv.droplevel(0, axis=1)
         conf_da = xr.DataArray(data=df_pv, name="Confidence")
@@ -488,13 +499,15 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
 
 
 def soft_clustering_weights(data, cluster_centres, **kwargs):
-
     """
-    Taken from: https://towardsdatascience.com/confidence-in-k-means-d7d3a13ca856
+    Taken from:
+    https://towardsdatascience.com/confidence-in-k-means-d7d3a13ca856
 
     Function to calculate the weights from soft k-means
-    data: Array of data. shape = N x F, for N data points and F Features
-    cluster_centres: Array of cluster centres. shape = Nc x F, for Nc number of clusters. Input kmeans.cluster_centres_ directly.
+    data: array of data. shape = N x F, for N data points and
+        F Features
+    cluster_centres: array of cluster centres. shape = Nc x F, for Nc number
+        of clusters. Input kmeans.cluster_centres_ directly.
     param: m - keyword argument, fuzziness of the clustering. Default 2
     """
 
@@ -505,9 +518,10 @@ def soft_clustering_weights(data, cluster_centres, **kwargs):
 
     Nclusters = cluster_centres.shape[0]
     Ndp = data.shape[0]
-    Nfeatures = data.shape[1]
+    # Nfeatures = data.shape[1]
 
-    # Get distances from the cluster centres for each data point and each cluster
+    # Get distances from the cluster centres for each data point and each
+    # cluster
     EuclidDist = np.zeros((Ndp, Nclusters))
     for i in range(Nclusters):
         EuclidDist[:, i] = np.sum(
@@ -537,8 +551,8 @@ def new_gp_clusters(df, N=3, filter=0.7):
 
     df_clean = df[df["tp"] > 0]
     table = pd.pivot_table(
-        df_clean, values="tp", index=["latitude", "longitude"], columns=["time"]
-    )
+        df_clean, values="tp", index=["latitude", "longitude"],
+        columns=["time"])
     X = table.interpolate()
 
     # Soft k-means
@@ -547,7 +561,8 @@ def new_gp_clusters(df, N=3, filter=0.7):
 
     # Seperate labels and append as DataArray
     reset_df = filtered_df.reset_index()[["Labels", "latitude", "longitude"]]
-    df_combined = pd.merge_ordered(df_clean, reset_df, on=["latitude", "longitude"])
+    df_combined = pd.merge_ordered(df_clean, reset_df, on=[
+                                   "latitude", "longitude"])
     clean_df = df_combined.dropna()
 
     return clean_df

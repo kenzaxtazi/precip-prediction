@@ -1,8 +1,5 @@
 # Correlation
 
-import datetime
-import urllib
-
 import scipy as sp
 import numpy as np
 import xarray as xr
@@ -21,7 +18,7 @@ import FileDownloader as fd
 import Clustering as cl
 
 
-### Filepaths
+# Filepaths
 mask_filepath = "Data/Masks/ERA5_Upper_Indus_mask.nc"
 eof_filepath = "/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc"
 corr_filepath = "Data/Performance/EOF_corr_pval.csv"
@@ -184,7 +181,8 @@ def eof_correlation_map(corr_filepath):
     plt.figure()
     ax = plt.subplot(projection=ccrs.PlateCarree())
     corr_da.plot(
-        cbar_kwargs={"label": "\n Correlation", "extend": "neither", "pad": 0.10}
+        cbar_kwargs={"label": "\n Correlation",
+                     "extend": "neither", "pad": 0.10}
     )
     pval_da.plot.contour(levels=[0.05])
     ax.add_feature(cf.BORDERS)
@@ -211,14 +209,14 @@ def dataset_correlation(timeseries):
     """ Plots correlation heatmap for datasets """
 
     dataframes = []
-    
+
     for ts in timeseries:
         df1 = ts.tp.to_dataframe(name=ts.plot_legend)
         df2 = df1.reset_index()
         df3 = df2.drop(["time", "lon", "lat"], axis=1)
         dataframes.append(df3)
-    
-    combined_df = dataframes[0].join(dataframes[1:]) 
+
+    combined_df = dataframes[0].join(dataframes[1:])
     corr = combined_df.corr()
 
     sns.set(style="white")

@@ -1,19 +1,12 @@
 # Data Downloader
 
 import os
-import glob
-import calendar
 import datetime
 import xarray as xr
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn import preprocessing
-from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
-
 import FileDownloader as fd
+from LocationSel import basin_finder
 
 
 def download_data(location, xarray=False, ensemble=False, all_var=False):
@@ -36,13 +29,13 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
     path = "Data/ERA5/"
     now = datetime.datetime.now()
 
-    if ensemble == True:
+    if ensemble is True:
         filename = "combi_data_ensemble" + "_" + \
             basin + "_" + now.strftime("%m-%Y") + ".csv"
-    if all_var == True:
+    if all_var is True:
         filename = "all_data" + "_" + basin + \
             "_" + now.strftime("%m-%Y") + ".csv"
-    elif ensemble == False:
+    elif ensemble is False:
         filename = "combi_data" + "_" + basin + \
             "_" + now.strftime("%m-%Y") + ".csv"
 
@@ -58,7 +51,7 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
             cds_df, ind_df, on="time", suffixes=("", "_y"))
 
         # Other variables not used in the GP
-        if all_var == True:
+        if all_var is True:
             mean_df = mean_downloader(basin)
             uib_eofs_df = eof_downloader(basin, all_var=all_var)
 
@@ -82,8 +75,8 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
         df_clean = df_clean.astype("float64")
         df_clean.to_csv(filepath)
 
-        if xarray == True:
-            if ensemble == True:
+        if xarray is True:
+            if ensemble is True:
                 df_multi = df_clean.set_index(
                     ["time", "long", "lat", "number"]
                 )
@@ -104,8 +97,8 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
         df = pd.read_csv(filepath)
         df_clean = df.drop(columns=["Unnamed: 0"])
 
-        if xarray == True:
-            if ensemble == True:
+        if xarray is True:
+            if ensemble is True:
                 df_multi = df_clean.set_index(
                     ["time", "lon", "lat", "number"]
                 )
@@ -159,7 +152,7 @@ def mean_downloader(basin):
             da = da.sel(expver=1)
             da = da.drop(["expver"])
 
-        if coords != None:
+        if coords is not None:
             da = da.sel(
                 latitude=slice(coords[0], coords[2]),
                 longitude=slice(coords[1], coords[3]),
@@ -170,7 +163,7 @@ def mean_downloader(basin):
             time=(mean_da.time.astype("datetime64")))
         multiindex_df = clean_da.to_dataframe()
         df = multiindex_df  # .reset_index()
-        if name != None:
+        if name is not None:
             df.rename(columns={"EOF": name}, inplace=True)
 
         return df
@@ -183,45 +176,45 @@ def mean_downloader(basin):
 
     # EOFs for 200hPa
     eof1_z200_c = mean_formatter(
-        "Data/ERA5/regional_z200_EOF1.nc", coords=[40, 60, 35, 70], name="EOF200C1"
-    )
+        "Data/ERA5/regional_z200_EOF1.nc",
+        coords=[40, 60, 35, 70], name="EOF200C1")
     eof1_z200_b = mean_formatter(
-        "Data/ERA5/regional_z200_EOF1.nc", coords=[19, 83, 16, 93], name="EOF200B1"
-    )
+        "Data/ERA5/regional_z200_EOF1.nc",
+        coords=[19, 83, 16, 93], name="EOF200B1")
     eof2_z200_c = mean_formatter(
-        "Data/ERA5/regional_z200_EOF2.nc", coords=[40, 60, 35, 70], name="EOF200C2"
-    )
+        "Data/ERA5/regional_z200_EOF2.nc",
+        coords=[40, 60, 35, 70], name="EOF200C2")
     eof2_z200_b = mean_formatter(
-        "Data/ERA5/regional_z200_EOF2.nc", coords=[19, 83, 16, 93], name="EOF200B2"
-    )
+        "Data/ERA5/regional_z200_EOF2.nc",
+        coords=[19, 83, 16, 93], name="EOF200B2")
 
     # EOFs for 500hPa
     eof1_z500_c = mean_formatter(
-        "Data/ERA5/regional_z500_EOF1.nc", coords=[40, 60, 35, 70], name="EOF500C1"
-    )
+        "Data/ERA5/regional_z500_EOF1.nc",
+        coords=[40, 60, 35, 70], name="EOF500C1")
     eof1_z500_b = mean_formatter(
-        "Data/ERA5/regional_z500_EOF1.nc", coords=[19, 83, 16, 93], name="EOF500B1"
-    )
+        "Data/ERA5/regional_z500_EOF1.nc",
+        coords=[19, 83, 16, 93], name="EOF500B1")
     eof2_z500_c = mean_formatter(
-        "Data/ERA5/regional_z500_EOF2.nc", coords=[40, 60, 35, 70], name="EOF500C2"
-    )
+        "Data/ERA5/regional_z500_EOF2.nc",
+        coords=[40, 60, 35, 70], name="EOF500C2")
     eof2_z500_b = mean_formatter(
-        "Data/ERA5/regional_z500_EOF2.nc", coords=[19, 83, 16, 93], name="EOF500B2"
-    )
+        "Data/ERA5/regional_z500_EOF2.nc",
+        coords=[19, 83, 16, 93], name="EOF500B2")
 
     # EOFs for 850hPa
     eof1_z850_c = mean_formatter(
-        "Data/ERA5/regional_z850_EOF1.nc", coords=[40, 60, 35, 70], name="EOF850C1"
-    )
+        "Data/ERA5/regional_z850_EOF1.nc",
+        coords=[40, 60, 35, 70], name="EOF850C1")
     eof1_z850_b = mean_formatter(
-        "Data/ERA5/regional_z850_EOF1.nc", coords=[19, 83, 16, 93], name="EOF850B1"
-    )
+        "Data/ERA5/regional_z850_EOF1.nc",
+        coords=[19, 83, 16, 93], name="EOF850B1")
     eof2_z850_c = mean_formatter(
-        "Data/ERA5/regional_z850_EOF2.nc", coords=[40, 60, 35, 70], name="EOF850C2"
-    )
+        "Data/ERA5/regional_z850_EOF2.nc",
+        coords=[40, 60, 35, 70], name="EOF850C2")
     eof2_z850_b = mean_formatter(
-        "Data/ERA5/regional_z850_EOF2.nc", coords=[19, 83, 16, 93], name="EOF850B2"
-    )
+        "Data/ERA5/regional_z850_EOF2.nc",
+        coords=[19, 83, 16, 93], name="EOF850B2")
 
     eof_df = pd.concat(
         [
@@ -304,7 +297,7 @@ def indice_downloader(all_var=False):
 
     n34_df = fd.update_url_data(n34_url, "N34")
 
-    if all_var == False:
+    if all_var is False:
         ind_df = n34_df.astype("float64")
     else:
         nao_df = fd.update_url_data(nao_url, "NAO")
@@ -317,7 +310,7 @@ def indice_downloader(all_var=False):
 def cds_downloader(basin, ensemble=False, all_var=False):
     """ Return CDS Dataframe """
 
-    if ensemble == False:
+    if ensemble is False:
         cds_filepath = fd.update_cds_monthly_data(area=basin)
     else:
         cds_filepath = fd.update_cds_monthly_data(
@@ -388,44 +381,3 @@ def collect_CORDEX():
     cordex_ds['time'] = standardised_time(cordex_ds)
 
     return cordex_ds
-
-
-def collect_APHRO():
-    """ Downloads data from APHRODITE model"""
-    aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob(
-        '/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
-    aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE")  # in mm/day
-    aphro_ds = aphro_ds.rename_vars({'precip': 'tp'})
-    aphro_ds['time'] = standardised_time(aphro_ds)
-    return aphro_ds
-
-
-def collect_CRU():
-    """ Downloads data from CRU model"""
-    cru_ds = xr.open_dataset("Data/cru/cru_ts4.04.1901.2019.pre.dat.nc")
-    cru_ds = cru_ds.assign_attrs(plot_legend="CRU")  # in mm/month
-    cru_ds = cru_ds.rename_vars({'pre': 'tp'})
-    cru_ds['tp'] /= 30.437  # TODO apply proper function to get mm/day
-    cru_ds['time'] = standardised_time(cru_ds)
-    return cru_ds
-
-
-def basin_finder(loc):
-    """ 
-    Finds basin to load data from.
-
-    Input
-        loc: list of coordinates [lat, lon] or string refering to an area.
-    Output
-        basin , string: name of the basin.
-    """
-
-    basin_dic = {'indus': 'indus', 'uib': 'indus', 'sutlej': 'indus', 'beas': 'indus',
-                 'khyber': 'indus', 'ngari': 'indus', 'gilgit': 'indus'}
-
-    if loc is str:
-        basin = basin_dic[loc]
-        return basin
-
-    if loc is not str:  # fix to search with coords
-        return 'indus'

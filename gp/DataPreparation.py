@@ -37,10 +37,10 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-    if number != None:
+    if number is notNone:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
-    if EDA_average == True:
+    if EDA_average is True:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
@@ -60,12 +60,12 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
-    if maxyear != None:
-        df["time"] = df[df["time"]< maxyear]
+    if maxyear is notNone:
+        df["time"] = df[df["time"] < maxyear]
 
-    df["time"] = df["time"] - 1970 # to years
+    df["time"] = df["time"] - 1970  # to years
     df["tp"] = log_transform(df["tp"])
-    df = df[["time", "d2m", "tcwv", "N34", "tp"]] #format order
+    df = df[["time", "d2m", "tcwv", "N34", "tp"]]  # format order
 
     # Keep first of 70% for training
     train_df = df[df["time"] < df["time"].max() * 0.7]
@@ -78,7 +78,8 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
     y_eval = eval_df["tp"].values
 
     # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=False)
+    xval, xtest, yval, ytest = train_test_split(
+        x_eval, y_eval, test_size=0.3333, shuffle=False)
 
     return xtrain, xval, xtest, ytrain, yval, ytest
 
@@ -103,11 +104,11 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
         y_test: testing output vector, numpy array
     """
 
-    if number != None:
+    if number is notNone:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
 
-    if EDA_average == True:
+    if EDA_average is True:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
@@ -117,7 +118,7 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
     mask_filepath = find_mask(location)
     masked_da = dd.apply_mask(da, mask_filepath)
 
-    if maxyear != None:
+    if maxyear is notNone:
         masked_da = masked_da.where(da.time < maxyear+1, drop=True)
 
     multiindex_df = masked_da.to_dataframe()
@@ -125,23 +126,25 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
     df = sa.random_location_and_time_sampler(
         df_clean, length=length, seed=seed)
 
-    df["time"] = df["time"] - 1970 
+    df["time"] = df["time"] - 1970
     df["tp"] = log_transform(df["tp"])
-    df = df[["time", "lat", "lon", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]]
+    df = df[["time", "lat", "lon", "slor",
+             "anor", "z", "d2m", "tcwv", "N34", "tp"]]
 
     # Keep first of 70% for training
-    train_df = df[ df['time']< df['time'].max()*0.7]
+    train_df = df[df['time'] < df['time'].max()*0.7]
     xtrain = train_df.drop(columns=['tp']).values
     ytrain = train_df['tp'].values
 
     # Last 30% for evaluation
-    eval_df = df[ df['time']> df['time'].max()*0.7]
+    eval_df = df[df['time'] > df['time'].max()*0.7]
     x_eval = eval_df.drop(columns=['tp']).values
     y_eval = eval_df['tp'].values
 
     # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(x_eval, y_eval, test_size=0.3333, shuffle=True)
-    
+    xval, xtest, yval, ytest = train_test_split(
+        x_eval, y_eval, test_size=0.3333, shuffle=True)
+
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
@@ -162,10 +165,10 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
         x_tr: evaluation feature vector, numpy array
         y_tr: evaluation output vector, numpy array
     """
-    if number != None:
+    if number is notNone:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
-    if EDA_average == True:
+    if EDA_average is True:
         da_ensemble = dd.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.mean(dim="number")
     else:
@@ -173,14 +176,14 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
 
     sliced_da = da.sel(time=slice(minyear, maxyear))
 
-    if isinstance(location, str) == True:
+    if isinstance(location, str) is True:
         mask_filepath = find_mask(location)
         masked_da = dd.apply_mask(sliced_da, mask_filepath)
         multiindex_df = masked_da.to_dataframe()
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df = sa.random_location_and_time_sampler(
-        df_clean, length=length, seed=seed)
+            df_clean, length=length, seed=seed)
 
     else:
         da_location = sliced_da.interp(
@@ -189,15 +192,15 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
         multiindex_df = da_location.to_dataframe()
         df = multiindex_df.dropna().reset_index()
 
-    df["time"] = df["time"] - 1970 # to years
+    df["time"] = df["time"] - 1970  # to years
     df["tp"] = log_transform(df["tp"])
-    df = df[["time", "lat", "lon", "slor", "anor", "z", "d2m", "tcwv", "N34", "tp"]] #format order
-    
+    df = df[["time", "lat", "lon", "slor", "anor", "z",
+             "d2m", "tcwv", "N34", "tp"]]  # format order
+
     xtr = df.drop(columns=["tp"]).values
     ytr = df["tp"].values
 
     return xtr, ytr
-
 
 
 def normal_transform(df, features):
@@ -213,24 +216,28 @@ def normal_transform(df, features):
         df[f] = df[f] / df[f].max()
     return df
 
+
 def log_transform(x):
     """ Log transformation from total precipitation in mm/day"""
     tp_max = 23.40308390557766
     y = np.log(x*(np.e-1)/tp_max + 1)
     return y
 
+
 def inverse_log_transform(x):
     """ Inverse log transformation to total precipitation in mm/day """
     tp_max = 23.40308390557766
-    y = (np.exp(x)-1) * tp_max / (np.e-1)  # np.log(df[f]*(np.e-1)/df[f].max() + 1)
+    # np.log(df[f]*(np.e-1)/df[f].max() + 1)
+    y = (np.exp(x)-1) * tp_max / (np.e-1)
     return y
+
 
 def find_mask(location):
     """ Returns a mask filepath for given location """
 
-    mask_dic = {'ngari':'Data/Masks/Ngari_mask.nc', 'khyber':'Data/Masks/Khyber_mask.nc', 
-                'gilgit':'Data/Masks/Gilgit_mask.nc', 'uib':'Data/Masks/ERA5_Upper_Indus_mask.nc',
-                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas':'Data/Masks/Beas_mask.nc'}
+    mask_dic = {'ngari': 'Data/Masks/Ngari_mask.nc', 'khyber': 'Data/Masks/Khyber_mask.nc',
+                'gilgit': 'Data/Masks/Gilgit_mask.nc', 'uib': 'Data/Masks/ERA5_Upper_Indus_mask.nc',
+                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas': 'Data/Masks/Beas_mask.nc'}
     mask_filepath = mask_dic[location]
     return mask_filepath
 

@@ -1,35 +1,29 @@
 # Trend comparison
 
 import os
-import numpy as np
-from numpy.ma.core import append
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 import xarray as xr
-import seaborn as sns
-import cftime
+
 from scipy import stats
 from tqdm import tqdm
+from sklearn.metrics import mean_squared_error, r2_score
 
 from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
+import gp.DataPreparation as dp
+import gp.GPModels as gp
 
-
-import DataDownloader as dd
-import DataPreparation as dp
-import GPModels as gp
-import Correlation as corr
-import Timeseries as tims
-import PDF as pdf
-import Maps
-
-from sklearn.metrics import mean_squared_error, r2_score
+import analysis.Timeseries as tims
+import analysis.PDF as pdf
 
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
 
-def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepath='Models/model_2021-01-01/08/21-22-35-56', minyear=1990, maxyear=2005, ):
-    """ Prepares model outputs for comparison """
+def model_prep(location, data_filepath='Data/model_pred_test.csv',
+               model_filepath='_Models/model_2021-01-01/08/21-22-35-56',
+               minyear=1990, maxyear=2005):
+    """Prepare model outputs for comparison."""
 
     if os.path.exists(data_filepath):
         model_df = pd.read_csv(data_filepath)
@@ -63,7 +57,7 @@ def model_prep(location, data_filepath='Data/model_pred_test.csv', model_filepat
 
 
 def dataset_stats(datasets, ref_ds=None, ret=False):
-    """ Print mean, standard deviations and slope for datasets """
+    """Print mean, standard deviations and slope for datasets."""
 
     r2_list = []
     rmse_list = []
@@ -95,12 +89,13 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
             r2_list.append(r2)
             rmse_list.append(rmse)
 
-    if ret == True:
+    if ret is True:
         return [r2_list, rmse_list]
 
 
-def single_location_comparison(location=[31.65, 77.34], station='Banjar', min_year=2000, max_year=2011):
-    """ Plots model outputs for given coordinates over time """
+def single_location_comparison(location=[31.65, 77.34], station='Banjar',
+                               min_year=2000, max_year=2011):
+    """Plot model outputs for given coordinates over time."""
 
     aphro_ds = aphrodite.collect_APHRO(
         location, minyear=min_year, maxyear=max_year)
@@ -114,7 +109,8 @@ def single_location_comparison(location=[31.65, 77.34], station='Banjar', min_ye
 
     # cmip_ds = dd.collect_CMIP5()
     # cordex_ds = dd.collect_CORDEX()
-    # model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', model_filepath=model_filepath)
+    # model_ts = model_prep([lat, lon], data_filepath='single_loc_test.csv', \
+    # model_filepath=model_filepath)
 
     timeseries = [gauge_ds, gpm_ds, era5_ds, wrf_ds, aphro_ds, cru_ds]
 
@@ -125,7 +121,7 @@ def single_location_comparison(location=[31.65, 77.34], station='Banjar', min_ye
 
 
 def basin_comparison(model_filepath, location):
-    """ Plots model outputs for given coordinates over time """
+    """ Plot model outputs for given basin over time."""
 
     aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
     cru_ds = cru.collect_CRU(location, minyear=2000, maxyear=2011)
@@ -146,12 +142,14 @@ def basin_comparison(model_filepath, location):
 
 
 def multi_location_comparison():
-    """ Plots model outputs for given coordinates over time """
+    """Plot model outputs for multiple locations over time."""
 
     gauge_ds = beas_sutlej_gauges.all_gauge_data(
         minyear=2000, maxyear=2011, threshold=3653)
-    locations = [[31.424, 76.417], [31.357, 76.878], [31.52, 77.22], [31.67, 77.06], [31.454, 77.644],
-                 [31.238, 77.108], [31.65, 77.34], [31.88, 77.15], [31.77, 77.31], [31.80, 77.19]]
+    locations = [[31.424, 76.417], [31.357, 76.878], [31.52, 77.22],
+                 [31.67, 77.06], [31.454, 77.644], [31.238, 77.108],
+                 [31.65, 77.34], [31.88, 77.15], [31.77, 77.31],
+                 [31.80, 77.19]]
 
     aphro_sets = []
     cru_sets = []
@@ -159,20 +157,21 @@ def multi_location_comparison():
     gpm_sets = []
     wrf_sets = []
 
-    for l in locations:
-        aphro_ds = aphrodite.collect_APHRO(l, minyear=2000, maxyear=2011)
+    for loc in locations:
+        aphro_ds = aphrodite.collect_APHRO(loc, minyear=2000, maxyear=2011)
         aphro_sets.append(aphro_ds.tp)
 
-        cru_ds = cru.collect_CRU(l, minyear=2000, maxyear=2011)
+        cru_ds = cru.collect_CRU(loc, minyear=2000, maxyear=2011)
         cru_sets.append(cru_ds.tp)
 
-        era5_ds = era5.collect_ERA5(l, minyear=2000, maxyear=2011)
+        era5_ds = era5.collect_ERA5(loc, minyear=2000, maxyear=2011)
         era5_sets.append(era5_ds.tp)
 
-        gpm_ds = gpm.collect_GPM(l,  minyear=2000, maxyear=2011)
+        gpm_ds = gpm.collect_GPM(loc,  minyear=2000, maxyear=2011)
         gpm_sets.append(gpm_ds.tp)
 
-        wrf_ds = beas_sutlej_wrf.collect_BC_WRF(l, minyear=2000, maxyear=2011)
+        wrf_ds = beas_sutlej_wrf.collect_BC_WRF(
+            loc, minyear=2000, maxyear=2011)
         wrf_sets.append(wrf_ds.tp)
 
     # Merge datasets
@@ -197,7 +196,7 @@ def multi_location_comparison():
 
 
 def gauge_stats():
-    """ Print mean, standard deviations and slope for datasets """
+    """Print mean, standard deviations and slope for datasets."""
 
     bs_station_dict = {'Arki': [31.154, 76.964], 'Banjar': [31.65, 77.34], 'Banjar IMD': [31.637, 77.344],
                        'Berthin': [31.471, 76.622], 'Bhakra': [31.424, 76.417], 'Barantargh': [31.087, 76.608],

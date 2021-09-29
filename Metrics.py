@@ -32,14 +32,16 @@ def RMSE(model, x, y):
 def model_plot(model, location, number=None, posteriors=True, slm=True):
     """ Returns plot for multivariate GP for a single loation """
 
-    if slm == True:
+    if slm is True:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=number)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
+                location, number=number)
         else:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
     else:
         if number == None:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=number)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
+                location, number=number)
         else:
             xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location)
 
@@ -72,15 +74,17 @@ def model_plot(model, location, number=None, posteriors=True, slm=True):
         xval[:, 0] + 1979, yval_t, color="orange", label="ERA5 validation data", s=10
     )
 
-    plt.plot(xtr[:, 0] + 1979, y_gpr_t, color="C0", linestyle="-", label="Prediction")
+    plt.plot(xtr[:, 0] + 1979, y_gpr_t, color="C0",
+             linestyle="-", label="Prediction")
 
-    if posteriors == True:
+    if posteriors is True:
         plt.plot(xtr[:, 0] + 1979, samples_t[:, :, 0].T, "C0", linewidth=0.5)
 
     if location == None:
         plt.title("GP fit")
     else:
-        plt.title("GP fit for " + str(location[0]) + "°N " + str(location[1]) + "°E")
+        plt.title("GP fit for " +
+                  str(location[0]) + "°N " + str(location[1]) + "°E")
 
     plt.ylabel("Precipitation [mm/day]")
     plt.xlabel("Year")
@@ -98,10 +102,12 @@ def ensemble_model_plot(location, models, slm=True):
 
     for i in range(10):
 
-        if slm == True:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(location, number=i)
+        if slm is True:
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model(
+                location, number=i)
         else:
-            xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model_eval(location, number=i)
+            xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model_eval(
+                location, number=i)
 
         xtr = np.concatenate((xtrain, xval), axis=0)
         ytr = np.concatenate((ytrain, yval), axis=0)
@@ -115,8 +121,9 @@ def ensemble_model_plot(location, models, slm=True):
         samples_t = dp.inverse_log_transform(log_samples)
         ytr_t = dp.inverse_log_transform(ytr)
         #yval_t = dp.inverse_log_transform(yval)
-        
-        plt.scatter(xtr[:, 0] + 1979, ytr_t, label="ERA5 data", color=palette[i])
+
+        plt.scatter(xtr[:, 0] + 1979, ytr_t,
+                    label="ERA5 data", color=palette[i])
         plt.plot(samples_t)
 
         plt.plot(
@@ -146,8 +153,10 @@ def plot_vs_truth(x_train, y_train, x_test, y_test, m):
 
     plt.figure()
     plt.plot([0, 25], [0, 25], linestyle="--", c="black")
-    plt.scatter(y_train, y_train_pred, c="blue", alpha=0.5, label="Training data")
-    plt.scatter(y_test, y_test_pred, c="green", alpha=0.5, label="Validation data")
+    plt.scatter(y_train, y_train_pred, c="blue",
+                alpha=0.5, label="Training data")
+    plt.scatter(y_test, y_test_pred, c="green",
+                alpha=0.5, label="Validation data")
     plt.legend()
     plt.ylabel("Y predicted [mm/day]")
     plt.xlabel("Y true [mm/day]")
@@ -160,13 +169,13 @@ def plot_residuals(x_train, y_train, x_test, y_test, m):
     y_train_pred, y_train_std_pred = m.predict_y(x_train)
 
     # to mm/day
-    y_test_t = dp.inverse_log_transform(y_test) * 1000 
-    y_train_t = dp.inverse_log_transform(y_train) * 1000 
+    y_test_t = dp.inverse_log_transform(y_test) * 1000
+    y_train_t = dp.inverse_log_transform(y_train) * 1000
     y_test_pred_t = dp.inverse_log_transform(y_test_pred) * 1000
-    y_train_pred_t = dp.inverse_log_transform(y_train_pred) * 1000 
-    y_test_std_t = dp.inverse_log_transform(y_test_std) * 1000 
-    y_train_std_t = dp.inverse_log_transform(y_train_std) * 1000 
-    
+    y_train_pred_t = dp.inverse_log_transform(y_train_pred) * 1000
+    y_test_std_t = dp.inverse_log_transform(y_test_std) * 1000
+    y_train_std_t = dp.inverse_log_transform(y_train_std) * 1000
+
     plt.figure()
     plt.title("Residuals")
     plt.plot([1979, 2020], [0, 0], linestyle="--", c="black")
