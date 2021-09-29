@@ -1,22 +1,11 @@
 .DS_Store
 
-**/Archive
-**/Credentials
-**/Data
-**/Models
+**/_Archive
+**/_Notebooks
+**/_Credentials
+**/_Data
+**/_Models
 **__pycache__
 **/.vscode
 **/.ipynb_checkpoints/
-ktazi@jasmin-login1.ceda.ac.uk
-precip_toy.ipynb
 .gitignore
-ML_Bench.ipynb
-Untitled.ipynb
-Uncertainty.ipynb
-GPplot_1styear_report.ipynb
-MultiLocation.ipynb
-SingleLocationModelEvaluation.ipynb
-PredictionMap.ipynb
-MLM ML benchmarking 2021-08-11.ipynb
-NLL_vs_distance.ipynb
-SLM_analysis.ipynb
