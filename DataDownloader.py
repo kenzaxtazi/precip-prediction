@@ -37,11 +37,14 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
     now = datetime.datetime.now()
 
     if ensemble == True:
-        filename = "combi_data_ensemble" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "combi_data_ensemble" + "_" + \
+            basin + "_" + now.strftime("%m-%Y") + ".csv"
     if all_var == True:
-        filename = "all_data" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "all_data" + "_" + basin + \
+            "_" + now.strftime("%m-%Y") + ".csv"
     elif ensemble == False:
-        filename = "combi_data" + "_" + basin + "_" + now.strftime("%m-%Y") + ".csv"
+        filename = "combi_data" + "_" + basin + \
+            "_" + now.strftime("%m-%Y") + ".csv"
 
     filepath = path + filename
     print(filepath)
@@ -51,7 +54,8 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
         # Orography, humidity, precipitation and indices
         cds_df = cds_downloader(basin, ensemble=ensemble, all_var=all_var)
         ind_df = indice_downloader(all_var=all_var)
-        df_combined = pd.merge_ordered(cds_df, ind_df, on="time", suffixes=("", "_y"))
+        df_combined = pd.merge_ordered(
+            cds_df, ind_df, on="time", suffixes=("", "_y"))
 
         # Other variables not used in the GP
         if all_var == True:
@@ -64,16 +68,17 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
                 df_combined, uib_eofs_df, on=["time", "latitude", "longitude"]
             )
 
-        # Choose experiment version 1 
+        # Choose experiment version 1
         expver1 = [c for c in df_combined.columns if c[-1] != '5']
         df_expver1 = df_combined[expver1]
         df_expver1.columns = df_expver1.columns.str.strip('_0001')
-        
+
         # Pre pre-processing and save
-        df_clean = df_expver1.dropna() #.drop("expver", axis=1)
+        df_clean = df_expver1.dropna()  # .drop("expver", axis=1)
         df_clean['time'] = standardised_time(df_clean)
         df_clean["tp"] *= 1000  # to mm/day
-        df_clean = df_clean.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
+        df_clean = df_clean.rename(
+            columns={'latitude': 'lat', 'longitude': 'lon'})
         df_clean = df_clean.astype("float64")
         df_clean.to_csv(filepath)
 
@@ -110,7 +115,8 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
             # Standardise time resolution
             maxyear = float(ds.time.max())
             minyear = float(ds.time.min())
-            time_arr = np.arange(round(minyear) + 1./24., maxyear +0.05, 1./12.)
+            time_arr = np.arange(round(minyear) + 1./24.,
+                                 maxyear + 0.05, 1./12.)
             ds['time'] = time_arr
             return ds
         else:
@@ -118,7 +124,6 @@ def download_data(location, xarray=False, ensemble=False, all_var=False):
 
 
 def apply_mask(data, mask_filepath):
-
     """
     Opens NetCDF files and applies Upper Indus Basin mask to ERA 5 data.
     Inputs:
@@ -161,7 +166,8 @@ def mean_downloader(basin):
             )
 
         mean_da = da.mean(dim=["longitude", "latitude"], skipna=True)
-        clean_da = mean_da.assign_coords(time=(mean_da.time.astype("datetime64")))
+        clean_da = mean_da.assign_coords(
+            time=(mean_da.time.astype("datetime64")))
         multiindex_df = clean_da.to_dataframe()
         df = multiindex_df  # .reset_index()
         if name != None:
@@ -244,12 +250,13 @@ def eof_downloader(basin, all_var=False):
 
     def eof_formatter(filepath, basin, name=None):
         """ Returns DataFrame of EOF over UIB  """
-        
+
         da = xr.open_dataset(filepath)
         if "expver" in list(da.dims):
             da = da.sel(expver=1)
         (latmax, lonmin, latmin, lonmax) = fd.basin_extent(basin)
-        sliced_da = da.sel(latitude=slice(latmin, latmax), longitude=slice(lonmin, lonmax))
+        sliced_da = da.sel(latitude=slice(latmin, latmax),
+                           longitude=slice(lonmin, lonmax))
 
         eof_ds = sliced_da.EOF
         eof2 = eof_ds.assign_coords(time=(eof_ds.time.astype("datetime64")))
@@ -280,7 +287,8 @@ def eof_downloader(basin, all_var=False):
     )
 
     uib_eofs = pd.concat(
-        [eof1_z200_u, eof2_z200_u, eof1_z500_u, eof2_z500_u, eof1_z850_u, eof2_z850_u],
+        [eof1_z200_u, eof2_z200_u, eof1_z500_u,
+            eof2_z500_u, eof1_z850_u, eof2_z850_u],
         axis=1,
     )
 
@@ -312,12 +320,13 @@ def cds_downloader(basin, ensemble=False, all_var=False):
     if ensemble == False:
         cds_filepath = fd.update_cds_monthly_data(area=basin)
     else:
-        cds_filepath = fd.update_cds_monthly_data(product_type="monthly_averaged_ensemble_members", area=basin)
+        cds_filepath = fd.update_cds_monthly_data(
+            product_type="monthly_averaged_ensemble_members", area=basin)
 
     da = xr.open_dataset(cds_filepath)
     if "expver" in list(da.dims):
         da = da.sel(expver=1)
-    
+
     multiindex_df = da.to_dataframe()
     cds_df = multiindex_df.reset_index()
 
@@ -330,22 +339,26 @@ def standardised_time(dataset):
         utime = dataset.time.values.astype(int)/(1e9 * 60 * 60 * 24 * 365)
     except Exception:
         time = np.array([d.strftime() for d in dataset.time.values])
-        time2 = np.array([datetime.datetime.strptime(d, "%Y-%m-%d %H:%M:%S") for d in time])
-        utime = np.array([d.timestamp() for d in time2])/ ( 60 * 60 * 24 * 365)
+        time2 = np.array([datetime.datetime.strptime(
+            d, "%Y-%m-%d %H:%M:%S") for d in time])
+        utime = np.array([d.timestamp() for d in time2]) / (60 * 60 * 24 * 365)
     return(utime + 1970)
 
 
 def collect_ERA5():
     """ Downloads data from ERA5 """
     basin_filepath = "Data/Masks/Indus_mask.nc"
-    era5_ds= download_data(basin_filepath, xarray=True) # in m/day
+    era5_ds = download_data(basin_filepath, xarray=True)  # in m/day
     era5_ds = era5_ds.assign_attrs(plot_legend="ERA5")
     return era5_ds
 
+
 def collect_CMIP5():
     """ Downloads data from CMIP5 """
-    cmip_59_84_ds = xr.open_dataset("Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
-    cmip_84_05_ds = xr.open_dataset("Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
+    cmip_59_84_ds = xr.open_dataset(
+        "Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_195912-198411.nc")
+    cmip_84_05_ds = xr.open_dataset(
+        "Data/cmip5/pr_Amon_HadCM3_historical_r1i1p1_198412-200512.nc")
     cmip_ds = cmip_84_05_ds.merge(cmip_59_84_ds)  # in kg/m2/s
     cmip_ds = cmip_ds.assign_attrs(plot_legend="HadCM3 historical")
     cmip_ds = cmip_ds.rename({'pr': 'tp'})
@@ -353,37 +366,46 @@ def collect_CMIP5():
     cmip_ds['time'] = standardised_time(cmip_ds)
     return cmip_ds
 
+
 def collect_CORDEX():
     """ Downloads data from CORDEX East Asia model """
-    cordex_90_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
-    cordex_91_00_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
-    cordex_01_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_200101-201012.nc")
-    cordex_02_11_ds = xr.open_dataset("Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_201101-201111.nc")
+    cordex_90_ds = xr.open_dataset(
+        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199001-199012.nc")
+    cordex_91_00_ds = xr.open_dataset(
+        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_199101-200012.nc")
+    cordex_01_ds = xr.open_dataset(
+        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_200101-201012.nc")
+    cordex_02_11_ds = xr.open_dataset(
+        "Data/cordex/pr_EAS-44i_ECMWF-ERAINT_evaluation_r1i1p1_MOHC-HadRM3P_v1_mon_201101-201111.nc")
     cordex_90_00_ds = cordex_90_ds.merge(cordex_91_00_ds)
-    cordex_01_11_ds= cordex_01_ds.merge(cordex_02_11_ds)
+    cordex_01_11_ds = cordex_01_ds.merge(cordex_02_11_ds)
     cordex_ds = cordex_01_11_ds.merge(cordex_90_00_ds)  # in kg/m2/s
-    
-    cordex_ds = cordex_ds.assign_attrs(plot_legend="CORDEX EA - MOHC-HadRM3P historical")
+
+    cordex_ds = cordex_ds.assign_attrs(
+        plot_legend="CORDEX EA - MOHC-HadRM3P historical")
     cordex_ds = cordex_ds.rename_vars({'pr': 'tp'})
     cordex_ds['tp'] *= 60 * 60 * 24   # to mm/day
     cordex_ds['time'] = standardised_time(cordex_ds)
 
     return cordex_ds
 
+
 def collect_APHRO():
     """ Downloads data from APHRODITE model"""
-    aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob('/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
-    aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE") # in mm/day   
+    aphro_ds = xr.merge([xr.open_dataset(f) for f in glob.glob(
+        '/Users/kenzatazi/Downloads/APHRO_MA_025deg_V1101.1951-2007.gz/*')])
+    aphro_ds = aphro_ds.assign_attrs(plot_legend="APHRODITE")  # in mm/day
     aphro_ds = aphro_ds.rename_vars({'precip': 'tp'})
     aphro_ds['time'] = standardised_time(aphro_ds)
     return aphro_ds
 
+
 def collect_CRU():
     """ Downloads data from CRU model"""
     cru_ds = xr.open_dataset("Data/cru/cru_ts4.04.1901.2019.pre.dat.nc")
-    cru_ds = cru_ds.assign_attrs(plot_legend="CRU") # in mm/month
+    cru_ds = cru_ds.assign_attrs(plot_legend="CRU")  # in mm/month
     cru_ds = cru_ds.rename_vars({'pre': 'tp'})
-    cru_ds['tp'] /= 30.437  #TODO apply proper function to get mm/day
+    cru_ds['tp'] /= 30.437  # TODO apply proper function to get mm/day
     cru_ds['time'] = standardised_time(cru_ds)
     return cru_ds
 
@@ -398,13 +420,12 @@ def basin_finder(loc):
         basin , string: name of the basin.
     """
 
-    basin_dic ={'indus': 'indus', 'uib': 'indus', 'sutlej':'indus', 'beas':'indus',
-                'khyber': 'indus', 'ngari': 'indus', 'gilgit':'indus'}
-    
+    basin_dic = {'indus': 'indus', 'uib': 'indus', 'sutlej': 'indus', 'beas': 'indus',
+                 'khyber': 'indus', 'ngari': 'indus', 'gilgit': 'indus'}
+
     if loc is str:
         basin = basin_dic[loc]
         return basin
-    
-    if loc is not str: # fix to search with coords
-        return 'indus'
 
+    if loc is not str:  # fix to search with coords
+        return 'indus'
