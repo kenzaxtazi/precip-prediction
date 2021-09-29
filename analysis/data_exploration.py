@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 from load import era5, location_sel
-import gp.DataPreparation as dp
+import gp.data_prep as dp
 
 
 data_filepath = era5.update_cds_monthly_data()

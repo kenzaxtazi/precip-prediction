@@ -1,34 +1,25 @@
 # Data Preparation
 
-import os
-import calendar
-import datetime
-import xarray as xr
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn import preprocessing
-from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 
-from load import era5
+from load import era5, location_sel
 import Sampling as sa
-import Clustering as cl
 
-
-# Filepaths and URLs
 
 def point_model(location, number=None, EDA_average=False, maxyear=None):
     """
-    Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature,
-    angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
-    Nino 3.4, Nino 4 and NAO index for a single point.
+    Outputs test, validation and training data for total precipitation
+    as a function of time, 2m dewpoint temperature, angle of sub-gridscale
+    orography, orography, slope of sub-gridscale orography, total column
+    water vapour, Nino 3.4, Nino 4 and NAO index for a single point.
 
     Inputs
         number, optional: specify desired ensemble run, integer
-        EDA_average, optional: specify if you want average of low resolution ensemble runs, boolean
-        coords [latitude, longitude], optional: specify if you want a specific location, list of floats
+        EDA_average, optional: specify if you want average of low resolution
+            ensemble runs, boolean
+        coords [latitude, longitude], optional: specify if you want a specific
+            location, list of floats
         mask_filepath, optional:
 
     Outputs
@@ -37,7 +28,7 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
     """
-    if number is notNone:
+    if number is not None:
         da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
     if EDA_average is True:
@@ -60,7 +51,7 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
-    if maxyear is notNone:
+    if maxyear is not None:
         df["time"] = df[df["time"] < maxyear]
 
     df["time"] = df["time"] - 1970  # to years
@@ -84,16 +75,20 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, maxyear=None):
+def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
+                maxyear=None):
     """
-    Outputs test, validation and training data for total precipitation as a function of time, 2m dewpoint temperature,
-    angle of sub-gridscale orography, orography, slope of sub-gridscale orography, total column water vapour,
-    Nino 3.4 index for given number randomly sampled data points for a given basin.
+    Outputs test, validation and training data for total precipitation as a
+    function of time, 2m dewpoint temperature, angle of sub-gridscale
+    orography, orography, slope of sub-gridscale orography, total column water
+    vapour, Nino 3.4 index for given number randomly sampled data points
+    for a given basin.
 
     Inputs
         location: specify area to train model
-        number, optional: specify desired ensemble run, integer 
-        EDA_average, optional: specify if you want average of low resolution ensemble runs, boolean
+        number, optional: specify desired ensemble run, integer
+        EDA_average, optional: specify if you want average of low resolution
+            ensemble runs, boolean
         length, optional: specify number of points to sample, integer
         seed, optional: specify seed, integer
 
@@ -104,7 +99,7 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
         y_test: testing output vector, numpy array
     """
 
-    if number is notNone:
+    if number is not None:
         da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
 
@@ -115,10 +110,10 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
         da = era5.download_data(location, xarray=True)
 
     # apply mask
-    mask_filepath = find_mask(location)
-    masked_da = dd.apply_mask(da, mask_filepath)
+    mask_filepath = location_sel.find_mask(location)
+    masked_da = location_sel.apply_mask(da, mask_filepath)
 
-    if maxyear is notNone:
+    if maxyear is not None:
         masked_da = masked_da.where(da.time < maxyear+1, drop=True)
 
     multiindex_df = masked_da.to_dataframe()
@@ -148,24 +143,32 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42, 
     return xtrain, xval, xtest, ytrain, yval, ytest
 
 
-def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed=42, minyear=1979, maxyear=2020):
+def areal_model_eval(location, number=None, EDA_average=False, length=3000,
+                     seed=42, minyear=1979, maxyear=2020):
     """
-    Returns data to evaluate an areal model at a given location, area and time period.
-    Variables: total precipitation as a function of time, 2m dewpoint temperature, angle of 
-    sub-gridscale orography, orography, slope of sub-gridscale orography, total column 
-    water vapour, Nino 3.4, Nino 4 and NAO index for a single point.
+    Returns data to evaluate an areal model at a given location, area and time
+    period.
 
-    Inputs
-        number, optional: specify desired ensemble run, integer 
-        EDA_average, optional: specify if you want average of low resolution ensemble runs, boolean
-        coords [latitude, longitude], optional: specify if you want a specific location, list of floats
-        mask, optional: specify area to train model, defaults to Upper Indus Basin
+    Variables:
+        Total precipitation as a function of time, 2m dewpoint
+        temperature, angle of sub-gridscale orography, orography, slope of
+        sub-gridscale orography, total column water vapour, Nino 3.4, Nino 4
+        and NAO index for a single point.
+
+    Inputs:
+        number, optional: specify desired ensemble run, integer
+        EDA_average, optional: specify if you want average of low resolution
+            ensemble runs, boolean
+        coords [latitude, longitude], optional: specify if you want a specific
+            location, list of floats
+        mask, optional: specify area to train model, defaults to Upper Indus
+            Basin
 
     Outputs
         x_tr: evaluation feature vector, numpy array
         y_tr: evaluation output vector, numpy array
     """
-    if number is notNone:
+    if number is not None:
         da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
     if EDA_average is True:
@@ -177,8 +180,8 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
     sliced_da = da.sel(time=slice(minyear, maxyear))
 
     if isinstance(location, str) is True:
-        mask_filepath = find_mask(location)
-        masked_da = dd.apply_mask(sliced_da, mask_filepath)
+        mask_filepath = location_sel.find_mask(location)
+        masked_da = location_sel.apply_mask(sliced_da, mask_filepath)
         multiindex_df = masked_da.to_dataframe()
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
@@ -204,8 +207,8 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000, seed
 
 
 def normal_transform(df, features):
-    """ 
-    Normalise dataframe    
+    """
+    Normalise dataframe
     Inputs
         df: dataframe
         features: list of features to transform, list of strings
@@ -230,16 +233,6 @@ def inverse_log_transform(x):
     # np.log(df[f]*(np.e-1)/df[f].max() + 1)
     y = (np.exp(x)-1) * tp_max / (np.e-1)
     return y
-
-
-def find_mask(location):
-    """ Returns a mask filepath for given location """
-
-    mask_dic = {'ngari': 'Data/Masks/Ngari_mask.nc', 'khyber': 'Data/Masks/Khyber_mask.nc',
-                'gilgit': 'Data/Masks/Gilgit_mask.nc', 'uib': 'Data/Masks/ERA5_Upper_Indus_mask.nc',
-                'sutlej': 'Data/Masks/Sutlej_mask.nc', 'beas': 'Data/Masks/Beas_mask.nc'}
-    mask_filepath = mask_dic[location]
-    return mask_filepath
 
 
 def average_over_coords(ds):

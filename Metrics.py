@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import gp.DataPreparation as dp
+import gp.data_prep as dp
 
 from sklearn.metrics import mean_squared_error, r2_score
 

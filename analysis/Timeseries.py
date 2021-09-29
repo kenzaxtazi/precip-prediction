@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from load import era5
-import gp.DataPreparation as dp
+import gp.data_prep as dp
 
 from scipy import stats
 

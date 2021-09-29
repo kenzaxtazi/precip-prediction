@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import GPy
 import pandas as pd
 
-import DataPreparation as dp
+import data_prep as dp
 from load import beas_sutlej_gauges, era5, srtm
 
 import emukit

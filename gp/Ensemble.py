@@ -3,11 +3,8 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.metrics import mean_squared_error, r2_score
-
-import GPModels as gpm
-import DataPreparation as dp
-import metrics as me
+import gp_models as gpm
+import data_prep as dp
 
 
 # Empty lists
@@ -26,9 +23,8 @@ yval_std_pred_list = []
 
 for i in range(10):
 
-    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib',
-                                                              number=i, length=10000
-                                                              )
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model(
+        'uib', number=i, length=10000)
 
     ytrain_list.append(ytrain)
     yval_list.append(yval)
@@ -57,22 +53,22 @@ ytrain_df = pd.DataFrame(ytrain_array.reshape(10, -1))
 ytrain_df = ytrain_df.T
 ytrain_df["mean"] = ytrain_df.mean(axis=1)
 """
-yval_pred_array = np.array(yval_pred_list) 
+yval_pred_array = np.array(yval_pred_list)
 yval_pred_df = pd.DataFrame(yval_pred_array.reshape(10, -1))
 yval_pred_df = yval_pred_df.T
 yval_pred_df['mean'] = yval_pred_df.mean(axis=1)
 
-yval_std_pred_array = np.array(yval_std_pred_list) 
+yval_std_pred_array = np.array(yval_std_pred_list)
 yval_std_pred_df = pd.DataFrame(yval_std_pred_array.reshape(10, -1))
 yval_std_pred_df = yval_std_pred_df.T
 yval_std_pred_df['mean'] = yval_std_pred_df.mean(axis=1)
 
-ytrain_pred_array = np.array(ytrain_pred_list) 
+ytrain_pred_array = np.array(ytrain_pred_list)
 ytrain_pred_df = pd.DataFrame(ytrain_pred_array.reshape(10, -1))
 ytrain_pred_df = ytrain_pred_df.T
 ytrain_pred_df['mean'] = ytrain_pred_df.mean(axis=1)
 
-ytrain_std_pred_array = np.array(ytrain_std_pred_list) 
+ytrain_std_pred_array = np.array(ytrain_std_pred_list)
 ytrain_std_pred_df = pd.DataFrame(ytrain_std_pred_array.reshape(10, -1))
 ytrain_std_pred_df = ytrain_std_pred_df.T
 ytrain_std_pred_df['mean'] = ytrain_std_pred_df.mean(axis=1)
@@ -84,7 +80,8 @@ RMSE_val = mean_squared_error(yval_df['mean'], yval_pred_df['mean'])
 R2_val = r2_score(yval_df['mean'], yval_pred_df['mean'])
 
 y_mean = np.concatenate((ytrain_pred_df['mean'], yval_pred_df['mean'])).mean()
-std_mean = np.concatenate((ytrain_std_pred_df['mean'], yval_std_pred_df['mean'])).mean()
+std_mean = np.concatenate((ytrain_std_pred_df['mean'],
+        yval_std_pred_df['mean'])).mean()
 """
 # me.ensemble_model_plot(model_list)
 

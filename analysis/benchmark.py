@@ -10,8 +10,8 @@ from tqdm import tqdm
 from sklearn.metrics import mean_squared_error, r2_score
 
 from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
-import gp.DataPreparation as dp
-import gp.GPModels as gp
+import gp.data_prep as dp
+import gp.gp_models as gp
 
 import analysis.Timeseries as tims
 import analysis.PDF as pdf

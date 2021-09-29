@@ -2,13 +2,11 @@
 
 import datetime
 import numpy as np
-
-import DataPreparation as dp
 import metrics as me
 
 import gpflow
 import tensorflow as tf
-from gpflow.utilities import print_summary, positive
+from gpflow.utilities import positive
 
 
 # Filepaths and URLs
@@ -23,7 +21,8 @@ ngari_mask = "Data/Ngari_mask.nc"
 xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
 
 # Random sampling multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000, maxyear=1993)
+xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
+        maxyear=1993)
 """
 
 
@@ -40,14 +39,15 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
 
     k = k1 * k1b + k2  # +k
 
-    # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]), 1)), b=[1])
+    # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),
+    # 1)), b=[1])
 
     # , mean_function=mean_function)
     m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
 
     opt = gpflow.optimizers.Scipy()
     # , options=dict(maxiter=1000)
-    opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
+    opt.minimize(m.training_loss, m.trainable_variables)
     # print_summary(m)
 
     x_plot = np.concatenate((xtrain, xval))
@@ -64,7 +64,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
         )
     )
 
-    if save is notFalse:
+    if save is not False:
         filepath = save_model(m, xval, save)
         print(filepath)
 
@@ -89,7 +89,7 @@ def hybrid_gp(xtrain, xval, ytrain, yval, save=False):
     m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
 
     opt = gpflow.optimizers.Scipy()
-    opt_logs = opt.minimize(m.training_loss, m.trainable_variables)
+    opt.minimize(m.training_loss, m.trainable_variables)
     # print_summary(m)
 
     x_plot = np.concatenate((xtrain, xval))
@@ -158,8 +158,9 @@ class hybrid_kernel(gpflow.kernels.AnisotropicStationary):
             X2 = X
 
         print('X ', np.shape(X))
-        k = self.variance * (X[:, self.feature] - X2[:, self.feature]) * tf.transpose(
-            X[:, self.feature] - X2[:, self.feature])  # this returns a 2D tensor
+        k = self.variance * (X[:, self.feature]
+                             - X2[:, self.feature]) * tf.transpose(
+            X[:, self.feature] - X2[:, self.feature])  # returns a 2D tensor
         print('k ', np.shape(k))
         return k
 

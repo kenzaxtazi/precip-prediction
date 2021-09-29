@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import GPy
 
 from load import era5
-import DataPreparation as dp
+import data_prep as dp
 
 import emukit
 from emukit.model_wrappers.gpy_model_wrappers import GPyMultiOutputWrapper

@@ -2,22 +2,15 @@
 
 import datetime
 import numpy as np
-import xarray as xr
 import pandas as pd
-import sklearn as sk
 import cartopy.crs as ccrs
-import matplotlib.cm as cm
-import cartopy.feature as cf
 import matplotlib.pyplot as plt
-import matplotlib.ticker as tck
 
 from tqdm import tqdm
 
-import DataExploration as de
-import DataPreparation as dp
-from load import era5
+import data_prep as dp
 import metrics as me
-import GPModels as gpm
+import gp_models as gpm
 import Sampling as sa
 
 
@@ -207,10 +200,10 @@ def sampled_points(
 
     df1 = pd.read_csv(filepath1)
 
-    if filepath2 is notNone:
+    if filepath2 is not None:
         df2 = pd.read_csv(filepath2)
 
-    if filepath3 is notNone:
+    if filepath3 is not None:
         df3 = pd.read_csv(filepath3)
 
     plt.figure("R2")
@@ -218,12 +211,12 @@ def sampled_points(
                 df1["R2_val"].values, c="b", label=label1)
     plt.plot(df1["samples"].values,
              df1["R2_val"].values, c="b", linestyle="--")
-    if filepath2 is notNone:
+    if filepath2 is not None:
         plt.scatter(df2["samples"].values,
                     df2["R2_val"].values, c="r", label=label2)
         plt.plot(df2["samples"].values,
                  df2["R2_val"].values, c="r", linestyle="--")
-    if filepath3 is notNone:
+    if filepath3 is not None:
         plt.scatter(df3["samples"].values,
                     df3["R2_val"].values, c="g", label=label3)
         plt.plot(df3["samples"].values,
@@ -237,12 +230,12 @@ def sampled_points(
                 df1["RMSE_val"].values, c="b", label=label1)
     plt.plot(df1["samples"].values,
              df1["RMSE_val"].values, c="b", linestyle="--")
-    if filepath2 is notNone:
+    if filepath2 is not None:
         plt.scatter(df2["samples"].values,
                     df2["RMSE_val"].values, c="r", label=label2)
         plt.plot(df2["samples"].values,
                  df2["RMSE_val"].values, c="r", linestyle="--")
-    if filepath3 is notNone:
+    if filepath3 is not None:
         plt.scatter(df3["samples"].values,
                     df3["RMSE_val"].values, c="g", label=label3)
         plt.plot(df3["samples"].values,
@@ -290,7 +283,8 @@ def slm_hpar_plots(da):
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
     da.time_kernel_lengthscale.plot(robust=True,
-        cbar_kwargs={"label": "\n Time axis kernel lengthscale", "extend": "max", "pad": 0.10},
+        cbar_kwargs={"label": "\n Time axis kernel lengthscale",
+        "extend": "max", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
@@ -299,8 +293,9 @@ def slm_hpar_plots(da):
     plt.figure("SLM time kernel variance")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.time_kernel_variance.plot(robust=True, 
-        cbar_kwargs={"label": "\n Time axis kernel variance", "extend": "max", "pad": 0.10},
+    da.time_kernel_variance.plot(robust=True,
+        cbar_kwargs={"label": "\n Time axis kernel variance",
+        "extend": "max", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
@@ -312,7 +307,8 @@ def slm_hpar_plots(da):
     a = np.log10(da.time_kernel_periodicity)
     a.plot(robust=True, vmin=0,
            cbar_kwargs={
-               "label": "\n Time axis kernel periodicity (10^x)", "extend": "neither", "pad": 0.10},
+               "label": "\n Time axis kernel periodicity (10^x)",
+               "extend": "neither", "pad": 0.10},
            )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
@@ -321,29 +317,32 @@ def slm_hpar_plots(da):
     plt.figure("SLM RBF kernel variance")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
-    da.rbf_kernel_variance.plot(robust=True, 
-        cbar_kwargs={"label": "\n RBF kernel variance", "extend": "max", "pad": 0.10},
+    da.rbf_kernel_variance.plot(robust=True,
+        cbar_kwargs={"label": "\n RBF kernel variance", "extend": "max",
+        "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    
+
     plt.figure("N34 lengthscale")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
     a = np.log10(da.N34_lengthscale)
     a.plot(robust=True, vmin=0,
-        cbar_kwargs={"label": "\n N34 index lengthscale (10^x)", "extend": "neither", "pad": 0.10},
+        cbar_kwargs={"label": "\n N34 index lengthscale (10^x)",
+        "extend": "neither", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    
+
     plt.figure("tcwv lengthscale")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
     da.tcwv_lengthscale.plot(robust=True,
-        cbar_kwargs={"label": "\n tcwv lengthscale", "extend": "max", "pad": 0.10},
+        cbar_kwargs={"label": "\n tcwv lengthscale", "extend": "max",
+        "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
@@ -353,7 +352,8 @@ def slm_hpar_plots(da):
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
     da.d2m_lengthscale.plot(robust=True,
-        cbar_kwargs={"label": "\n d2m lengthscale", "extend": "max", "pad": 0.10},
+        cbar_kwargs={"label": "\n d2m lengthscale", "extend": "max",
+        "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
     ax.set_xlabel("Longitude")
@@ -365,5 +365,6 @@ def slm_hpar_plots(da):
 def test_log_likelihood(model, X_test, y_test):
     """ Marginal log likelihood for GPy model on test data"""
     _, test_log_likelihood, _ = model.inference_method.inference(
-        model.kern, X_test, model.likelihood, y_test, model.mean_function, model.Y_metadata)
+        model.kern, X_test, model.likelihood, y_test, model.mean_function,
+        model.Y_metadata)
     return test_log_likelihood
