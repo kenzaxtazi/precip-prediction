@@ -10,7 +10,7 @@ import LocationSel as ls
 
 
 def collect_WRF(location, minyear, maxyear):
-    """ Load uncorrected WRF run data """
+    """ Load uncorrected WRF run data. """
     wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_raw.nc')
 
     if type(location) == str:
@@ -26,7 +26,7 @@ def collect_WRF(location, minyear, maxyear):
 
 
 def collect_BC_WRF(location, minyear, maxyear):
-    """ Load bias corrected WRF run data """
+    """ Load bias-corrected WRF run data. """
 
     bc_wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_corrected.nc')
 
@@ -43,7 +43,7 @@ def collect_BC_WRF(location, minyear, maxyear):
 
 
 def reformat_bannister_data():
-    """ Saves data from Bannister et al with lon and lat instead of projections """
+    """ Project and save Bannister data on equal angle grid."""
 
     wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF.nc')
     XLAT = wrf_ds.XLAT.values
@@ -77,12 +77,7 @@ def reformat_bannister_data():
 
 
 def interp(ds):
-    """ 
-    Interpolation scheme to match dsta to ERA5 grid.
-    Input:
-        da (xarray DataArray): data we want to regrid
-        mask_ds
-    """
+    """ Interpolate to match dsta to ERA5 grid."""
 
     # Generate a regular grid to interpolate the data
     x = np.arange(70, 85, 0.25)

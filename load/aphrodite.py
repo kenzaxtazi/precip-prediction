@@ -1,8 +1,7 @@
 """
-The APHRODITE datasets over Monsoon Asia
-- V1101 from 1951 to 2007
-- V1101_EXR from 2007-2016
-
+The APHRODITE datasets over Monsoon Asia:
+- V1101 from 1951 to 2007,
+- V1101_EXR from 2007-2016.
 Precipiation is in mm/day.
 """
 
