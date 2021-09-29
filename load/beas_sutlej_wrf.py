@@ -6,7 +6,7 @@ import xarray as xr
 import numpy as np
 from scipy.interpolate import griddata
 
-import LocationSel as ls
+import location_sel as ls
 
 
 def collect_WRF(location, minyear, maxyear):

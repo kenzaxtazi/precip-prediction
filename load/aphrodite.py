@@ -10,7 +10,7 @@ import numpy as np
 import xarray as xr
 from tqdm import tqdm
 
-import LocationSel as ls
+import location_sel as ls
 
 
 def collect_APHRO(location, minyear, maxyear):

@@ -6,7 +6,7 @@ import datetime
 import xarray as xr
 import numpy as np
 
-import LocationSel as ls
+import location_sel as ls
 
 
 def collect_CRU(location, minyear, maxyear):
