@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from load import era5, location_sel
-import Sampling as sa
+import sampling as sa
 
 
 def point_model(location, number=None, EDA_average=False, maxyear=None):

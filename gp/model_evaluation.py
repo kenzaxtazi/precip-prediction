@@ -11,7 +11,7 @@ from tqdm import tqdm
 import data_prep as dp
 import metrics as me
 import gp_models as gpm
-import Sampling as sa
+import sampling as sa
 
 
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"

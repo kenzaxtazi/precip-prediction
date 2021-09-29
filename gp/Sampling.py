@@ -1,13 +1,6 @@
 # Sampling
 
-import os
-import calendar
-import datetime
-import xarray as xr
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
 from load import era5
 
 mask_filepath = "Data/ERA5_Upper_Indus_mask.nc"
@@ -40,23 +33,19 @@ def random_location_generator(location, N=50):
     df_squished = df[["lat", "lon"]].reset_index()
     df_s_reset = df_squished.drop_duplicates(subset=["lat", "lon"])
 
-    if UIB is True:
-        coord_list = df_s_reset[["lat", "lon"]].values
+    indices = np.random.randint(len(df_s_reset), size=N)
 
-    else:
-        indices = np.random.randint(len(df_s_reset), size=N)
-
-        for i in indices:
-            df_location = df_s_reset.iloc[i]
-            lat = df_location["lat"]
-            lon = df_location["lon"]
-            coord_list.append([lat, lon])
+    for i in indices:
+        df_location = df_s_reset.iloc[i]
+        lat = df_location["lat"]
+        lon = df_location["lon"]
+        coord_list.append([lat, lon])
 
     return coord_list
 
 
 def random_location_and_time_sampler(df, length=1000, seed=42):
-    """ Returns DataFrame of random locations and times, apply to clean df only """
+    """Return DataFrame of random locations and times."""
 
     np.random.seed(seed)
     i = np.random.randint(len(df), size=length)
