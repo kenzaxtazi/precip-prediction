@@ -1,13 +1,11 @@
 """
-Datasets should aim to all have similar formats so they can be easily used and compared.
+Datasets should all have the same format so they can be easily used together.
 
-- lon for longitude in °E (float)
-- lat for latitude in °N (float)
-- time for time in years (float) with monthly resolution taken in the middle of each month
-- tp for total precipitation in mm/day/month (float)
-
-Datasets should be returned as xarray Datasets and saved as netcdf files when possible.
+In particular, they should be exported from the submodule:
+- as a xarray DataArray or saved asnetcdf file format
+- with 'lon' as the longitude variable name in °E (float)
+- with 'lat' as the latitude variable name in °N (float)
+- with 'time' for time variable name in years with monthly resolution taken in
+the middle of each month (float)
+- with 'tp' for the variable name for total precipitation in mm/day (float)
 """
-
-
-# Dataset class?
