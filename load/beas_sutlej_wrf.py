@@ -11,7 +11,7 @@ import location_sel as ls
 
 def collect_WRF(location, minyear, maxyear):
     """ Load uncorrected WRF run data. """
-    wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_raw.nc')
+    wrf_ds = xr.open_dataset('_Data/Bannister/Bannister_WRF_raw.nc')
 
     if type(location) == str:
         loc_ds = ls.select_basin(wrf_ds, location)
@@ -28,7 +28,7 @@ def collect_WRF(location, minyear, maxyear):
 def collect_BC_WRF(location, minyear, maxyear):
     """ Load bias-corrected WRF run data. """
 
-    bc_wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF_corrected.nc')
+    bc_wrf_ds = xr.open_dataset('_Data/Bannister/Bannister_WRF_corrected.nc')
 
     if type(location) == str:
         loc_ds = ls.select_basin(bc_wrf_ds, location)
@@ -45,7 +45,7 @@ def collect_BC_WRF(location, minyear, maxyear):
 def reformat_bannister_data():
     """ Project and save Bannister data on equal angle grid."""
 
-    wrf_ds = xr.open_dataset('Data/Bannister/Bannister_WRF.nc')
+    wrf_ds = xr.open_dataset('_Data/Bannister/Bannister_WRF.nc')
     XLAT = wrf_ds.XLAT.values
     XLONG = wrf_ds.XLONG.values
     m_precip = wrf_ds.model_precipitation.values
@@ -69,13 +69,13 @@ def reformat_bannister_data():
     wrf_ds = ds2.drop('bias_corr_precip')
     wrf_ds = wrf_ds.rename({'m_precip': 'tp'})
     wrf_ds = interp(wrf_ds)
-    wrf_ds.to_netcdf('Data/Bannister/Bannister_WRF_raw.nc')
+    wrf_ds.to_netcdf('_Data/Bannister/Bannister_WRF_raw.nc')
 
     # Bias corrected WRF data
     bc_ds = ds2.drop('m_precip')
     bc_ds = bc_ds.rename({'bias_corr_precip': 'tp'})
     bc_ds = interp(bc_ds)
-    bc_ds.to_netcdf('Data/Bannister/Bannister_WRF_corrected.nc')
+    bc_ds.to_netcdf('_Data/Bannister/Bannister_WRF_corrected.nc')
 
 
 def interp(ds):

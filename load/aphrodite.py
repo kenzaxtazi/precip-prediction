@@ -38,7 +38,7 @@ def merge_og_files():
 
     print('1951-2007')
     for f in tqdm(glob.glob(
-            'Data/APHRODITE/APHRO_MA_025deg_V1101.1951-2007.gz/*.nc')):
+            '_Data/APHRODITE/APHRO_MA_025deg_V1101.1951-2007.gz/*.nc')):
         ds = xr.open_dataset(f)
         ds = ds.rename({'latitude': 'lat', 'longitude': 'lon', 'precip': 'tp'})
         ds_cropped = ds.tp.sel(lon=slice(extent[1], extent[3]),
@@ -49,7 +49,7 @@ def merge_og_files():
         ds_list.append(ds_resampled)
 
     print('2007-2016')
-    for f in tqdm(glob.glob('Data/APHRODITE/APHRO_MA_025deg_V1101_EXR1/*.nc')):
+    for f in tqdm(glob.glob('_Data/APHRODITE/APHRO_MA_025deg_V1101_EXR1/*.nc')):
         ds = xr.open_dataset(f)
         ds = ds.rename({'precip': 'tp'})
         ds_cropped = ds.tp.sel(lon=slice(extent[1], extent[3]),

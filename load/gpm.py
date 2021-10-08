@@ -25,8 +25,8 @@ from tqdm import tqdm
 
 import location_sel as ls
 
-# trmm_filepath = 'Data/GPM/subset_GPM_3PR_06_20210611_090054.txt'
-# gpm_filepath = 'Data/GPM'
+# trmm_filepath = '_Data/GPM/subset_GPM_3PR_06_20210611_090054.txt'
+# gpm_filepath = '_Data/GPM'
 
 
 def collect_GPM(location, minyear, maxyear):
@@ -51,7 +51,7 @@ def hdf5_download(url_filepath):
     with open(url_filepath) as f:
         for line in tqdm(f):
             url = line[:-1]
-            path = 'Data/GPM/' + url.split('/', -1)[-1]
+            path = '_Data/GPM/' + url.split('/', -1)[-1]
             r = requests.get(url, allow_redirects=True)
             with open(path, 'wb') as file:
                 file.write(r.content)
@@ -88,7 +88,7 @@ def to_netcdf():
     lon_arr = np.arange(-180, 180, 0.25)
     lat_arr = np.arange(-67, 67, 0.25)
 
-    for file in tqdm(glob.glob('Data/GPM/PR_2000-2010/*')):
+    for file in tqdm(glob.glob('_Data/GPM/PR_2000-2010/*')):
 
         f = h5py.File(file, 'r')
         dset = f['Grids']

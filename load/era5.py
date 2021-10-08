@@ -14,8 +14,8 @@ import xarray as xr
 import pandas as pd
 import cdsapi
 
-import location_sel as ls
-from noaa_indices import indice_downloader
+import load.location_sel as ls
+from load.noaa_indices import indice_downloader
 
 
 def collect_ERA5(location, minyear, maxyear):
@@ -38,7 +38,7 @@ def gauge_download(station, minyear, maxyear):
     era5_beas_da = download_data('beas', xarray=True)
     beas_ds = era5_beas_da[['tp']]
     # Interpolate at location
-    all_station_dict = pd.DataFrame.from_csv('Data/gauge_info.csv')
+    all_station_dict = pd.DataFrame.from_csv('_Data/gauge_info.csv')
     lat, lon = all_station_dict[station]
     loc_ds = beas_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     tim_ds = loc_ds.sel(time=slice(minyear, maxyear))

@@ -52,11 +52,11 @@ hf_train_df = hf_train_ds.to_dataframe().dropna().reset_index()
 
 
 # Import SRTM data
-srtm_ds = xr.open_dataset('Data/SRTM_data.nc')
+srtm_ds = xr.open_dataset('_Data/SRTM_data.nc')
 srtm_ds = srtm_ds.rename({'nlat': 'lat', 'nlon': 'lon'})
 
 # Mask to beas and sutlej
-mask_filepath = 'Data/Masks/Beas_Sutlej_highres_mask.nc'
+mask_filepath = '_Data/Masks/Beas_Sutlej_highres_mask.nc'
 mask = xr.open_dataset(mask_filepath)
 mask_da = mask.Overlap
 msk_srtm_ds = srtm_ds.where(mask_da > 0, drop=True)

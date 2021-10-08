@@ -33,7 +33,7 @@ def generate_slope_aspect():
     dem_ds['aspect'] = (('nlat', 'nlon'), aspect_arr)
 
     streamlined_dem_ds = dem_ds[['elevation', 'slope', 'aspect']]
-    streamlined_dem_ds.to_netcdf('Data/SRTM_data.nc')
+    streamlined_dem_ds.to_netcdf('_Data/SRTM_data.nc')
 
 
 def find_slope(station):

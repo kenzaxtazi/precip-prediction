@@ -15,7 +15,7 @@ from shapely.ops import unary_union
 
 
 # read a template ERA5 field
-mask = xr.open_dataset('Data/SRTM_data.nc')
+mask = xr.open_dataset('_Data/SRTM_data.nc')
 mask = mask.rename({'nlat': 'lat', 'nlon': 'lon'})
 
 # calculate the coordinates for the grid cell boundaries
@@ -52,11 +52,11 @@ ny = template.Overlap.values.shape[0]
 
 # calculate overlaps for SWAT shapefile
 swat_reader = shpreader.Reader(
-    'Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp')
+    '_Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp')
 
 # read the subbasin-to-basin map
 map = pd.read_csv(
-    'Data/Shapefiles/beas-sutlej-shapefile/SWAT_subbasin_basins.csv')
+    '_Data/Shapefiles/beas-sutlej-shapefile/SWAT_subbasin_basins.csv')
 
 # for each basin...
 polys = []
@@ -85,5 +85,5 @@ overlap['Overlap'].where((abs(overlap['Overlap'] - 1) > 1e-05 +
 
 # zero all values in the SH
 overlap['Overlap'][template.coord('latitude').points < 0, :] = 0
-mask_filepath = 'Data/Masks/Beas_Sutlej_highres_mask.nc'
+mask_filepath = '_Data/Masks/Beas_Sutlej_highres_mask.nc'
 overlap.to_netcdf(mask_filepath)

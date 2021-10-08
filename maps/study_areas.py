@@ -201,7 +201,7 @@ def beas_sutlej_gauge_map():
     # TODO could include length of datasets as marker size
     """ Maps of gauges used by Bannister """
 
-    station_df = pd.DataFrame.from_csv('Data/gauge_info')
+    station_df = pd.DataFrame.from_csv('_Data/gauge_info')
 
     hf_train_df1 = station_df[(station_df['lon'] < 77.0)
                               & (station_df['lat'] > 32)]
@@ -217,7 +217,7 @@ def beas_sutlej_gauge_map():
         [hf_train_df1, hf_train_df2, hf_train_df3, hf_train_df4, hf_train_df5])
 
     # Gauges
-    filepath = 'Data/stations_MGM.xlsx'
+    filepath = '_Data/stations_MGM.xlsx'
     df = pd.read_excel(filepath)
 
     # Beas and Sutlej shapefile and projection
@@ -251,7 +251,7 @@ def beas_sutlej_gauge_map():
     ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=10,
                c='k', label="Gauge locations", zorder=9, linewidths=0.5)
 
-    mask_filepath = 'Data/Masks/Beas_Sutlej_mask.nc'
+    mask_filepath = '_Data/Masks/Beas_Sutlej_mask.nc'
     mask = xr.open_dataset(mask_filepath)
     mask = mask.rename({'latitude': 'nlat', 'longitude': 'nlon'})
     elv_da = top_ds.elevation.interp_like(mask)

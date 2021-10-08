@@ -20,7 +20,7 @@ import analysis.PDF as pdf
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
 
 
-def model_prep(location, data_filepath='Data/model_pred_test.csv',
+def model_prep(location, data_filepath='_Data/model_pred_test.csv',
                model_filepath='_Models/model_2021-01-01/08/21-22-35-56',
                minyear=1990, maxyear=2005):
     """Prepare model outputs for comparison."""
