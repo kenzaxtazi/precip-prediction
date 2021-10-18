@@ -29,10 +29,10 @@ def gauge_download(station, minyear, maxyear):
     df['Date'] = df['Date'].values.astype(float)/365/24/60/60/1e9
     df['Date'] = df['Date'] + 1970
 
-    all_station_dict = pd.DataFrame.from_csv('_Data/gauge_info.csv')
+    all_station_dict = pd.read_csv('_Data/gauge_info.csv')
 
     # to xarray DataSet
-    lat, lon, _elv = all_station_dict[station]
+    lat, lon, _elv = all_station_dict.loc[station]
     df_ind = df.set_index('Date')
     ds = df_ind.to_xarray()
     ds = ds.assign_attrs(plot_legend="Gauge data")

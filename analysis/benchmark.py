@@ -198,7 +198,7 @@ def multi_location_comparison():
 def gauge_stats():
     """Print mean, standard deviations and slope for datasets."""
 
-    bs_station_df = pd.DataFrame.from_csv('_Data/bs_only_gauge_info.csv')
+    bs_station_df = pd.read_csv('_Data/bs_only_gauge_info.csv')
     '''
     mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
                         'Rampur']

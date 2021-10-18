@@ -38,7 +38,7 @@ def gauge_download(station, minyear, maxyear):
     era5_beas_da = download_data('beas', xarray=True)
     beas_ds = era5_beas_da[['tp']]
     # Interpolate at location
-    all_station_dict = pd.DataFrame.from_csv('_Data/gauge_info.csv')
+    all_station_dict = pd.read_csv('_Data/gauge_info.csv')
     lat, lon = all_station_dict[station]
     loc_ds = beas_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     tim_ds = loc_ds.sel(time=slice(minyear, maxyear))

@@ -32,7 +32,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # Gauge data
 
-station_df = pd.DataFrame.from_csv('_Data/gauge_info.csv')
+station_df = pd.read_csv('_Data/gauge_info.csv')
 
 hf_train_df1 = station_df[(station_df['lon'] < 77.0)
                           & (station_df['lat'] > 32)]

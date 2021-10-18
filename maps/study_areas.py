@@ -201,7 +201,7 @@ def beas_sutlej_gauge_map():
     # TODO could include length of datasets as marker size
     """ Maps of gauges used by Bannister """
 
-    station_df = pd.DataFrame.from_csv('_Data/gauge_info')
+    station_df = pd.read_csv('_Data/gauge_info')
 
     hf_train_df1 = station_df[(station_df['lon'] < 77.0)
                               & (station_df['lat'] > 32)]
