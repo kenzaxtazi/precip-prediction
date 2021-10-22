@@ -35,12 +35,13 @@ def collect_ERA5(location, minyear, maxyear):
 def gauge_download(station, minyear, maxyear):
     """Download and format ERA5 data for a given station name."""
     # Load data
-    era5_beas_da = download_data('beas', xarray=True)
-    beas_ds = era5_beas_da[['tp']]
+    era5_da = download_data('beas_sutlej', xarray=True)
+    era5_ds = era5_da[['tp']]
     # Interpolate at location
-    all_station_dict = pd.read_csv('_Data/gauge_info.csv')
-    lat, lon = all_station_dict[station]
-    loc_ds = beas_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
+    all_station_dict = pd.read_csv(
+        '_Data/gauge_info.csv', index_col='station').T
+    lat, lon, _elv = all_station_dict[station]
+    loc_ds = era5_ds.interp(coords={"lon": lon, "lat": lat}, method="nearest")
     tim_ds = loc_ds.sel(time=slice(minyear, maxyear))
     return tim_ds
 

@@ -38,11 +38,11 @@ def basin_finder(loc):
     basin_dic = {'indus': 'indus', 'uib': 'indus', 'sutlej': 'indus',
                  'beas': 'indus', 'beas_sutlej': 'indus', 'khyber': 'indus',
                  'ngari': 'indus', 'gilgit': 'indus'}
-    if loc is str:
+    if type(loc) is str:
         basin = basin_dic[loc]
         return basin
-    if loc is not str:  # fix to search with coords
-        return 'Not a string'
+    if type(loc) is not str:  # fix to search with coords
+        print('Not a string')
 
 
 def apply_mask(data, mask_filepath):
