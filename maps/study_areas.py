@@ -199,41 +199,41 @@ def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
     return pgon
 
 
-def beas_sutlej_gauge_map():
+def beas_sutlej_gauge_map(sets=False):
     # TODO could include length of datasets as marker size
     """ Maps of gauges used by Bannister """
 
-    station_df = pd.read_csv('_Data/gauge_info')
-
-    hf_train_df1 = station_df[(station_df['lon'] < 77.0)
-                              & (station_df['lat'] > 32)]
-    hf_train_df2 = station_df[(station_df['lon'] < 76.60) & (
-        (station_df['lat'] < 32) & (station_df['lat'] > 31.6))]
-    hf_train_df3 = station_df[(station_df['lon'] > 77.0)
-                              & (station_df['lat'] < 31)]
-    hf_train_df4 = station_df[(station_df['lon'] < 78.0) & (
-        station_df['lon'] > 77.0) & (station_df['lat'] > 31)
-        & (station_df['lat'] < 31.23)]
-    hf_train_df5 = station_df[(station_df['lon'] > 78.2)]
-    hf_train_stations = pd.concat(
-        [hf_train_df1, hf_train_df2, hf_train_df3, hf_train_df4, hf_train_df5])
+    if sets is True:
+        station_df = pd.read_csv('_Data/gauge_info.csv', index_col='station').T
+        hf_train_df1 = station_df[(station_df['lon'] < 77.0)
+                                  & (station_df['lat'] > 32)]
+        hf_train_df2 = station_df[(station_df['lon'] < 76.60) & (
+            (station_df['lat'] < 32) & (station_df['lat'] > 31.6))]
+        hf_train_df3 = station_df[(station_df['lon'] > 77.0)
+                                  & (station_df['lat'] < 31)]
+        hf_train_df4 = station_df[(station_df['lon'] < 78.0) & (
+            station_df['lon'] > 77.0) & (station_df['lat'] > 31)
+            & (station_df['lat'] < 31.23)]
+        hf_train_df5 = station_df[(station_df['lon'] > 78.2)]
+        hf_train_stations = pd.concat(
+            [hf_train_df1, hf_train_df2, hf_train_df3, hf_train_df4,
+             hf_train_df5])
 
     # Gauges
     filepath = '_Data/stations_MGM.xlsx'
     df = pd.read_excel(filepath)
 
-    '''
     # Beas and Sutlej shapefile and projection
     bs_path = "_Data/Shapefiles/beas-sutlej-shapefile/12500Ha.shp"
     bs_shape = shapereader.Reader(bs_path)
     bs_globe = ccrs.Globe(semimajor_axis=6377276.345,
-                          inverse_flattening = 300.8017)
+                          inverse_flattening=300.8017)
     cranfield_crs = ccrs.LambertConformal(
         central_longitude=82, central_latitude=20, false_easting=2000000.0,
         false_northing=2000000.0,
         standard_parallels=[12.47294444444444, 35.17280555555556],
         globe=bs_globe)
-    '''
+
     # Topography
     top_ds = xr.open_dataset(
         '/Users/kenzatazi/Downloads/GMTED2010_15n015_00625deg.nc')
@@ -242,20 +242,21 @@ def beas_sutlej_gauge_map():
     top_ds = top_ds.sel(nlat=slice(29, 34), nlon=slice(75, 83))
 
     # Figure
-    plt.figure("Gauge map")
+    plt.figure("Gauge map", figsize=(20, 10))
 
     ax = plt.subplot(projection=ccrs.PlateCarree())
-    ax.set_extent([75.5, 78.5, 30.25, 33.5])
+
+    ax.set_extent([75.3, 83, 30, 33.5])
     gl = ax.gridlines(draw_labels=True)
     divnorm = colors.TwoSlopeNorm(vmin=-500., vcenter=0, vmax=6000.)
     top_ds.elevation.plot.contourf(cmap='gist_earth',
                                    levels=np.arange(0, 6000, 100),
                                    norm=divnorm,
                                    cbar_kwargs={'label': 'Elevation [m]'})
-    # for rec in bs_shape.records():
-    #  ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None',
-    #  facecolor="grey", alpha=0.2)
-    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=10,
+    for rec in bs_shape.records():
+        ax.add_geometries([rec.geometry], cranfield_crs, edgecolor='None',
+                          facecolor="blue", alpha=0.2)
+    ax.scatter(df['Longitude (o)'], df['Latitude (o)'], s=12,
                c='k', label="Gauge locations", zorder=9, linewidths=0.5)
 
     mask_filepath = '_Data/Masks/Beas_Sutlej_mask.nc'
@@ -264,7 +265,7 @@ def beas_sutlej_gauge_map():
     elv_da = top_ds.elevation.interp_like(mask)
     mask_da = mask.overlap
     masked_da = elv_da.where(mask_da > 0, drop=True)
-    print(masked_da.median(skipna=True))
+    print('Median elevation: ', masked_da.median(skipna=True).values, 'm')
 
     # df_train = df[df['Longitude (o)'] > 77]
     # ax.scatter(df_train['Longitude (o)'],  df['Latitude (o)'], s=5, c='y', \
@@ -277,11 +278,12 @@ def beas_sutlej_gauge_map():
                         [31.454, 77.644], [31.77, 77.31], [31.238, 77.108],
                         [31.88, 77.15]])
 
-    ax.scatter(val_set[:, 1], val_set[:, 0], s=10, c='r', edgecolors='k',
-               label='Validation locations', linewidths=0.5, zorder=9)
-    ax.scatter(hf_train_stations['lon'], hf_train_stations['lat'], s=10,
-               c='dodgerblue', edgecolors='k', label='Training locations',
-               linewidths=0.5, zorder=9)
+    if set is True:
+        ax.scatter(val_set[:, 1], val_set[:, 0], s=10, c='r', edgecolors='k',
+                   label='Validation locations', linewidths=0.5, zorder=9)
+        ax.scatter(hf_train_stations['lon'], hf_train_stations['lat'], s=10,
+                   c='dodgerblue', edgecolors='k', label='Training locations',
+                   linewidths=0.5, zorder=9)
 
     gl.top_labels = False
     gl.right_labels = False
