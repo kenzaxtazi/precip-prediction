@@ -35,3 +35,7 @@ Introduction to Himalayan precipitation data . This notebook introduces two prec
 ## notebook2 (in progress)
 
 Building a simple Multi-Fidelity Deep Gaussian Process. This notebook builds and trains a simple Multi-Fidelity Deep Gaussian Process (MFDGP) using the data presented in noteboook1.
+
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/kenzaxtazi/precip-prediction/HEAD)
+
