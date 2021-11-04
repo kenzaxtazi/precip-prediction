@@ -28,14 +28,11 @@ Functions to plot maps of the data and model outputs over the study areas.
 
 Functions to train and evalute Multi-Fidelity Deep Gaussian Processes using GPy and emukit.
 
-## notebook1 (in progress)
+## notebook1 (not finished)
 
 Introduction to Himalayan precipitation data . This notebook introduces two precipiation datasets over the Upper Beas and Sutlej river basins, Himalayas. The aim is to give you a sense of differences between the two datasets (climate reanalysis and in-situ observations) but also a flavour of the complex spatio-temporal distribution of precpitation in this area.
 
-## notebook2 (in progress)
+## notebook2 
 
 Building a simple Multi-Fidelity Deep Gaussian Process. This notebook builds and trains a simple Multi-Fidelity Deep Gaussian Process (MFDGP) using the data presented in noteboook1.
-
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/kenzaxtazi/precip-prediction/HEAD)
 
