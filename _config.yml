@@ -1,1 +1,5 @@
 theme: jekyll-theme-minimal
+
+layout: page
+title: "Blog"
+permalink: https://kenzaxtazi.github.io/precip-prediction/blog
