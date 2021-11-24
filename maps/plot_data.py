@@ -13,10 +13,10 @@ import matplotlib.ticker as tck
 from load import era5, cru, beas_sutlej_wrf, gpm, aphrodite, location_sel
 
 
-def annual_map(data_filepath, mask_filepath, variable, year, cumulative=False):
+def annual_map(location, variable, year, cumulative=False):
     """ Annual map """
 
-    da = location_sel.apply_mask(data_filepath, mask_filepath)
+    da = era5.download_data(location, xarray=True)
     ds_year = da.sel(time=slice(str(year) + "-01-16T12:00:00",
                      str(year + 1) + "-01-01T12:00:00"))
     ds_var = ds_year[variable] * 1000  # to mm/day
