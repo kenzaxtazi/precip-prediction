@@ -10,7 +10,7 @@ import numpy as np
 import xarray as xr
 from tqdm import tqdm
 
-import location_sel as ls
+import load.location_sel as ls
 
 
 def collect_APHRO(location, minyear, maxyear):
@@ -49,7 +49,8 @@ def merge_og_files():
         ds_list.append(ds_resampled)
 
     print('2007-2016')
-    for f in tqdm(glob.glob('_Data/APHRODITE/APHRO_MA_025deg_V1101_EXR1/*.nc')):
+    for f in tqdm(
+            glob.glob('_Data/APHRODITE/APHRO_MA_025deg_V1101_EXR1/*.nc')):
         ds = xr.open_dataset(f)
         ds = ds.rename({'precip': 'tp'})
         ds_cropped = ds.tp.sel(lon=slice(extent[1], extent[3]),
