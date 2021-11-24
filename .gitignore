@@ -1,10 +1,6 @@
 .DS_Store
 
-**/_Archive
-**/_Notebooks
-**/_Credentials
-**/_Data
-**/_Models
+**/_*
 **__pycache__
 **/.vscode
 **/.ipynb_checkpoints/
