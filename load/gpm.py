@@ -23,7 +23,7 @@ import xarray as xr
 import numpy as np
 from tqdm import tqdm
 
-import location_sel as ls
+import load.location_sel as ls
 
 # trmm_filepath = '_Data/GPM/subset_GPM_3PR_06_20210611_090054.txt'
 # gpm_filepath = '_Data/GPM'
