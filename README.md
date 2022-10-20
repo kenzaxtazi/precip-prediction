@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-    <img width="15%" src="figures/Large_Scale_Atmospheric_Oscillation.png">
+    <img width="15%" src="/figures/Large_Scale_Atmospheric_Oscillation.png">
 </p>
 
 # precip-prediction
