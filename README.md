@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-    <img width="15%" src="figures/Large_Scale_Atmospheric_Oscillations.png">
+    <img width="30%" src="figures/Large_Scale_Atmospheric_Oscillations.png">
 </p>
 
 # precip-prediction
@@ -34,7 +34,7 @@ Functions to train and evalute Multi-Fidelity Deep Gaussian Processes using GPy 
 
 ## notebook1 (not finished)
 
-Introduction to Himalayan precipitation data . This notebook introduces two precipiation datasets over the Upper Beas and Sutlej river basins, Himalayas. The aim is to give you a sense of differences between the two datasets (climate reanalysis and in-situ observations) but also a flavour of the complex spatio-temporal distribution of precpitation in this area.
+Introduction to Himalayan precipitation data. This notebook introduces two precipiation datasets over the Upper Beas and Sutlej river basins, Himalayas. The aim is to give you a sense of differences between the two datasets (climate reanalysis and in-situ observations) but also a flavour of the complex spatio-temporal distribution of precpitation in this area.
 
 ## notebook2
 
