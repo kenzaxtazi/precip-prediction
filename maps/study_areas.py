@@ -114,7 +114,7 @@ def indus_map():
     ax.add_geometries([pgon], crs=ccrs.PlateCarree(),
                       facecolor="none", edgecolor="red")
 
-    plt.figure("Zoomed in")
+    fig = plt.figure("Zoomed in")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([60, 85, 20, 40])
 
@@ -176,8 +176,10 @@ def indus_map():
     ax.set_yticks([20, 25, 30, 35, 40])
     ax.set_yticklabels(["20°N", "25°N", "30°N", "35°N", "40°N"])
 
-    plt.title("Indus River \n \n")
+    #plt.title("Indus River \n \n")
     plt.show()
+    return fig
+
 
 
 def regional_rectangle(lonmin, lonmax, latmin, latmax, nvert=100):
