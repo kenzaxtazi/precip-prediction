@@ -2,7 +2,7 @@
 
 import datetime
 import numpy as np
-import metrics as me
+import utils.metrics as me
 
 import gpflow
 import tensorflow as tf

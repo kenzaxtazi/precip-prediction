@@ -1,5 +1,8 @@
 # Trend comparison
 
+import sys
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code')
+
 import os
 import pandas as pd
 import numpy as np
@@ -13,8 +16,8 @@ from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
 import gp.data_prep as dp
 import gp.gp_models as gp
 
-import analysis.Timeseries as tims
-import analysis.PDF as pdf
+import analysis.timeseries as tims
+import analysis.pdf as pdf
 
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
@@ -61,6 +64,10 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
 
     r2_list = []
     rmse_list = []
+    rmse_p5_list = []
+    rmse_p95_list = []
+    r2_p5_list = []
+    r2_p95_list = []
 
     for ds in datasets:
 
@@ -72,25 +79,58 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
 
         slope, _intercept, _r_value, _p_value, _std_err = stats.linregress(
             da.time.values, da.values)
+        '''
         print(name)
         print('mean = ', np.mean(da.values), 'mm/day')
         print('std = ', np.std(da.values), 'mm/day')
         print('slope = ', slope, 'mm/day/year')
-
+        '''
         if ref_ds is not None:
             tp_ref = ref_ds.tp.values
             df = pd.DataFrame({'tp_ref': tp_ref, 'tp': tp})
             df = df.dropna()
-            r2 = r2_score(df['tp_ref'].values, df['tp'].values)
-            rmse = mean_squared_error(
-                df['tp_ref'].values, df['tp'].values, squared=False)
+
+            y_true = df['tp_ref'].values
+            y_pred = df['tp'].values
+
+            # all values
+            r2 = r2_score(y_true, y_pred)
+            rmse = mean_squared_error(y_true, y_pred, squared=False)
+
+            # 5th percentile
+            p5 = np.percentile(y_true, 5.0)
+            indx = [y_true <= p5][0]
+            y_true_p5 = y_true[indx]
+            y_pred_p5 = y_pred[indx]
+            r2_p5 = r2_score(y_true_p5, y_pred_p5)
+            rmse_p5 = mean_squared_error(y_true_p5, y_pred_p5, squared=False)
+            
+            # 95th percentile
+            p95 = np.percentile(y_true, 95.0)
+            indx = [y_true >= p95][0]
+            y_true_p95 = y_true[indx]
+            y_pred_p95 = y_pred[indx]
+            r2_p95 = r2_score(y_true_p95, y_pred_p95)
+            rmse_p95 = mean_squared_error(y_true_p95, y_pred_p95, squared=False)
+
+            # Print and append
+            '''
             print('R2 = ', r2)
             print('RMSE = ', rmse)
+            print('R2 p5 = ', r2_p5)
+            print('RMSE p5 = ', rmse_p5)
+            print('R2 p95 = ', r2_p95)
+            print('RMSE p95 = ', rmse_p95)
+            '''
             r2_list.append(r2)
             rmse_list.append(rmse)
+            rmse_p5_list .append(rmse_p5)
+            rmse_p95_list.append(rmse_p95)
+            r2_p5_list .append(r2_p5)
+            r2_p95_list .append(r2_p5)
 
     if ret is True:
-        return [r2_list, rmse_list]
+        return [r2_list, rmse_list, r2_p5_list, rmse_p5_list, r2_p95_list, rmse_p95_list]
 
 
 def single_location_comparison(location=[31.65, 77.34], station='Banjar',
@@ -123,12 +163,12 @@ def single_location_comparison(location=[31.65, 77.34], station='Banjar',
 def basin_comparison(model_filepath, location):
     """ Plot model outputs for given basin over time."""
 
-    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2011)
-    cru_ds = cru.collect_CRU(location, minyear=2000, maxyear=2011)
-    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2011)
-    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2011)
+    aphro_ds = aphrodite.collect_APHRO(location, minyear=2000, maxyear=2010)
+    cru_ds = cru.collect_CRU(location, minyear=2000, maxyear=2010)
+    era5_ds = era5.collect_ERA5(location, minyear=2000, maxyear=2010)
+    gpm_ds = gpm.collect_GPM(location,  minyear=2000, maxyear=2010)
     wrf_ds = beas_sutlej_wrf.collect_BC_WRF(
-        location, minyear=2000, maxyear=2011)
+        location, minyear=2000, maxyear=2010)
 
     # cmip_ds = cmip5.collect_CMIP5()
     # cordex_ds = cordex.collect_CORDEX()
@@ -145,7 +185,7 @@ def multi_location_comparison():
     """Plot model outputs for multiple locations over time."""
 
     gauge_ds = beas_sutlej_gauges.all_gauge_data(
-        minyear=2000, maxyear=2011, threshold=3653)
+        minyear=2000, maxyear=2010, threshold=3653)
     locations = [[31.424, 76.417], [31.357, 76.878], [31.52, 77.22],
                  [31.67, 77.06], [31.454, 77.644], [31.238, 77.108],
                  [31.65, 77.34], [31.88, 77.15], [31.77, 77.31],
@@ -197,28 +237,34 @@ def multi_location_comparison():
 
 def gauge_stats():
     """Print mean, standard deviations and slope for datasets."""
-
-    bs_station_df = pd.read_csv('_Data/bs_only_gauge_info.csv')
-    '''
+    
+    bs_station_df = pd.read_csv('/Users/kenzatazi/Documents/CDT/Code/data/bs_gauges/bs_only_gauge_info.csv')
+    bs_station_df = bs_station_df.set_index('Unnamed: 0')
+    ''''
     mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
                         'Rampur']
+    '''
     val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj',
                     'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
-    '''
 
     r2_list = []
     rmse_list = []
+    rmse_p5_list = []
+    rmse_p95_list = []
+    r2_p5_list = []
+    r2_p95_list = []
 
-    for s in tqdm(bs_station_df):
+    for s in tqdm( val_stations): #bs_station_df.index):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(
-            s, minyear=2000, maxyear=2011)
+            s, minyear=2000, maxyear=2010)
         gauge_maxy = gauge_ds.time.max().values
         gauge_miny = gauge_ds.time.min().values
         miny = gauge_miny - 0.0001
         maxy = gauge_maxy + 0.0001
 
-        location = bs_station_df[s].values
+        location = bs_station_df.loc[s].values
+        print(location)
 
         aphro_ds = aphrodite.collect_APHRO(
             location, minyear=miny, maxyear=maxy)
@@ -229,11 +275,21 @@ def gauge_stats():
             location, minyear=miny, maxyear=maxy)
 
         timeseries = [era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds]
-        r2s, rmses = dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
+        # Function to calculate statistics for each dataset and print values
+        r2s, rmses, r2_p5, rmses_p5, r2_p95, rmses_p95= dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
         r2_list.append(r2s)
         rmse_list.append(rmses)
+        rmse_p5_list.append(rmses_p5)
+        rmse_p95_list.append(rmses_p95)
+        r2_p5_list.append(r2_p5)
+        r2_p95_list.append(r2_p95)
 
     avg_r2 = np.array(r2_list).mean(axis=0)
     avg_rmse = np.array(rmse_list).mean(axis=0)
+    avg_r2_p5 = np.array(r2_p5_list).mean(axis=0)
+    avg_rmse_p5 = np.array(rmse_p5_list).mean(axis=0)
+    avg_r2_p95 = np.array(r2_p95_list).mean(axis=0)
+    avg_rmse_p95 = np.array(rmse_p95_list).mean(axis=0)
 
-    return avg_r2, avg_rmse
+
+    return avg_r2, avg_rmse, avg_r2_p5,avg_rmse_p5, avg_r2_p95, avg_rmse_p95

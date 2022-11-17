@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 import data_prep as dp
-import metrics as me
+import utils.metrics as me
 import gp_models as gpm
 import sampling as sa
 
