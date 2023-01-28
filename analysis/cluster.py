@@ -9,12 +9,12 @@ import cartopy.crs as ccrs
 
 from sklearn.cluster import KMeans
 
-from load import era5
+from load import era5, data_dir, location_sel
 from maps.plot_data import cumulative_monthly
 
 # Filepaths
-mask_filepath = "_Data/Masks/ERA5_Upper_Indus_mask.nc"
-dem_filepath = "_Data/elev.0.25-deg.nc"
+mask_filepath = data_dir + "Masks/ERA5_Upper_Indus_mask.nc"
+dem_filepath = data_dir + "Elevation/elev.0.25-deg.nc"
 
 
 # Function inputs
@@ -25,8 +25,9 @@ dem_da = (dem.data).sum(dim="time")
 sliced_dem = dem_da.sel(lat=slice(38, 30), lon=slice(71.25, 82.75))
 
 # Precipitation data
-da = era5.download_data(mask_filepath, xarray=True)
-tp_da = da.tp
+da = era5.download_data('uib', xarray=True)
+loc_ds = location_sel.select_basin(da, 'uib')
+tp_ds = loc_ds.tp
 
 # Decade list
 decades = [1980, 1990, 2000, 2010]
@@ -35,7 +36,7 @@ decades = [1980, 1990, 2000, 2010]
 N = np.arange(2, 11, 1)
 
 
-def seasonal_clusters(tp_da, sliced_dem, N, decades):
+def seasonal_clusters(tp_ds, sliced_dem, N, decades):
     """
     K-means clustering of precipitation data as a function of seasons, decades
     and number of clusters. Returns spatial graphs, overlayed with the local
@@ -51,7 +52,7 @@ def seasonal_clusters(tp_da, sliced_dem, N, decades):
         FacetGrid plots
     """
 
-    UIB_cum = cumulative_monthly(tp_da)
+    UIB_cum = cumulative_monthly(tp_ds)
 
     # Seperation into seasons
     JFM = UIB_cum.where(UIB_cum.time.dt.month <= 3)
@@ -395,12 +396,12 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
     plt.show()
 
 
-def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
+def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_plot=False) -> list:
     """
     Returns cluster masks for data separation.
 
     Inputs:
-        tp_da: total precipitation data array
+        tp_ds: total precipitation data array
         N: number of clusters (integer)
         filter: soft k-means filtering threshold, float between 0 (no
         filtering) and 1
@@ -414,57 +415,67 @@ def old_gp_clusters(tp_da, N=3, filter=0.7, plot=False, confidence_plot=False):
     """
     names = {0: "Gilgit", 1: "Ngari", 2: "Khyber"}
 
-    multi_index_df = tp_da.to_dataframe()
+    multi_index_df = tp_ds.to_dataframe()
     df = multi_index_df.reset_index()
     df_clean = df[df["tp"] > 0]
     table = pd.pivot_table(
-        df_clean, values="tp", index=["latitude", "longitude"],
+        df_clean, values="tp", index=["lat", "lon"],
         columns=["time"])
-    X = table.interpolate()
+    X = table.interpolate().dropna()
 
     # Soft k-means
     kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
     filtered_df = filtering(X, kmeans, thresh=filter)
 
     # Seperate labels and append as DataArray
-    reset_df = filtered_df.reset_index()[["Labels", "latitude", "longitude"]]
+    reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
     clusters = []
-
+    ''''
     for i in range(N):
         cluster_df = reset_df[reset_df["Labels"] == i]
-        df_pv = cluster_df.pivot(index="latitude", columns="longitude")
+        df_pv = cluster_df.pivot(index="lat", columns="lon")
         df_pv = df_pv.droplevel(0, axis=1) + 1
         cluster_da = xr.DataArray(data=df_pv, name="overlap")
-        cluster_da.to_netcdf(path="_Data/Masks/" + names[i] + "_mask.nc")
+        cluster_da.to_netcdf(path= data_dir + "Masks/" + names[i] + "_mask.nc")
         clusters.append(cluster_da)
-
+    '''
     if plot is True:
 
-        df_pv = reset_df.pivot(index="latitude", columns="longitude")
+        df_pv = reset_df.pivot(index="lat", columns="lon")
         df_pv = df_pv.droplevel(0, axis=1)
         da = xr.DataArray(data=df_pv, name="\n Clusters")
 
         # Plot
-        plt.figure()
+        plt.figure(figsize=(8, 4))
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
-        # c = ["#2460A7FF", "#85B3D1FF", "#D9B48FFF"]
         g = da.plot(
-            x="longitude", y="latitude", add_colorbar=False, ax=ax,
-            levels=N + 1)
-        # cbar_kwargs={'ticks':[0.4, 1.2, 2], 'pad':0.10})
+            x="lon", y="lat", add_colorbar=False, ax=ax,
+            levels=N + 1, colors=["#2460A7FF", "#85B3D1FF", "#D9B48FFF"])
+        cbar_kwargs = {'ticks': [0.4, 1.2, 2], 'pad': 0.10}
         cbar = plt.colorbar(g, ticks=[0.4, 1.2, 2], pad=0.10)
         cbar.ax.set_yticklabels(
             ["Gilgit regime", "Ngari regime", "Khyber regime"])
-        ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
+
+        #gl.xlabels_top = False
+        #gl.ylabels_right = False
+        ax.set_yticks(np.arange(31, 38), crs=ccrs.PlateCarree())
+        ax.set_xticks(np.arange(72, 83, 2), crs=ccrs.PlateCarree())
+        lon_formatter = LongitudeFormatter(zero_direction_label=True)
+        lat_formatter = LatitudeFormatter()
+        ax.xaxis.set_major_formatter(lon_formatter)
+        ax.yaxis.set_major_formatter(lat_formatter)
+        gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree())
+        gl.xlocator = mticker.FixedLocator(np.arange(72, 83, 2))
+        ax.set_xlabel(" ")  # "Longitude")
+        ax.set_ylabel(" ")  # ("Latitude")
+        plt.savefig('regimes_uib_fixed_gridlines.png', dpi=300)
         plt.show()
 
     if confidence_plot is True:
         df_clean = df[df["tp"] > 0]
         table = pd.pivot_table(
-            df_clean, values="tp", index=["latitude", "longitude"],
+            df_clean, values="tp", index=["lat", "lon"],
             columns=["time"])
         X = table.interpolate()
         # Soft k-means
