@@ -1,23 +1,21 @@
 # Trend comparison
 
-import sys
-sys.path.append('/Users/kenzatazi/Documents/CDT/Code')
-
 import os
-import pandas as pd
-import numpy as np
-import xarray as xr
+import sys
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code')  # noqa
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code/precip-prediction')  # noqa
 
-from scipy import stats
-from tqdm import tqdm
-from sklearn.metrics import mean_squared_error, r2_score
-
-from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
 import gp.data_prep as dp
 import gp.gp_models as gp
-
-import analysis.timeseries as tims
 import analysis.pdf as pdf
+import analysis.timeseries as tims
+from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
+from sklearn.metrics import mean_squared_error, r2_score
+from tqdm import tqdm
+from scipy import stats
+import xarray as xr
+import numpy as np
+import pandas as pd
 
 
 model_filepath = 'Models/model_2021-01-01/08/21-22-35-56'
@@ -104,14 +102,15 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
             y_pred_p5 = y_pred[indx]
             r2_p5 = r2_score(y_true_p5, y_pred_p5)
             rmse_p5 = mean_squared_error(y_true_p5, y_pred_p5, squared=False)
-            
+
             # 95th percentile
             p95 = np.percentile(y_true, 95.0)
             indx = [y_true >= p95][0]
             y_true_p95 = y_true[indx]
             y_pred_p95 = y_pred[indx]
             r2_p95 = r2_score(y_true_p95, y_pred_p95)
-            rmse_p95 = mean_squared_error(y_true_p95, y_pred_p95, squared=False)
+            rmse_p95 = mean_squared_error(
+                y_true_p95, y_pred_p95, squared=False)
 
             # Print and append
             '''
@@ -127,7 +126,7 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
             rmse_p5_list .append(rmse_p5)
             rmse_p95_list.append(rmse_p95)
             r2_p5_list .append(r2_p5)
-            r2_p95_list .append(r2_p5)
+            r2_p95_list .append(r2_p95)
 
     if ret is True:
         return [r2_list, rmse_list, r2_p5_list, rmse_p5_list, r2_p95_list, rmse_p95_list]
@@ -237,13 +236,15 @@ def multi_location_comparison():
 
 def gauge_stats():
     """Print mean, standard deviations and slope for datasets."""
-    
-    bs_station_df = pd.read_csv('/Users/kenzatazi/Documents/CDT/Code/data/bs_gauges/bs_only_gauge_info.csv')
+
+    bs_station_df = pd.read_csv(
+        '/Users/kenzatazi/Documents/CDT/Code/data/bs_gauges/bs_only_gauge_info.csv')
     bs_station_df = bs_station_df.set_index('Unnamed: 0')
     ''''
     mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
                         'Rampur']
     '''
+
     val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj',
                     'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
 
@@ -254,7 +255,7 @@ def gauge_stats():
     r2_p5_list = []
     r2_p95_list = []
 
-    for s in tqdm( val_stations): #bs_station_df.index):
+    for s in tqdm(val_stations):  # bs_station_df.index):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(
             s, minyear=2000, maxyear=2010)
@@ -276,7 +277,8 @@ def gauge_stats():
 
         timeseries = [era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds]
         # Function to calculate statistics for each dataset and print values
-        r2s, rmses, r2_p5, rmses_p5, r2_p95, rmses_p95= dataset_stats(timeseries, ref_ds=gauge_ds, ret=True)
+        r2s, rmses, r2_p5, rmses_p5, r2_p95, rmses_p95 = dataset_stats(
+            timeseries, ref_ds=gauge_ds, ret=True)
         r2_list.append(r2s)
         rmse_list.append(rmses)
         rmse_p5_list.append(rmses_p5)
@@ -291,5 +293,4 @@ def gauge_stats():
     avg_r2_p95 = np.array(r2_p95_list).mean(axis=0)
     avg_rmse_p95 = np.array(rmse_p95_list).mean(axis=0)
 
-
-    return avg_r2, avg_rmse, avg_r2_p5,avg_rmse_p5, avg_r2_p95, avg_rmse_p95
+    return avg_r2, avg_rmse, avg_r2_p5, avg_rmse_p5, avg_r2_p95, avg_rmse_p95
