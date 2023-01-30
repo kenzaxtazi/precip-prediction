@@ -11,6 +11,8 @@ from sklearn.cluster import KMeans
 
 from load import era5, data_dir, location_sel
 from maps.plot_data import cumulative_monthly
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+import matplotlib.ticker as mticker
 
 # Filepaths
 mask_filepath = data_dir + "Masks/ERA5_Upper_Indus_mask.nc"
