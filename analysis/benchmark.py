@@ -9,7 +9,7 @@ import gp.data_prep as dp
 import gp.gp_models as gp
 import analysis.pdf as pdf
 import analysis.timeseries as tims
-from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite
+from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite, data_dir
 from sklearn.metrics import mean_squared_error, r2_score
 from tqdm import tqdm
 from scipy import stats
@@ -234,19 +234,21 @@ def multi_location_comparison():
     pdf.mult_gauge_loc_plot(gauge_ds, timeseries)
 
 
-def gauge_stats():
+def gauge_stats(minyear, maxyear):
     """Print mean, standard deviations and slope for datasets."""
 
     bs_station_df = pd.read_csv(
-        '/Users/kenzatazi/Documents/CDT/Code/data/bs_gauges/bs_only_gauge_info.csv')
+        data_dir + '/bs_gauges/bs_only_gauge_info.csv')
     bs_station_df = bs_station_df.set_index('Unnamed: 0')
-    ''''
+    station_list = list(bs_station_df.T)
+
+    '''
     mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
                         'Rampur']
-    '''
 
     val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj',
                     'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
+    '''
 
     r2_list = []
     rmse_list = []
@@ -255,10 +257,10 @@ def gauge_stats():
     r2_p5_list = []
     r2_p95_list = []
 
-    for s in tqdm(val_stations):  # bs_station_df.index):
+    for s in tqdm(station_list):  # bs_station_df.index):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(
-            s, minyear=2000, maxyear=2010)
+            s, minyear=minyear, maxyear=maxyear)
         gauge_maxy = gauge_ds.time.max().values
         gauge_miny = gauge_ds.time.min().values
         miny = gauge_miny - 0.0001
@@ -293,4 +295,14 @@ def gauge_stats():
     avg_r2_p95 = np.array(r2_p95_list).mean(axis=0)
     avg_rmse_p95 = np.array(rmse_p95_list).mean(axis=0)
 
-    return avg_r2, avg_rmse, avg_r2_p5, avg_rmse_p5, avg_r2_p95, avg_rmse_p95
+    std_r2 = np.array(r2_list).std(axis=0)
+    std_rmse = np.array(rmse_list).std(axis=0)
+    std_r2_p5 = np.array(r2_p5_list).std(axis=0)
+    std_rmse_p5 = np.array(rmse_p5_list).std(axis=0)
+    std_r2_p95 = np.array(r2_p95_list).std(axis=0)
+    std_rmse_p95 = np.array(rmse_p95_list).std(axis=0)
+
+    avgs = [avg_r2, avg_rmse, avg_r2_p5, avg_rmse_p5, avg_r2_p95, avg_rmse_p95]
+    stds = [std_r2, std_rmse, std_r2_p5, std_rmse_p5, std_r2_p95, std_rmse_p95]
+
+    return avgs, stds
