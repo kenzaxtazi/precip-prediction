@@ -2,12 +2,14 @@
 
 import datetime
 import numpy as np
-import utils.metrics as me
 
 import gpflow
 import tensorflow as tf
 from gpflow.utilities import positive
+from scipy.special import inv_boxcox
 
+import utils.metrics as me
+import gp.data_prep as dp
 
 # Filepaths and URLs
 mask_filepath = "_Data/ERA5_Upper_Indus_mask.nc"
@@ -26,7 +28,7 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
 """
 
 
-def multi_gp(xtrain, xval, ytrain, yval, save=False):
+def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, save=False,):
     """ Returns simple GP model """
 
     # model construction
@@ -37,7 +39,7 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
         len(xval[0])-1), active_dims=np.arange(1, len(xval[0])))
     # k3 = gpflow.kernels.White()
 
-    k = k1 * k1b + k2  # +k
+    k = k1 * k1b + k2  #
 
     # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),
     # 1)), b=[1])
@@ -50,17 +52,28 @@ def multi_gp(xtrain, xval, ytrain, yval, save=False):
     opt.minimize(m.training_loss, m.trainable_variables)
     # print_summary(m)
 
+    # Inverse transforms
+    ytrain_inv_tr = inv_boxcox(ytrain, lmbda_bc)
+    yval_inv_tr = inv_boxcox(yval, lmbda_bc)
+
+    y_gpr_train0, y_var_train0 = m.predict_y(xtrain)
+    y_gpr_train = inv_boxcox(y_gpr_train0, lmbda_bc)
+
+    y_gpr_val0, y_var_val0 = m.predict_y(xval)
+    y_gpr_val = inv_boxcox(y_gpr_val0, lmbda_bc)
+
     x_plot = np.concatenate((xtrain, xval))
-    y_gpr, y_std = m.predict_y(x_plot)
+    y_gpr_plot0, y_var_val0 = m.predict_y(x_plot)
+    y_gpr_plot = inv_boxcox(y_gpr_plot0, lmbda_bc)
 
     print(
         " {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(
-            me.R2(m, xtrain, ytrain),
-            me.RMSE(m, xtrain, ytrain),
-            me.R2(m, xval, yval),
-            me.RMSE(m, xval, yval),
-            np.mean(y_gpr),
-            np.mean(y_std),
+            me.R2(ytrain_inv_tr, y_gpr_train),
+            me.RMSE(ytrain_inv_tr, y_gpr_train),
+            me.R2(yval_inv_tr, y_gpr_val),
+            me.RMSE(yval_inv_tr, y_gpr_val),
+            np.mean(y_gpr_plot),
+            np.std(y_gpr_plot),
         )
     )
 
@@ -91,6 +104,7 @@ def hybrid_gp(xtrain, xval, ytrain, yval, save=False):
     opt = gpflow.optimizers.Scipy()
     opt.minimize(m.training_loss, m.trainable_variables)
     # print_summary(m)
+    # TO DO inverse transform
 
     x_plot = np.concatenate((xtrain, xval))
     y_gpr, y_std = m.predict_y(x_plot)
@@ -171,3 +185,12 @@ class hybrid_kernel(gpflow.kernels.AnisotropicStationary):
 
         print('kdiag ', np.shape(kdiag))
         return kdiag  # this returns a 1D tensor
+
+
+if __name__ in "__main__":
+    # Single point multivariate GP preparation
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
+
+    # Random sampling multivariate GP preparation
+    xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
+                                                              maxyear=1993)
