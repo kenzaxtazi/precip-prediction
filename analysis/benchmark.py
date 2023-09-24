@@ -6,7 +6,7 @@ sys.path.append('/Users/kenzatazi/Documents/CDT/Code')  # noqa
 sys.path.append('/Users/kenzatazi/Documents/CDT/Code/precip-prediction')  # noqa
 
 import gp.data_prep as dp
-import gp.gp_models as gp
+#import gp.gp_models as gp
 import analysis.pdf as pdf
 import analysis.timeseries as tims
 from load import beas_sutlej_gauges, era5, cru, beas_sutlej_wrf, gpm, aphrodite, data_dir
@@ -74,10 +74,10 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
         if len(tp.shape) > 1:
             ds = dp.average_over_coords(ds)
         da = ds['tp'].dropna(dim='time')
-
+        '''
         slope, _intercept, _r_value, _p_value, _std_err = stats.linregress(
             da.time.values, da.values)
-        '''
+
         print(name)
         print('mean = ', np.mean(da.values), 'mm/day')
         print('std = ', np.std(da.values), 'mm/day')
@@ -85,6 +85,7 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
         '''
         if ref_ds is not None:
             tp_ref = ref_ds.tp.values
+            print(tp_ref.shape, tp.shape)
             df = pd.DataFrame({'tp_ref': tp_ref, 'tp': tp})
             df = df.dropna()
 
@@ -133,7 +134,7 @@ def dataset_stats(datasets, ref_ds=None, ret=False):
 
 
 def single_location_comparison(location=[31.65, 77.34], station='Banjar',
-                               min_year=2000, max_year=2011):
+                               min_year=2000, max_year=2010):
     """Plot model outputs for given coordinates over time."""
 
     aphro_ds = aphrodite.collect_APHRO(
@@ -197,20 +198,20 @@ def multi_location_comparison():
     wrf_sets = []
 
     for loc in locations:
-        aphro_ds = aphrodite.collect_APHRO(loc, minyear=2000, maxyear=2011)
+        aphro_ds = aphrodite.collect_APHRO(loc, minyear=2000, maxyear=2010)
         aphro_sets.append(aphro_ds.tp)
 
-        cru_ds = cru.collect_CRU(loc, minyear=2000, maxyear=2011)
+        cru_ds = cru.collect_CRU(loc, minyear=2000, maxyear=2010)
         cru_sets.append(cru_ds.tp)
 
-        era5_ds = era5.collect_ERA5(loc, minyear=2000, maxyear=2011)
+        era5_ds = era5.collect_ERA5(loc, minyear=2000, maxyear=2010)
         era5_sets.append(era5_ds.tp)
 
-        gpm_ds = gpm.collect_GPM(loc,  minyear=2000, maxyear=2011)
+        gpm_ds = gpm.collect_GPM(loc,  minyear=2000, maxyear=2010)
         gpm_sets.append(gpm_ds.tp)
 
         wrf_ds = beas_sutlej_wrf.collect_BC_WRF(
-            loc, minyear=2000, maxyear=2011)
+            loc, minyear=2000, maxyear=2010)
         wrf_sets.append(wrf_ds.tp)
 
     # Merge datasets
@@ -231,24 +232,36 @@ def multi_location_comparison():
 
     timeseries = [gpm_mer_ds, era5_mer_ds,
                   wrf_mer_ds, aphro_mer_ds, cru_mer_ds]
+    print(timeseries)
     pdf.mult_gauge_loc_plot(gauge_ds, timeseries)
 
 
-def gauge_stats(minyear, maxyear):
-    """Print mean, standard deviations and slope for datasets."""
+def gauge_stats(minyear: str, maxyear: str) -> tuple:
+    """
+    Statisitics for gauges in the Uppper Beas and Sutlej Basins
+
+    Print mean, standard deviations and slope for datasets.
+    As well as calculating R2 and average RMSE, 5th percentile
+    RMSE and 95th percentile RMSE for each reference dataset.
+    These are in order:
+     - ERA5
+     - GPM
+     - APHRODITE
+     - CRU
+     - Bias-corrected WRF
+
+    Args:
+        minyear(int): minimum year to analyse (inclusive)
+        maxyear(int): maximum year to analyse (exclusive)
+
+    Returns:
+        tuple: list of averages and standerd deviations for each metric
+    """
 
     bs_station_df = pd.read_csv(
         data_dir + '/bs_gauges/bs_only_gauge_info.csv')
     bs_station_df = bs_station_df.set_index('Unnamed: 0')
     station_list = list(bs_station_df.T)
-
-    '''
-    mlm_val_stations = ['Bhakra', 'Suni' 'Pandoh', 'Janjehl', 'Bhuntar',
-                        'Rampur']
-
-    val_stations = ['Banjar', 'Larji', 'Bhuntar', 'Sainj',
-                    'Bhakra', 'Kasol', 'Suni', 'Pandoh', 'Janjehl', 'Rampur']
-    '''
 
     r2_list = []
     rmse_list = []
@@ -257,27 +270,23 @@ def gauge_stats(minyear, maxyear):
     r2_p5_list = []
     r2_p95_list = []
 
-    for s in tqdm(station_list):  # bs_station_df.index):
+    for s in tqdm(station_list):
 
         gauge_ds = beas_sutlej_gauges.gauge_download(
             s, minyear=minyear, maxyear=maxyear)
-        gauge_maxy = gauge_ds.time.max().values
-        gauge_miny = gauge_ds.time.min().values
-        miny = gauge_miny - 0.0001
-        maxy = gauge_maxy + 0.0001
 
         location = bs_station_df.loc[s].values
-        print(location)
+        # print(location)
 
-        aphro_ds = aphrodite.collect_APHRO(
-            location, minyear=miny, maxyear=maxy)
-        cru_ds = cru.collect_CRU(location, minyear=miny, maxyear=maxy)
-        era5_ds = era5.collect_ERA5(location, minyear=miny, maxyear=maxy)
-        gpm_ds = gpm.collect_GPM(location,  minyear=miny, maxyear=maxy)
-        wrf_ds = beas_sutlej_wrf.collect_BC_WRF(
-            location, minyear=miny, maxyear=maxy)
+        aphro_ds = aphrodite.collect_APHRO(location, minyear, maxyear)
+        cru_ds = cru.collect_CRU(location, minyear, maxyear)
+        era5_ds = era5.collect_ERA5(location, minyear, maxyear)
+        gpm_ds = gpm.collect_GPM(location,  minyear, maxyear)
+        wrf_ds = beas_sutlej_wrf.collect_BC_WRF(location, minyear, maxyear)
 
         timeseries = [era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds]
+
+        #print(era5_ds, gpm_ds, aphro_ds, cru_ds, wrf_ds)
         # Function to calculate statistics for each dataset and print values
         r2s, rmses, r2_p5, rmses_p5, r2_p95, rmses_p95 = dataset_stats(
             timeseries, ref_ds=gauge_ds, ret=True)
