@@ -3,8 +3,8 @@
 import pandas as pd
 import numpy as np
 
-import gp_models as gpm
-import data_prep as dp
+import gp.gp_models as gpm
+import gp.data_prep as dp
 
 
 # Empty lists
@@ -29,7 +29,7 @@ for i in range(10):
     ytrain_list.append(ytrain)
     yval_list.append(yval)
     """
-    model = gpm.multi_gpflow_gp(xtrain, xval, ytrain, yval)
+    model = gpm.multi_gp(xtrain, xval, ytrain, yval)
     model_list.append(model)
 
     ytrain_pred, ytrain_std_pred = model.predict_y(xtrain)
