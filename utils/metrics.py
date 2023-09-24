@@ -9,18 +9,16 @@ import gp.data_prep as dp
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-def R2(model, x, y):
+def R2(y, y_pred):
     """ Returns R2 score """
-    y_pred, y_std_pred = model.predict_y(x)
     R2 = r2_score(y, y_pred)
     return R2
 
 
-def RMSE(model, x, y):
+def RMSE(y, y_pred):
     """ Returns RMSE score """
-    y_pred, y_std_pred = model.predict_y(x)
-    log_RMSE = mean_squared_error(y, y_pred)
-    RMSE = dp.inverse_log_transform(log_RMSE) * 1000  # to mm/day
+    RMSE = mean_squared_error(y, y_pred)
+    # RMSE = dp.inverse_log_transform(log_RMSE) * 1000  # to mm/day
     return np.sqrt(RMSE)
 
 
