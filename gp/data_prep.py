@@ -1,8 +1,13 @@
 # Data Preparation
 
+import sys
 import numpy as np
+import scipy as sp
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# custom libraries
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code/')  # noqa
 from load import era5, location_sel
 import gp.sampling as sa
 
@@ -37,16 +42,15 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
     else:
         da = era5.download_data(location, xarray=True)
 
-    if location is str:
+    if type(location) is str:
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df_location = sa.random_location_sampler(df_clean)
         df = df_location.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
-    else:
-        da_location = da.interp(
-            coords={"lat": location[0], "lon": location[1]}, method="nearest"
-        )
+    if type(location) is tuple:
+        da_location = era5.collect_ERA5(
+            (location[0], location[1]), minyear='1979', maxyear='2020')
         multiindex_df = da_location.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
@@ -54,25 +58,29 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
     if maxyear is not None:
         df["time"] = df[df["time"] < maxyear]
 
-    df["time"] = df["time"] - 1970  # to years
-    df["tp"] = log_transform(df["tp"])
+    df["time"] = pd.to_datetime(df["time"])
+    df["time"] = pd.to_numeric(df["time"])
+    # df["tp"] = log_transform(df["tp"])
     df = df[["time", "d2m", "tcwv", "N34", "tp"]]  # format order
 
     # Keep first of 70% for training
-    train_df = df[df["time"] < df["time"].max() * 0.7]
-    xtrain = train_df.drop(columns=["tp"]).values
-    ytrain = train_df["tp"].values
+    x = df.drop(columns=["tp"]).values
+    y = df["tp"].values
 
     # Last 30% for evaluation
-    eval_df = df[df["time"] > df["time"].max() * 0.7]
-    x_eval = eval_df.drop(columns=["tp"]).values
-    y_eval = eval_df["tp"].values
+    xtrain, x_eval, ytrain, y_eval = train_test_split(
+        x, y, test_size=0.3, shuffle=False)
 
     # Training and validation data
     xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=0.3333, shuffle=False)
+        x_eval, y_eval, test_size=1./3., shuffle=False)
 
-    return xtrain, xval, xtest, ytrain, yval, ytest
+    # Transformations
+    ytrain_tr, l = sp.stats.boxcox(ytrain)
+    yval_tr = sp.stats.boxcox(yval, lmbda=l)
+    ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
+
+    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
 
 
 def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
@@ -114,33 +122,38 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
     masked_da = location_sel.apply_mask(da, mask_filepath)
 
     if maxyear is not None:
-        masked_da = masked_da.where(da.time < maxyear+1, drop=True)
+        df["time"] = df[df["time"] < maxyear]
 
     multiindex_df = masked_da.to_dataframe()
     df_clean = multiindex_df.dropna().reset_index()
     df = sa.random_location_and_time_sampler(
         df_clean, length=length, seed=seed)
 
-    df["time"] = df["time"] - 1970
-    df["tp"] = log_transform(df["tp"])
-    df = df[["time", "lat", "lon", "slor",
-             "anor", "z", "d2m", "tcwv", "N34", "tp"]]
+    df["time"] = pd.to_datetime(df["time"])
+    df["time"] = pd.to_numeric(df["time"])
+    # df["tp"] = log_transform(df["tp"])
+    df = df[["time", "lat", "lon", "d2m", "tcwv", "N34", "tp"]]  # format order
 
     # Keep first of 70% for training
-    train_df = df[df['time'] < df['time'].max()*0.7]
-    xtrain = train_df.drop(columns=['tp']).values
-    ytrain = train_df['tp'].values
+    x = df.drop(columns=["tp"]).values
+    df[df['tp'] <= 0.0] = 0.0001
+    print(df['tp'].min())
+    y = df['tp'].values
 
     # Last 30% for evaluation
-    eval_df = df[df['time'] > df['time'].max()*0.7]
-    x_eval = eval_df.drop(columns=['tp']).values
-    y_eval = eval_df['tp'].values
+    xtrain, x_eval, ytrain, y_eval = train_test_split(
+        x, y, test_size=0.3, shuffle=False)
 
     # Training and validation data
     xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=0.3333, shuffle=True)
+        x_eval, y_eval, test_size=1./3., shuffle=False)
 
-    return xtrain, xval, xtest, ytrain, yval, ytest
+    # Transformations
+    ytrain_tr, l = sp.stats.boxcox(ytrain)
+    yval_tr = sp.stats.boxcox(yval, lmbda=l)
+    ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
+
+    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
 
 
 def areal_model_eval(location, number=None, EDA_average=False, length=3000,
@@ -196,7 +209,7 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000,
         df = multiindex_df.dropna().reset_index()
 
     df["time"] = df["time"] - 1970  # to years
-    df["tp"] = log_transform(df["tp"])
+    #df["tp"] = log_transform(df["tp"])
     df = df[["time", "lat", "lon", "slor", "anor", "z",
              "d2m", "tcwv", "N34", "tp"]]  # format order
 
@@ -204,35 +217,6 @@ def areal_model_eval(location, number=None, EDA_average=False, length=3000,
     ytr = df["tp"].values
 
     return xtr, ytr
-
-
-def normal_transform(df, features):
-    """
-    Normalise dataframe
-    Inputs
-        df: dataframe
-        features: list of features to transform, list of strings
-    Output:
-        df: updated dataframe.
-    """
-    for f in features:
-        df[f] = df[f] / df[f].max()
-    return df
-
-
-def log_transform(x):
-    """ Log transformation from total precipitation in mm/day"""
-    tp_max = 23.40308390557766
-    y = np.log(x*(np.e-1)/tp_max + 1)
-    return y
-
-
-def inverse_log_transform(x):
-    """ Inverse log transformation to total precipitation in mm/day """
-    tp_max = 23.40308390557766
-    # np.log(df[f]*(np.e-1)/df[f].max() + 1)
-    y = (np.exp(x)-1) * tp_max / (np.e-1)
-    return y
 
 
 def average_over_coords(ds):
