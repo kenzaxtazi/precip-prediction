@@ -20,7 +20,7 @@ ngari_mask = "_Data/Ngari_mask.nc"
 
 """
 # Single point multivariate GP preparation
-xtrain, xval, xtest, ytrain, yval, ytest = dp.point_model('uib')
+xtrain, xval, xtest, ytrain, yval, ytest, lmbda = dp.point_model('uib')
 
 # Random sampling multivariate GP preparation
 xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
@@ -28,7 +28,7 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
 """
 
 
-def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, save=False,):
+def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, save=False, print_perf=False):
     """ Returns simple GP model """
 
     # model construction
@@ -52,30 +52,33 @@ def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, save=False,):
     opt.minimize(m.training_loss, m.trainable_variables)
     # print_summary(m)
 
-    # Inverse transforms
-    ytrain_inv_tr = inv_boxcox(ytrain, lmbda_bc)
-    yval_inv_tr = inv_boxcox(yval, lmbda_bc)
+    if print_perf is True:
+        # Inverse transforms
+        ytrain_inv_tr = inv_boxcox(ytrain, lmbda_bc)
+        yval_inv_tr = inv_boxcox(yval, lmbda_bc)
 
-    y_gpr_train0, y_var_train0 = m.predict_y(xtrain)
-    y_gpr_train = inv_boxcox(y_gpr_train0, lmbda_bc)
+        y_gpr_train0, y_var_train0 = m.predict_y(xtrain)
+        y_gpr_train = inv_boxcox(y_gpr_train0, lmbda_bc)
 
-    y_gpr_val0, y_var_val0 = m.predict_y(xval)
-    y_gpr_val = inv_boxcox(y_gpr_val0, lmbda_bc)
+        y_gpr_val0, y_var_val0 = m.predict_y(xval)
+        y_gpr_val = inv_boxcox(y_gpr_val0, lmbda_bc)
 
-    x_plot = np.concatenate((xtrain, xval))
-    y_gpr_plot0, y_var_val0 = m.predict_y(x_plot)
-    y_gpr_plot = inv_boxcox(y_gpr_plot0, lmbda_bc)
+        x_plot = np.concatenate((xtrain, xval))
+        y_gpr_plot0, y_var_val0 = m.predict_y(x_plot)
+        y_gpr_plot = inv_boxcox(y_gpr_plot0, lmbda_bc)
 
-    print(
-        " {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(
-            me.R2(ytrain_inv_tr, y_gpr_train),
-            me.RMSE(ytrain_inv_tr, y_gpr_train),
-            me.R2(yval_inv_tr, y_gpr_val),
-            me.RMSE(yval_inv_tr, y_gpr_val),
-            np.mean(y_gpr_plot),
-            np.std(y_gpr_plot),
+        print('R2 train | RMSE train | R2 val | RMSE val | mean | std |')
+
+        print(
+            " {0:.3f} | {1:.3f} | {2:.3f} | {3:.3f} | {4:.3f} | {5:.3f} |".format(
+                me.R2(ytrain_inv_tr, y_gpr_train),
+                me.RMSE(ytrain_inv_tr, y_gpr_train),
+                me.R2(yval_inv_tr, y_gpr_val),
+                me.RMSE(yval_inv_tr, y_gpr_val),
+                np.mean(y_gpr_plot),
+                np.std(y_gpr_plot),
+            )
         )
-    )
 
     if save is not False:
         filepath = save_model(m, xval, save)
