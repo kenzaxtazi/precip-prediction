@@ -12,51 +12,55 @@ from load import era5, location_sel
 import gp.sampling as sa
 
 
-def point_model(location, number=None, EDA_average=False, maxyear=None):
+def point_model(location:str, number:int=None, EDA_average:bool=False, maxyear:str=None)-> tuple:
     """
     Outputs test, validation and training data for total precipitation
     as a function of time, 2m dewpoint temperature, angle of sub-gridscale
     orography, orography, slope of sub-gridscale orography, total column
     water vapour, Nino 3.4, Nino 4 and NAO index for a single point.
 
-    Inputs
-        number, optional: specify desired ensemble run, integer
-        EDA_average, optional: specify if you want average of low resolution
-            ensemble runs, boolean
-        coords [latitude, longitude], optional: specify if you want a specific
-            location, list of floats
-        mask_filepath, optional:
+    Args:
+        location (str): specify if you want a specific location, list of 
+            floats
+        number (int, optional): specify desired ensemble run. Defaults to 
+            None.
+        EDA_average (bool, optional): specify if you want average of low 
+            resolution ensemble runs. Defaults to False.
+        maxyear (str, optional): _description_. Defaults to None.
 
-    Outputs
-        x_train: training feature vector, numpy array
-        y_train: training output vector, numpy array
-        x_test: testing feature vector, numpy array
-        y_test: testing output vector, numpy array
+    Returns:
+        tuple:
+            x_train (np.array): training feature vector
+            y_train: training output vector
+            x_test: testing feature vector
+            y_test: testing output vector
+            lmbda: lambda value for boxcox transformation
     """
-    if number is not None:
-        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
-        da = da_ensemble.sel(number=number).drop("number")
-    if EDA_average is True:
-        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
-        da = da_ensemble.mean(dim="number")
-    else:
-        da = era5.download_data(location, xarray=True)
+    if maxyear is None:
+        maxyear = '2020'
 
-    if type(location) is str:
+    if isinstance(location, str) == True:
+        
+        if number is not None:
+            da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
+            da = da_ensemble.sel(number=number).drop("number")
+        if EDA_average is True:
+            da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
+            da = da_ensemble.mean(dim="number")
+        else:
+            da = era5.download_data(location, xarray=True)
+
         multiindex_df = da.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df_location = sa.random_location_sampler(df_clean)
         df = df_location.drop(columns=["lat", "lon", "slor", "anor", "z"])
 
-    if type(location) is tuple:
+    if isinstance(location, np.ndarray) == True:
         da_location = era5.collect_ERA5(
-            (location[0], location[1]), minyear='1979', maxyear='2020')
+            (location[0], location[1]), minyear='1970', maxyear=maxyear)
         multiindex_df = da_location.to_dataframe()
         df_clean = multiindex_df.dropna().reset_index()
         df = df_clean.drop(columns=["lat", "lon", "slor", "anor", "z"])
-
-    if maxyear is not None:
-        df["time"] = df[df["time"] < maxyear]
 
     df["time"] = pd.to_datetime(df["time"])
     df["time"] = pd.to_numeric(df["time"])
@@ -65,7 +69,9 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
 
     # Keep first of 70% for training
     x = df.drop(columns=["tp"]).values
-    y = df["tp"].values
+    df[df['tp'] <= 0.0] = 0.0001
+    print(df['tp'].min())
+    y = df['tp'].values
 
     # Last 30% for evaluation
     xtrain, x_eval, ytrain, y_eval = train_test_split(
@@ -76,11 +82,11 @@ def point_model(location, number=None, EDA_average=False, maxyear=None):
         x_eval, y_eval, test_size=1./3., shuffle=False)
 
     # Transformations
-    ytrain_tr, l = sp.stats.boxcox(ytrain)
-    yval_tr = sp.stats.boxcox(yval, lmbda=l)
-    ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
+    ytrain_tr, lmbda = sp.stats.boxcox(ytrain)
+    yval_tr = sp.stats.boxcox(yval, lmbda=lmbda)
+    ytest_tr = sp.stats.boxcox(ytest, lmbda=lmbda)
 
-    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
+    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, lmbda
 
 
 def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
@@ -146,7 +152,7 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
 
     # Training and validation data
     xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=1./3., shuffle=False)
+        x_eval, y_eval, test_size=1./3., shuffle=True)
 
     # Transformations
     ytrain_tr, l = sp.stats.boxcox(ytrain)
