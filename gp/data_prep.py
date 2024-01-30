@@ -12,7 +12,7 @@ from load import era5, location_sel
 import gp.sampling as sa
 
 
-def point_model(location:str, number:int=None, EDA_average:bool=False, maxyear:str=None)-> tuple:
+def point_model(location:str, number:int=None, EDA_average:bool=False, maxyear:str=None, seed=42)-> tuple:
     """
     Outputs test, validation and training data for total precipitation
     as a function of time, 2m dewpoint temperature, angle of sub-gridscale
@@ -70,16 +70,15 @@ def point_model(location:str, number:int=None, EDA_average:bool=False, maxyear:s
     # Keep first of 70% for training
     x = df.drop(columns=["tp"]).values
     df[df['tp'] <= 0.0] = 0.0001
-    print(df['tp'].min())
+    #print(df['tp'].min())
     y = df['tp'].values
-
-    # Last 30% for evaluation
+    
     xtrain, x_eval, ytrain, y_eval = train_test_split(
         x, y, test_size=0.3, shuffle=False)
 
-    # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=1./3., shuffle=False)
+    # Last 30% for evaluation
+    xval, xtest, yval, ytest = train_test_split(x_eval, 
+        y_eval, test_size=1./3., shuffle=True, random_state=seed)
 
     # Transformations
     ytrain_tr, lmbda = sp.stats.boxcox(ytrain)
@@ -148,11 +147,11 @@ def areal_model(location, number=None, EDA_average=False, length=3000, seed=42,
 
     # Last 30% for evaluation
     xtrain, x_eval, ytrain, y_eval = train_test_split(
-        x, y, test_size=0.3, shuffle=False)
+        x, y, test_size=0.3, shuffle=False,)
 
     # Training and validation data
-    xval, xtest, yval, ytest = train_test_split(
-        x_eval, y_eval, test_size=1./3., shuffle=True)
+    xval, xtest, yval, ytest = train_test_split(x_eval, 
+        y_eval, test_size=1./3., shuffle=True, random_state=seed)
 
     # Transformations
     ytrain_tr, l = sp.stats.boxcox(ytrain)
