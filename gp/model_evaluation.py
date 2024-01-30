@@ -250,7 +250,7 @@ def sampled_points(
 def slm_perf_plots(da):
     """ Plots figures for Single Location Model """
 
-    plt.figure("SLM R2")
+    plt.subpl("SLM R2")
     ax = plt.subplot(projection=ccrs.PlateCarree())
     ax.set_extent([71, 83, 30, 38])
     da.val_R2.plot(
@@ -260,6 +260,11 @@ def slm_perf_plots(da):
                      "extend": "neither", "pad": 0.10},
     )
     ax.gridlines(draw_labels=True)
+    for n in range(3):
+        ax[n].set_extent([71, 83, 30, 38])
+        gl = ax[n, 0].gridlines(draw_labels=True)
+        gl.top_labels = False
+        gl.right_labels = False
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
 
@@ -274,6 +279,7 @@ def slm_perf_plots(da):
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
 
+    plt.savefig("SLM_perf.pdf", dpi=300)
     plt.show()
 
 
