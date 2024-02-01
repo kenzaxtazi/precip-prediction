@@ -94,10 +94,10 @@ def seasonal_clusters(tp_ds, sliced_dem, N, decades):
 
                 # K-means
                 kmeans = KMeans(n_clusters=n, random_state=0).fit(X)
-                df_clean["Labels"] = kmeans.labels_
+                df_clean["labels"] = kmeans.labels_
 
                 # To DataArray
-                df_plot = df_clean[["Labels", "lat", "lon"]]
+                df_plot = df_clean[["labels", "lat", "lon"]]
                 df_pv = df_plot.pivot(index="lat", columns="lon")
                 df_pv = df_pv.droplevel(0, axis=1)
                 da = xr.DataArray(data=df_pv, name=str(d) + "s")
@@ -211,10 +211,10 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
 
             # K-means
             kmeans = KMeans(n_clusters=n, random_state=0).fit(X)
-            df_clean["Labels"] = kmeans.labels_
+            df_clean["labels"] = kmeans.labels_
 
             # To DataArray
-            df_plot = df_clean[["Labels", "lat", "lon"]]
+            df_plot = df_clean[["labels", "lat", "lon"]]
             df_pv = df_plot.pivot(index="lat", columns="lon")
             df_pv = df_pv.droplevel(0, axis=1)
             da = xr.DataArray(data=df_pv, name=str(d) + "s")
@@ -326,7 +326,7 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
             kmeans = KMeans(n_clusters=n, random_state=0).fit(X)
 
             if filter == 0:
-                X["Labels"] = kmeans.labels_
+                X["labels"] = kmeans.labels_
                 filtered_df = X
 
             if filter > 0:
@@ -334,7 +334,7 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
 
             # To DataArray
             df_plot = filtered_df.reset_index(
-            )[["Labels", "lat", "lon"]]
+            )[["labels", "lat", "lon"]]
             df_pv = df_plot.pivot(index="lat", columns="lon")
             df_pv = df_pv.droplevel(0, axis=1)
             da = xr.DataArray(data=df_pv, name=str(d) + "s")
@@ -430,16 +430,16 @@ def uib_clusters(tp_ds:xr.Dataset, N:int=3, filter:float= None, plot_clusters=Fa
     if filter != None:
         filtered_df = filtering(X, kmeans, thresh=filter)
         # Seperate labels and append as DataArray
-        reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
+        reset_df = filtered_df.reset_index()[["labels", "lat", "lon"]]
     else:
-        table['Labels'] = kmeans.predict(X)
-        reset_df = table.reset_index()[["Labels", "lat", "lon"]]
+        table['labels'] = kmeans.predict(X)
+        reset_df = table.reset_index()[["labels", "lat", "lon"]]
 
     ds = reset_df.set_index(["lon", "lat"]).to_xarray()
 
     clusters = []
     for i in range(N):
-        cluster_ds = ds.where(ds.Labels == i)
+        cluster_ds = ds.where(ds.labels == i)
         cluster_ds = cluster_ds.rename({"labels": "overlap"})
         cluster_ds = cluster_ds.where(cluster_ds.overlap !=i, 1)
         clusters.append(cluster_ds)
@@ -556,7 +556,7 @@ def filtering(df, kmeans, thresh=0.7):
     weights = soft_clustering_weights(df, kmeans.cluster_centers_)
     max_weights = np.amax(weights, axis=1)
     df["weights"] = max_weights
-    df["Labels"] = kmeans.labels_
+    df["labels"] = kmeans.labels_
     filtered_df = df[df["weights"] > thresh]
     return filtered_df
 
@@ -574,7 +574,7 @@ def new_gp_clusters(df, N=3, filter=0.7):
     filtered_df = filtering(X, kmeans, thresh=filter)
 
     # Seperate labels and append as DataArray
-    reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
+    reset_df = filtered_df.reset_index()[["labels", "lat", "lon"]]
     df_combined = pd.merge_ordered(df_clean, reset_df, on=[
                                    "lat", "lon"])
     clean_df = df_combined.dropna()
