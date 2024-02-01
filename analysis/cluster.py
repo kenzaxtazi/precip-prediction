@@ -1,5 +1,6 @@
 # Clustering
-
+import sys
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code/precip-prediction')  # noqa
 
 import numpy as np
 import xarray as xr
@@ -96,8 +97,8 @@ def seasonal_clusters(tp_ds, sliced_dem, N, decades):
                 df_clean["Labels"] = kmeans.labels_
 
                 # To DataArray
-                df_plot = df_clean[["Labels", "latitude", "longitude"]]
-                df_pv = df_plot.pivot(index="latitude", columns="longitude")
+                df_plot = df_clean[["Labels", "lat", "lon"]]
+                df_pv = df_plot.pivot(index="lat", columns="lon")
                 df_pv = df_pv.droplevel(0, axis=1)
                 da = xr.DataArray(data=df_pv, name=str(d) + "s")
 
@@ -124,8 +125,8 @@ def seasonal_clusters(tp_ds, sliced_dem, N, decades):
 
         # Plots
         g = UIB_clusters1.plot(
-            x="longitude",
-            y="latitude",
+            x="lon",
+            y="lat",
             col="Decade",
             row="N",
             vmin=-2,
@@ -139,8 +140,8 @@ def seasonal_clusters(tp_ds, sliced_dem, N, decades):
             sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
         g = UIB_clusters2.plot(
-            x="longitude",
-            y="latitude",
+            x="lon",
+            y="lat",
             col="Decade",
             row="N",
             vmin=-2,
@@ -154,8 +155,8 @@ def seasonal_clusters(tp_ds, sliced_dem, N, decades):
             sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
         g = UIB_clusters3.plot(
-            x="longitude",
-            y="latitude",
+            x="lon",
+            y="lat",
             col="Decade",
             row="N",
             vmin=-2,
@@ -213,8 +214,8 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
             df_clean["Labels"] = kmeans.labels_
 
             # To DataArray
-            df_plot = df_clean[["Labels", "latitude", "longitude"]]
-            df_pv = df_plot.pivot(index="latitude", columns="longitude")
+            df_plot = df_clean[["Labels", "lat", "lon"]]
+            df_pv = df_plot.pivot(index="lat", columns="lon")
             df_pv = df_pv.droplevel(0, axis=1)
             da = xr.DataArray(data=df_pv, name=str(d) + "s")
 
@@ -240,8 +241,8 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
 
     # Plots
     g = UIB_clusters1.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -252,8 +253,8 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
         sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
     g = UIB_clusters2.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -264,8 +265,8 @@ def annual_clusters(UIB_cum, sliced_dem, N, decades):
         sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
     g = UIB_clusters3.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -316,7 +317,7 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
             table = pd.pivot_table(
                 df_clean,
                 values="Precipitation",
-                index=["latitude", "longitude"],
+                index=["lat", "lon"],
                 columns=["time"],
             )
             X = table.interpolate()
@@ -333,8 +334,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
 
             # To DataArray
             df_plot = filtered_df.reset_index(
-            )[["Labels", "latitude", "longitude"]]
-            df_pv = df_plot.pivot(index="latitude", columns="longitude")
+            )[["Labels", "lat", "lon"]]
+            df_pv = df_plot.pivot(index="lat", columns="lon")
             df_pv = df_pv.droplevel(0, axis=1)
             da = xr.DataArray(data=df_pv, name=str(d) + "s")
 
@@ -360,8 +361,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
 
     # Plots
     g = UIB_clusters1.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -372,8 +373,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
         sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
     g = UIB_clusters2.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -384,8 +385,8 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
         sliced_dem.plot.contour(x="lon", y="lat", ax=ax, cmap="bone_r")
 
     g = UIB_clusters3.plot(
-        x="longitude",
-        y="latitude",
+        x="lon",
+        y="lat",
         col="Decade",
         row="N",
         add_colorbar=False,
@@ -398,24 +399,22 @@ def timeseries_clusters(UIB_cum, sliced_dem, N, decades, filter=0.7):
     plt.show()
 
 
-def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_plot=False) -> list:
+def uib_clusters(tp_ds:xr.Dataset, N:int=3, filter:float= None, plot_clusters=False, plot_weights=False) -> list:
     """
-    Returns cluster masks for data separation.
+    Generate precipiation clusters for UIB.
 
-    Inputs:
-        tp_ds: total precipitation data array
-        N: number of clusters (integer)
-        filter: soft k-means filtering threshold, float between 0 (no
-        filtering) and 1
-        plot: boolean for plotting
-        confidence_plot: boolean for plotting the k-means weights
+    Args:
+        tp_ds (xr.Dataset): Precipitation data.
+        N (int, optional):  Number of clusters. Defaults to 3.
+        filter (floatorNone, optional): soft k-means filtering threshold, float between 0 (no
+        filtering) and 1. Defaults to None in which case only k-means is performed.
+        plot_clusters (bool, optional): Plot (soft) k-means clusters. Defaults to False.
+        plot_weights (bool, optional): Plot k-means weights. Defaults to False.
 
     Returns:
-        List of cluster masks as data arrays
-        Cluster plot (optional)
-        Confidence plot (optional)
+        list: cluster masks as data arrays.
     """
-    names = {0: "Gilgit", 1: "Ngari", 2: "Khyber"}
+    names = {0: "Khyber", 1: "Ngari", 2: "Gilgit"}
 
     multi_index_df = tp_ds.to_dataframe()
     df = multi_index_df.reset_index()
@@ -427,40 +426,43 @@ def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_p
 
     # Soft k-means
     kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
-    filtered_df = filtering(X, kmeans, thresh=filter)
 
-    # Seperate labels and append as DataArray
-    reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
+    if filter != None:
+        filtered_df = filtering(X, kmeans, thresh=filter)
+        # Seperate labels and append as DataArray
+        reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
+    else:
+        table['Labels'] = kmeans.predict(X)
+        reset_df = table.reset_index()[["Labels", "lat", "lon"]]
+
+    ds = reset_df.set_index(["lon", "lat"]).to_xarray()
+
     clusters = []
-    ''''
     for i in range(N):
-        cluster_df = reset_df[reset_df["Labels"] == i]
-        df_pv = cluster_df.pivot(index="lat", columns="lon")
-        df_pv = df_pv.droplevel(0, axis=1) + 1
-        cluster_da = xr.DataArray(data=df_pv, name="overlap")
-        cluster_da.to_netcdf(path= data_dir + "Masks/" + names[i] + "_mask.nc")
-        clusters.append(cluster_da)
-    '''
-    if plot is True:
-
-        df_pv = reset_df.pivot(index="lat", columns="lon")
-        df_pv = df_pv.droplevel(0, axis=1)
-        da = xr.DataArray(data=df_pv, name="\n Clusters")
-
+        cluster_ds = ds.where(ds.Labels == i)
+        cluster_ds = cluster_ds.rename({"labels": "overlap"})
+        cluster_ds = cluster_ds.where(cluster_ds.overlap !=i, 1)
+        clusters.append(cluster_ds)
+        if filter != None:
+            cluster_ds.to_netcdf(path= data_dir + "Masks/" + names[i] + "_mask_" + str(filter) + ".nc")
+        else:
+            cluster_ds.to_netcdf(path= data_dir + "Masks/" + names[i] + "_mask.nc")
+    
+    if plot_clusters is True:
         # Plot
-        plt.figure(figsize=(8, 4))
+        plt.figure(figsize=(4, 2))
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
-        g = da.plot(
+        ds.labels.plot(
             x="lon", y="lat", add_colorbar=False, ax=ax,
-            levels=N + 1, colors=["#2460A7FF", "#85B3D1FF", "#D9B48FFF"])
-        cbar_kwargs = {'ticks': [0.4, 1.2, 2], 'pad': 0.10}
-        cbar = plt.colorbar(g, ticks=[0.4, 1.2, 2], pad=0.10)
-        cbar.ax.set_yticklabels(
-            ["Gilgit regime", "Ngari regime", "Khyber regime"])
+            levels=N+1, colors=[ "#D9B48FFF", "#85B3D1FF", "#2460A7FF"])
 
-        #gl.xlabels_top = False
-        #gl.ylabels_right = False
+        # Add legend
+        labels = ["Gilgit regime", "Ngari regime", "Khyber regime"]
+        handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in ["#2460A7FF", "#85B3D1FF", "#D9B48FFF"]]
+        plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(1.05, 0.99),
+                   frameon=False)   
+
         ax.set_yticks(np.arange(31, 38), crs=ccrs.PlateCarree())
         ax.set_xticks(np.arange(72, 83, 2), crs=ccrs.PlateCarree())
         lon_formatter = LongitudeFormatter(zero_direction_label=True)
@@ -469,24 +471,22 @@ def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_p
         ax.yaxis.set_major_formatter(lat_formatter)
         gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree())
         gl.xlocator = mticker.FixedLocator(np.arange(72, 83, 2))
-        ax.set_xlabel(" ")  # "Longitude")
-        ax.set_ylabel(" ")  # ("Latitude")
-        plt.savefig('regimes_uib_fixed_gridlines.png', dpi=300)
+        ax.set_xlabel(" ")  # "Lon")
+        ax.set_ylabel(" ")  # ("Lat")
+        plt.savefig('regimes_uib_fixed_gridlines.pdf', bbox_inches='tight', dpi=300)
         plt.show()
 
-    if confidence_plot is True:
+    if plot_weights is True:
         df_clean = df[df["tp"] > 0]
         table = pd.pivot_table(
             df_clean, values="tp", index=["lat", "lon"],
             columns=["time"])
         X = table.interpolate()
-        # Soft k-means
-        kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
-        unfiltered_df = filtering(X, kmeans, thresh=0)
 
+        unfiltered_df = filtering(X, kmeans, thresh=0)
         conf_df = unfiltered_df.reset_index(
-        )[["weights", "latitude", "longitude"]]
-        df_pv = conf_df.pivot(index="latitude", columns="longitude")
+        )[["weights", "lat", "lon"]]
+        df_pv = conf_df.pivot(index="lat", columns="lon")
         df_pv = df_pv.droplevel(0, axis=1)
         conf_da = xr.DataArray(data=df_pv, name="Confidence")
 
@@ -495,8 +495,8 @@ def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_p
         ax = plt.subplot(projection=ccrs.PlateCarree())
         ax.set_extent([71, 83, 30, 38])
         g = conf_da.plot(
-            x="longitude",
-            y="latitude",
+            x="lon",
+            y="lat",
             add_colorbar=True,
             ax=ax,
             vmin=0,
@@ -505,8 +505,8 @@ def old_gp_clusters(tp_ds: xr.Dataset, N=3, filter=0.7, plot=False, confidence_p
             cbar_kwargs={"pad": 0.10},
         )
         ax.gridlines(draw_labels=True)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
+        ax.set_xlabel("Lon")
+        ax.set_ylabel("Lat")
         plt.show()
 
     return clusters
@@ -565,18 +565,18 @@ def new_gp_clusters(df, N=3, filter=0.7):
 
     df_clean = df[df["tp"] > 0]
     table = pd.pivot_table(
-        df_clean, values="tp", index=["latitude", "longitude"],
+        df_clean, values="tp", index=["lat", "lon"],
         columns=["time"])
-    X = table.interpolate()
+    X = table.interpolate(axis=1)
 
     # Soft k-means
     kmeans = KMeans(n_clusters=N, random_state=0).fit(X)
     filtered_df = filtering(X, kmeans, thresh=filter)
 
     # Seperate labels and append as DataArray
-    reset_df = filtered_df.reset_index()[["Labels", "latitude", "longitude"]]
+    reset_df = filtered_df.reset_index()[["Labels", "lat", "lon"]]
     df_combined = pd.merge_ordered(df_clean, reset_df, on=[
-                                   "latitude", "longitude"])
+                                   "lat", "lon"])
     clean_df = df_combined.dropna()
 
     return clean_df
