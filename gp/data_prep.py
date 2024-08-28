@@ -45,7 +45,7 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
         var_list = ["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
              "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B1", "tp",]
     else:
-        var_list =["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF850U", "tp",]
+        var_list =["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF500U", "tp",]
     
     # Download data and format data for string location
     if isinstance(location, str) == True:
