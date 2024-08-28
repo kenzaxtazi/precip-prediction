@@ -1,6 +1,11 @@
 # Correlation
 
-from load import era5
+# Clustering
+import sys
+sys.path.append('/Users/kenzatazi/Documents/CDT/Code')  # noqa
+
+
+from load import era5, data_dir
 import scipy as sp
 import numpy as np
 import xarray as xr
@@ -14,7 +19,7 @@ from tqdm import tqdm
 
 
 # Filepaths
-mask_filepath = "_Data/Masks/ERA5_Upper_Indus_mask.nc"
+mask_filepath = data_dir + "/Masks/ERA5_Upper_Indus_mask.nc"
 eof_filepath = "/gws/nopw/j04/bas_climate/users/ktazi/z200_EOF2.nc"
 corr_filepath = "_Data/Performance/EOF_corr_pval.csv"
 
@@ -22,14 +27,16 @@ corr_filepath = "_Data/Performance/EOF_corr_pval.csv"
 def input_correlation_heatmap():
     """Plot correlation heatmap for model inputs."""
 
-    df = era5.download_data(mask_filepath, all_var=True)
+    da = era5.collect_ERA5('uib', minyear='1970', maxyear='2004')
+    df = da.to_dataframe().reset_index()
+    print()
 
     # create lags
-    df["N34-1"] = df["N34"].shift(periods=393)
-    df["NAO-1"] = df["NAO"].shift(periods=393)
-    df["N4-1"] = df["N4"].shift(periods=393)
+    #df["N34-1"] = df["N34"].shift(periods=393)
+    #df["NAO-1"] = df["NAO"].shift(periods=393)
+    #df["N4-1"] = df["N4"].shift(periods=393)
 
-    df = df.drop(columns=["time"])
+    df = df.drop(columns=["expver"])
     df_clean = df.dropna()
     df_sorted = df_clean.sort_index(axis=1)
     corr = df_sorted.corr()
@@ -38,7 +45,7 @@ def input_correlation_heatmap():
     plt.subplots(figsize=(11, 9))
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     mask = np.triu(
-        np.ones_like(corr, dtype=np.bool)
+        np.ones_like(corr)
     )  # generate a mask for the upper triangle
     sns.heatmap(
         corr,
@@ -57,6 +64,8 @@ def input_correlation_heatmap():
     plt.title("Correlation plot for Upper Indus Basin")
 
     plt.show()
+
+    return corr
 
 
 def cluster_correlation_heatmap():
