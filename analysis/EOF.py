@@ -92,7 +92,7 @@ def EOF(component=1, pressure_level="200"):
             )
             EOF_ds_list.append(ds)
 
-    EOF2 = xr.combine_by_coords(datasets=EOF_ds_list)
+    EOF2 = xr.combine_by_coords(EOF_ds_list)
     EOF2.to_netcdf(
         path="/gws/nopw/j04/bas_climate/users/ktazi/z"
         + pressure_level
