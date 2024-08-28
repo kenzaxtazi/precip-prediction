@@ -1,25 +1,61 @@
 # Metrics
 
 import numpy as np
+import gpflow
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tensorflow as tf
 
 import gp.data_prep as dp
 
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-def R2(y, y_pred):
+def R2(y:np.ndarray, y_pred:np.ndarray)-> float:
     """ Returns R2 score """
     R2 = r2_score(y, y_pred)
     return R2
 
-
-def RMSE(y, y_pred):
+def RMSE(y:np.ndarray, y_pred:np.ndarray)-> float:
     """ Returns RMSE score """
-    RMSE = mean_squared_error(y, y_pred)
-    # RMSE = dp.inverse_log_transform(log_RMSE) * 1000  # to mm/day
-    return np.sqrt(RMSE)
+    RMSE = mean_squared_error(y, y_pred, squared=False)
+    return RMSE
+
+def MLL(y:np.ndarray, y_pred:np.ndarray, y_var:np.ndarray)-> float:
+    """ Returns the mean log-loss score """
+    MLL = np.mean(0.5 * np.log(2*np.pi*y_var) + 0.5 * (y - y_pred)**2 / y_var)
+    return MLL
+
+def BIC(model: gpflow.models.GPR, x:np.ndarray, y:np.ndarray)-> float:
+    """
+    Returns BIC score using the marginal likelihood
+
+    Args:
+        x (np.ndarray): observations locations
+        y (np.ndarray): observed values
+        model (gpflow.models.GPR): GP model
+
+    Returns:
+        float: _description_
+    """
+    marginal_likelihood = model.log_marginal_likelihood()
+    BIC =  len(model.trainable_variables) * np.log(len(model.data[0])) - 2 * marginal_likelihood
+    return BIC
+
+
+def log_marg_likelihood(model, x, y):
+    """
+    computes the log marginal likelihood.
+
+    .. math::   \log p(Y | \theta).
+    """
+    K = model.kernel(x)
+    ks = gpflow.utilities.add_likelihood_noise_cov(K, model.likelihood, x)
+    L = tf.linalg.cholesky(ks)
+    m = model.mean_function(x)
+    log_prob = gpflow.logdensities.multivariate_normal(y, m, L)
+
+    return tf.reduce_sum(log_prob)
 
 
 def model_plot(model, location, number=None, posteriors=True, slm=True):
