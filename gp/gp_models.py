@@ -28,23 +28,27 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
 """
 
 
-def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, save=False, print_perf=False):
+def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, kernel=False, save=False, print_perf=False):
     """ Returns simple GP model """
+    
+    if kernel == False:
+        # model construction
+        k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(
+            lengthscales=1, variance=1, active_dims=[0]))
+        k1b = gpflow.kernels.RBF(lengthscales=1, variance=1, active_dims=[0])
+        k2 = gpflow.kernels.RBF(lengthscales=np.ones(
+            len(xval[0])-1), active_dims=np.arange(1, len(xval[0])))
+        # k3 = gpflow.kernels.White()
 
-    # model construction
-    k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(
-        lengthscales=1, variance=1, active_dims=[0]))
-    k1b = gpflow.kernels.RBF(lengthscales=2, variance=1, active_dims=[0])
-    k2 = gpflow.kernels.RBF(lengthscales=np.ones(
-        len(xval[0])-1), active_dims=np.arange(1, len(xval[0])))
-    # k3 = gpflow.kernels.White()
+        k = k1 * k1b + k2  #
 
-    k = k1 * k1b + k2  #
+        # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),
+        # 1)), b=[1])
+        # , mean_function=mean_function)
+    
+    else:
+        k = kernel
 
-    # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),
-    # 1)), b=[1])
-
-    # , mean_function=mean_function)
     m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
 
     opt = gpflow.optimizers.Scipy()
