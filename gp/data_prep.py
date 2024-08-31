@@ -43,7 +43,7 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
     # Variable list
     if all_var is True:
         var_list = ["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
-             "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B1", "tp",]
+             "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B", "tp",]
     else:
         var_list =["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF500U", "tp",]
     
@@ -78,7 +78,7 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
 
     # Keep first of 70% for training
     x = df.drop(columns=["tp"]).values
-    df[df['tp'] <= 0.0] = 0.0001
+    df.loc[df['tp'] <= 0.0] = 0.0001
     y = df['tp'].values
     
     xtrain, x_eval, ytrain, y_eval = train_test_split(
@@ -176,7 +176,7 @@ def areal_model(location:str, number:int=None, EDA_average=False, length=3000, s
 
 
 def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=42,
-                maxyear=None):
+                maxyear=None, all_var=False):
     """
     Outputs test, validation and training data for total precipitation as a
     function of time, 2m dewpoint temperature, angle of sub-gridscale
@@ -218,11 +218,13 @@ def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=
     train_ds = masked_ds.sel(time=slice('1970', '2005'))
     eval_ds = masked_ds.sel(time=slice('2005', '2020'))
 
-    var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
-             "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "EOF200B", "tp",]
+    if all_var is True:
+        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
+                "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "tp"]
+    else:
+        var_list = ["time", "lon", "lat", "tcwv", "d2m", "EOF200U", "t2m",  "EOF500U", "EOF500U2", "tp"]
 
-
-    multiindex_df = train_ds.to_dataframe() 
+    multiindex_df = train_ds.to_dataframe()
     df_train = multiindex_df.dropna().reset_index()
     df_train["time"] = pd.to_datetime(df_train["time"])
     df_train["time"] = pd.to_numeric(df_train["time"])
