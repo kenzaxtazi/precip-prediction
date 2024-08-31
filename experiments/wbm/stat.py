@@ -22,7 +22,7 @@ from scipy.special import inv_boxcox
 
 from load import era5, data_dir
 
-xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, lmbda= dp.areal_model('uib', length=5000)
+xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, lmbda= dp.areal_model_new('uib', length=5000)
 model = gpm.multi_gp(xtrain, xval, ytrain_tr, yval_tr, lmbda_bc=lmbda, print_perf=False)
 
 yval= inv_boxcox(yval_tr, lmbda)
