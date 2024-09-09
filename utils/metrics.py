@@ -8,7 +8,7 @@ import tensorflow as tf
 
 import gp.data_prep as dp
 
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import root_mean_squared_error, r2_score
 
 
 def R2(y:np.ndarray, y_pred:np.ndarray)-> float:
@@ -18,7 +18,7 @@ def R2(y:np.ndarray, y_pred:np.ndarray)-> float:
 
 def RMSE(y:np.ndarray, y_pred:np.ndarray)-> float:
     """ Returns RMSE score """
-    RMSE = mean_squared_error(y, y_pred, squared=False)
+    RMSE = root_mean_squared_error(y, y_pred)
     return RMSE
 
 def MLL(y:np.ndarray, y_pred:np.ndarray, y_var:np.ndarray)-> float:
