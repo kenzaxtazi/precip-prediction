@@ -26,6 +26,7 @@ def MLL(y:np.ndarray, y_pred:np.ndarray, y_var:np.ndarray)-> float:
     MLL = np.mean(0.5 * np.log(2*np.pi*y_var) + 0.5 * (y - y_pred)**2 / y_var)
     return MLL
 
+
 def BIC(model: gpflow.models.GPR, x:np.ndarray, y:np.ndarray)-> float:
     """
     Returns BIC score using the marginal likelihood
@@ -38,16 +39,24 @@ def BIC(model: gpflow.models.GPR, x:np.ndarray, y:np.ndarray)-> float:
     Returns:
         float: _description_
     """
-    marginal_likelihood = model.log_marginal_likelihood()
-    BIC =  len(model.trainable_variables) * np.log(len(model.data[0])) - 2 * marginal_likelihood
+    marginal_likelihood = log_marg_likelihood(model, x, y)
+    BIC =  len(model.trainable_variables) * np.log(len(x)) - 2 * marginal_likelihood
     return BIC
 
 
-def log_marg_likelihood(model, x, y):
-    """
-    computes the log marginal likelihood.
+def log_marg_likelihood(model: gpflow.models.GPR, x: np.ndarray, y: np.ndarray) -> float:
+    """_    computes the log marginal likelihood.
 
     .. math::   \log p(Y | \theta).
+
+    Args:
+        model (gpflow.models.GPR): a GPFlow model of a GP regression
+        x (np.ndarray): observation locations
+        y (np.ndarray): observation values
+
+    Returns:
+        (float): The log marginal likelihood
+        
     """
     K = model.kernel(x)
     ks = gpflow.utilities.add_likelihood_noise_cov(K, model.likelihood, x)
