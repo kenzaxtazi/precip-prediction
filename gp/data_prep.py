@@ -45,7 +45,7 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
         var_list = ["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
              "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B", "tp",]
     else:
-        var_list =["time", "tcwv", "d2m", "EOF200U",  "t2m", "EOF500U", "tp",]
+        var_list =["time", "tcwv", "d2m", "t2m", "tp",]
     
     # Download data and format data for string location
     if isinstance(location, str) == True:
@@ -83,6 +83,10 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
     
     xtrain, x_eval, ytrain, y_eval = train_test_split(
         x, y, test_size=0.3, shuffle=False)
+    
+    # sample 20% of x_eval
+
+        
 
     # Last 30% for evaluation
     xval, xtest, yval, ytest = train_test_split(x_eval, 
@@ -102,9 +106,120 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
     return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, lmbda
 
 
+
+def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=42,
+                maxyear=None, all_var=False):
+    """
+    Outputs test, validation and training data for total precipitation as a
+    function. Here the training dataset is sampled from 1970 to 2005 and the 
+    evaluation dataset from 2005 to 2020.
+
+    Inputs
+        location: specify area to train model
+        number, optional: specify desired ensemble run, integer
+        EDA_average, optional: specify if you want average of low resolution
+            ensemble runs, boolean
+        length, optional: specify number of points to sample for training, integer
+        seed, optional: specify seed, integer
+
+    Outputs
+        x_train: training feature vector, numpy array
+        y_train: training output vector, numpy array
+        x_test: testing feature vector, numpy array
+        y_test: testing output vector, numpy array
+    """
+    if maxyear is None:
+        maxyear = '2020'
+
+    if number is not None:
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
+        da = da_ensemble.sel(number=number).drop("number")
+
+    if EDA_average is True:
+        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
+        da = da_ensemble.mean(dim="number")
+    else:
+        ds = era5.collect_ERA5(location, minyear="1970", maxyear=maxyear, all_var=True)
+
+    # Apply mask
+    mask_filepath = location_sel.find_mask(location)
+    masked_ds = location_sel.apply_mask(ds, mask_filepath)
+
+    if all_var is True:
+        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
+                "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "tp"]
+    else:
+        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U", "t2m", "EOF500U", "EOF500U2", "tp"] #  
+
+    ### Training and evaluation dataset
+
+    train_ds = masked_ds.sel(time=slice('1970', '2005'))
+    eval_ds = masked_ds.sel(time=slice('2005', '2020'))
+
+    #### Training data
+    multiindex_df = train_ds.to_dataframe()
+    df_train = multiindex_df.dropna().reset_index()
+    df_train.loc["time"] = pd.to_datetime(df_train["time"])
+
+    df_train = df_train[var_list]
+    df_train.loc[df_train['tp'] <= 0.0] = 0.0001
+
+    # Sample training
+    df_train_samp = sa.random_location_and_time_sampler(df_train, length=length, seed=seed)  
+    xtrain = df_train_samp.drop(columns=["tp"]).values
+    ytrain = df_train_samp['tp'].values
+
+    #### Evaluation data
+    multiindex_df = eval_ds.to_dataframe() 
+    df_eval = multiindex_df.dropna().reset_index()
+    df_eval["time"] = pd.to_datetime(df_eval["time"])
+    df_eval["time"] = pd.to_numeric(df_eval["time"])
+
+    df_eval = df_eval[var_list]
+    #df_eval[df_eval['tp'] <= 0.0] = 0.0001
+    
+    loc_df = df_eval.groupby(['lat','lon']).mean().reset_index()
+    locs = loc_df[['lon','lat']].values
+
+    xval_list = []
+    yval_list = []
+    xtest_list = []
+    ytest_list = []  
+
+    for i in range(len(locs)):
+        lon, lat = locs[i]
+        loc_df0 = df_eval[(df_eval['lat'] == lat) & (df_eval['lon'] == lon)]
+        loc_df = loc_df0.dropna()
+        loc_df[loc_df['tp']<= 0.0]= 0.0001
+        # sample 20% of the location
+        loc_df = loc_df.sample(frac=0.2, random_state=seed)
+        xeval = loc_df.drop(columns=["tp"]).values
+        yeval = loc_df['tp'].copy(deep=False).values
+        loc_xval, loc_xtest, loc_yval, loc_ytest = train_test_split(xeval, yeval, test_size=1./3., shuffle=True, random_state=seed)
+        xval_list.extend(loc_xval)
+        yval_list.extend(loc_yval)
+        xtest_list.extend(loc_xtest)
+        ytest_list.extend(loc_ytest)
+    
+    xval = np.array(xval_list)
+    yval = np.array(yval_list)
+    xtest = np.array(xtest_list)
+    ytest = np.array(ytest_list)
+
+    # Training and validation data
+    
+    # Transformations
+    ytrain_tr, l = sp.stats.boxcox(ytrain)
+    yval_tr = sp.stats.boxcox(yval, lmbda=l)
+    ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
+
+    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
+
+"""
+
 def areal_model(location:str, number:int=None, EDA_average=False, length=3000, seed=42,
                 maxyear=None):
-    """
+    '''
     Outputs test, validation and training data for total precipitation as a
     function of time, 2m dewpoint temperature, angle of sub-gridscale
     orography, orography, slope of sub-gridscale orography, total column water
@@ -124,7 +239,7 @@ def areal_model(location:str, number:int=None, EDA_average=False, length=3000, s
         y_train: training output vector, numpy array
         x_test: testing feature vector, numpy array
         y_test: testing output vector, numpy array
-    """
+    '''
 
     if number is not None:
         da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
@@ -175,117 +290,10 @@ def areal_model(location:str, number:int=None, EDA_average=False, length=3000, s
     return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
 
 
-def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=42,
-                maxyear=None, all_var=False):
-    """
-    Outputs test, validation and training data for total precipitation as a
-    function of time, 2m dewpoint temperature, angle of sub-gridscale
-    orography, orography, slope of sub-gridscale orography, total column water
-    vapour, Nino 3.4 index for given number randomly sampled data points
-    for a given basin.
-
-    Inputs
-        location: specify area to train model
-        number, optional: specify desired ensemble run, integer
-        EDA_average, optional: specify if you want average of low resolution
-            ensemble runs, boolean
-        length, optional: specify number of points to sample for training, integer
-        seed, optional: specify seed, integer
-
-    Outputs
-        x_train: training feature vector, numpy array
-        y_train: training output vector, numpy array
-        x_test: testing feature vector, numpy array
-        y_test: testing output vector, numpy array
-    """
-    if maxyear is None:
-        maxyear = '2020'
-
-    if number is not None:
-        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
-        da = da_ensemble.sel(number=number).drop("number")
-
-    if EDA_average is True:
-        da_ensemble = era5.download_data(location, xarray=True, ensemble=True)
-        da = da_ensemble.mean(dim="number")
-    else:
-        ds = era5.collect_ERA5(location, minyear="1970", maxyear=maxyear, all_var=True)
-
-    # apply mask
-    mask_filepath = location_sel.find_mask(location)
-    masked_ds = location_sel.apply_mask(ds, mask_filepath)
-
-    train_ds = masked_ds.sel(time=slice('1970', '2005'))
-    eval_ds = masked_ds.sel(time=slice('2005', '2020'))
-
-    if all_var is True:
-        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
-                "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "tp"]
-    else:
-        var_list = ["time", "lon", "lat", "tcwv", "d2m", "EOF200U", "t2m",  "EOF500U", "EOF500U2", "tp"]
-
-    multiindex_df = train_ds.to_dataframe()
-    df_train = multiindex_df.dropna().reset_index()
-    df_train["time"] = pd.to_datetime(df_train["time"])
-    df_train["time"] = pd.to_numeric(df_train["time"])
-    # df_train["tp"] = log_transform(df_train["tp"])
-    #df_train = df_train[["time", "lat", "lon", "d2m", "tcwv", "N34", "tp"]]  # format order
-    df_train = df_train[var_list]
-    df_train[df_train['tp'] <= 0.0] = 0.0001
-
-    # Sample training
-    df_train_samp = sa.random_location_and_time_sampler(df_train, length=length, seed=seed)  
-    xtrain = df_train_samp.drop(columns=["tp"]).values
-    ytrain = df_train_samp['tp'].values
-
-    # Evaluation data
-    multiindex_df = eval_ds.to_dataframe() 
-    df_eval = multiindex_df.dropna().reset_index()
-    df_eval["time"] = pd.to_datetime(df_eval["time"])
-    df_eval["time"] = pd.to_numeric(df_eval["time"])
-
-    df_eval = df_eval[var_list]
-    #df_eval[df_eval['tp'] <= 0.0] = 0.0001
-    
-    loc_df = df_eval.groupby(['lat','lon']).mean().reset_index()
-    locs = loc_df[['lon','lat']].values
-
-    xval_list = []
-    yval_list = []
-    xtest_list = []
-    ytest_list = []  
-
-    for i in range(len(locs)):
-        lon, lat = locs[i]
-        loc_df = df_eval[(df_eval['lat'] == lat) & (df_eval['lon'] == lon)]
-        loc_df.dropna(inplace=True)
-        loc_df.loc[loc_df['tp'] <= 0.0] = 0.0001
-        xeval = loc_df.drop(columns=["tp"]).values
-        yeval = loc_df['tp'].copy(deep=False).values
-        loc_xval, loc_xtest, loc_yval, loc_ytest = train_test_split(xeval, yeval, test_size=1./3., shuffle=True, random_state=seed)
-        xval_list.extend(loc_xval)
-        yval_list.extend(loc_yval)
-        xtest_list.extend(loc_xtest)
-        ytest_list.extend(loc_ytest)
-    
-    xval = np.array(xval_list)
-    yval = np.array(yval_list)
-    xtest = np.array(xtest_list)
-    ytest = np.array(ytest_list)
-
-    # Training and validation data
-    
-    # Transformations
-    ytrain_tr, l = sp.stats.boxcox(ytrain)
-    yval_tr = sp.stats.boxcox(yval, lmbda=l)
-    ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
-
-    return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
-
 
 def areal_model_eval(location, lmbda, number=None, EDA_average=False, length=3000,
                      seed=42, minyear="1970", maxyear="2020"):
-    """
+    '''
     Returns data to evaluate an areal model at a given location, area and time
     period.
 
@@ -307,7 +315,7 @@ def areal_model_eval(location, lmbda, number=None, EDA_average=False, length=300
     Outputs
         x_tr: evaluation feature vector, numpy array
         y_tr: evaluation output vector, numpy array
-    """
+    '''
     if number is not None:
         da_ensemble = era5.download_data('uib', xarray=True, ensemble=True)
         da = da_ensemble.sel(number=number).drop("number")
@@ -347,7 +355,7 @@ def areal_model_eval(location, lmbda, number=None, EDA_average=False, length=300
 
 
 def average_over_coords(ds):
-    """ Take average over latitude and longitude """
+    '''Take average over latitude and longitude '''
     ds = ds.mean("lon")
     ds = ds.mean("lat")
     return ds
@@ -428,3 +436,4 @@ def shared_evaluation_sets(location:str, length=3000, seed=42):
 
     return  xval, xtest, yval, ytest
 
+"""
