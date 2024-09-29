@@ -80,17 +80,14 @@ def point_model(location: str | np.ndarray, number:int=None, EDA_average:bool=Fa
     x = df.drop(columns=["tp"]).values
     df.loc[df['tp'] <= 0.0] = 0.0001
     y = df['tp'].values
-    
+
     xtrain, x_eval, ytrain, y_eval = train_test_split(
         x, y, test_size=0.3, shuffle=False)
-    
-    # sample 20% of x_eval
-
-        
 
     # Last 30% for evaluation
     xval, xtest, yval, ytest = train_test_split(x_eval, 
-        y_eval, test_size=1./3., shuffle=True, random_state=seed)
+        y_eval, test_size=12, train_size=6, shuffle=True, random_state=seed)
+    
 
     # Precipitation transformation
     ytrain_tr, lmbda = sp.stats.boxcox(ytrain)
@@ -146,10 +143,10 @@ def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=
     masked_ds = location_sel.apply_mask(ds, mask_filepath)
 
     if all_var is True:
-        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U",  "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
-                "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "tp"]
+        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U", "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
+                "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B2", "EOF500C" ,"EOF500C2", "tp"]
     else:
-        var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U", "t2m", "EOF500U", "EOF500U2", "tp"] #  
+        var_list = ["time", "lon", "lat", "tcwv", "slor", "EOF200U", "t2m", "EOF850U", "EOF500U", "EOF500U2", "tp"] 
 
     ### Training and evaluation dataset
 
@@ -159,10 +156,10 @@ def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=
     #### Training data
     multiindex_df = train_ds.to_dataframe()
     df_train = multiindex_df.dropna().reset_index()
-    df_train.loc["time"] = pd.to_datetime(df_train["time"])
-
+    df_train["time"] = pd.to_datetime(df_train["time"])
+    df_train["time"] = pd.to_numeric(df_train["time"])
     df_train = df_train[var_list]
-    df_train.loc[df_train['tp'] <= 0.0] = 0.0001
+    df_train['tp'].loc[df_train['tp'] <= 0.0] = 0.0001
 
     # Sample training
     df_train_samp = sa.random_location_and_time_sampler(df_train, length=length, seed=seed)  
@@ -190,12 +187,14 @@ def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=
         lon, lat = locs[i]
         loc_df0 = df_eval[(df_eval['lat'] == lat) & (df_eval['lon'] == lon)]
         loc_df = loc_df0.dropna()
-        loc_df[loc_df['tp']<= 0.0]= 0.0001
+        loc_df['tp'].loc[loc_df['tp'] <= 0.0] = 0.0001
         # sample 20% of the location
-        loc_df = loc_df.sample(frac=0.2, random_state=seed)
+        #loc_df = loc_df.sample(frac=0.1, random_state=seed)
         xeval = loc_df.drop(columns=["tp"]).values
         yeval = loc_df['tp'].copy(deep=False).values
-        loc_xval, loc_xtest, loc_yval, loc_ytest = train_test_split(xeval, yeval, test_size=1./3., shuffle=True, random_state=seed)
+        loc_xval, loc_xtest, loc_yval, loc_ytest = train_test_split(xeval, yeval, test_size=12, 
+                                                                    train_size=6, shuffle=True, 
+                                                                    random_state=seed)
         xval_list.extend(loc_xval)
         yval_list.extend(loc_yval)
         xtest_list.extend(loc_xtest)
@@ -212,6 +211,12 @@ def areal_model_new(location, number=None, EDA_average=False, length=3000, seed=
     ytrain_tr, l = sp.stats.boxcox(ytrain)
     yval_tr = sp.stats.boxcox(yval, lmbda=l)
     ytest_tr = sp.stats.boxcox(ytest, lmbda=l)
+
+    # Features scaling
+    scaler = StandardScaler()
+    xtrain = scaler.fit_transform(xtrain)
+    xval = scaler.transform(xval)
+    xtest = scaler.transform(xtest)
 
     return xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, l
 
