@@ -6,25 +6,34 @@
 
 
 import sys
-sys.path.append('/Users/kenzatazi/Documents/CDT/Code/precip-prediction/')
-
+sys.path.append('/data/hpcdata/users/kenzi22/precip-prediction/')
+sys.path.append('/data/hpcdata/users/kenzi22/')
 
 import tqdm
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
 
 import utils.metrics as me
 import gp.data_prep as dp
 import gp.gp_models as gpm
 from scipy.special import inv_boxcox
+import tensorflow as tf
 
 from load import era5, data_dir
 
-xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr, lmbda= dp.areal_model_new('uib', length=5000)
-model = gpm.multi_gp(xtrain, xval, ytrain_tr, yval_tr, lmbda_bc=lmbda, print_perf=False)
+tf.random.set_seed(42)
 
+N=3000
+print(N)
+dataset = dp.areal_model_new('uib', length=N, maxyear='2020', all_var=False)
+xtrain, xval, xtest, ytrain_tr, yval_tr, ytest_tr = dataset.sets()
+lmbda = dataset.l
+yscaler = dataset.yscaler
+
+model = gpm.multi_gp(xtrain, xval, ytrain_tr, yval_tr, lmbda_bc=lmbda, yscaler=yscaler, kernel='areal', print_perf=True)
+
+"""
 yval= inv_boxcox(yval_tr, lmbda)
 ytrain = inv_boxcox(ytrain_tr, lmbda)
 
@@ -66,3 +75,4 @@ plt.title('Stationary model')
 plt.ylabel('Predicted precipitation [mm/day]')
 plt.xlabel('ERA5 precipitation [mm/day]')
 plt.savefig('stat_res_new.pdf', bbox_inches='tight')
+"""
