@@ -187,6 +187,29 @@ def ensemble_model_plot(location, model, slm=True):
     plt.show()
 
 
+def spread_skill(y:np.ndarray, y_pred_samples:np.ndarray) -> float:
+    """
+    Returns spread-skill ratio 
+
+    Args:
+        y (np.ndarray): observations (T x 1)
+        y_pred_samples (np.ndarray): prediction samples (T x N)
+
+    Returns:
+        float: skill-spread ration
+    """
+    T = y_pred_samples.shape[0]
+    N = y_pred_samples.shape[1]
+
+    mu_t = np.sum(y_pred_samples, axis=1)/N
+    S2 =  np.sum(
+            np.sum(y_pred_samples[:,n] - mu_t for n in range(N))/(N-1) 
+            for t in range(T))/T
+    eta2 = np.sum(np.sum(y-mu_t)/N)/T
+
+    SSR = np.sqrt(S2/(eta2- S2/N))
+    return SSR
+
 def plot_vs_truth(x_train, y_train, x_test, y_test, m):
 
     y_test_pred, y_test_std_pred = m.predict_y(x_test)
