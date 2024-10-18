@@ -5,7 +5,8 @@ import numpy as np
 
 import gpflow
 import tensorflow as tf
-from gpflow.utilities import positive
+import tensorflow_probability as tfp
+from gpflow.utilities import positive, print_summary
 from scipy.special import inv_boxcox
 
 import utils.metrics as me
@@ -28,48 +29,59 @@ xtrain, xval, xtest, ytrain, yval, ytest = dp.areal_model('uib', length=14000,
 """
 
 
-def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, kernel=False, save=False, print_perf=False):
+def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, yscaler, kernel=None, save=False, print_perf=False):
     """ Returns simple GP model """
     
-    if kernel == False:
+    if kernel == "point":
         # model construction
-        k1 = gpflow.kernels.Periodic(gpflow.kernels.RBF(
-            lengthscales=1, variance=1, active_dims=[0]))
-        k1b = gpflow.kernels.RBF(lengthscales=1, variance=1, active_dims=[0])
-        k2 = gpflow.kernels.RBF(lengthscales=np.ones(
-            len(xval[0])-1), active_dims=np.arange(1, len(xval[0])))
-        # k3 = gpflow.kernels.White()
+        k1 = gpflow.kernels.Periodic(gpflow.kernels.Matern32(
+            lengthscales=1e-2, variance=1, active_dims=[0]), period=1./35.)
+        k1b = gpflow.kernels.Matern32(lengthscales=1e-2, variance=1, active_dims=[0])
+        k = k1 * k1b 
 
-        k = k1 * k1b + k2  #
-
-        # mean_function = gpflow.mean_functions.Linear(A=np.ones((len(xtrain[0]),
-        # 1)), b=[1])
-        # , mean_function=mean_function)
+        for i in np.arange(1, len(xval[0]+1)):
+            k2 = gpflow.kernels.Matern32(lengthscales=1e-2, variance=1, active_dims=[i])
+            k += k2
     
+    if kernel == "areal":
+        # model construction
+        k1 = gpflow.kernels.Periodic(gpflow.kernels.Matern32(
+            lengthscales=1e-2, variance=1, active_dims=[0]), period=1./35.)
+        k1b = gpflow.kernels.Matern32(lengthscales=1e-2, variance=1, active_dims=[0])
+        ka = gpflow.kernels.Matern32(lengthscales=[1e-2,1e-2], variance=1, active_dims=[1,2])
+        k = k1 * k1b + ka
+
+        for i in np.arange(3, len(xval[0]+3)):
+            k2 = gpflow.kernels.Matern32(lengthscales=1e-2, variance=1, active_dims=[i])
+            k += k2
+
     else:
         k = kernel
 
     m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
+    #gpflow.set_trainable(m.kernel.kernels[0].kernels[0].kernels[0].period, False)
+    #m.kernel.kernels[0].kernels[0].kernels[0].period.prior = tfp.distributions.Normal(loc=gpflow.utilities.to_default_float(2./35.), scale=gpflow.utilities.to_default_float(1e-2))
+    #m.kernel.kernels[0].kernels[0].kernels[0].base_kernel.lengthscales.prior = tfp.distributions.Normal(loc=gpflow.utilities.to_default_float(1e-2), scale=gpflow.utilities.to_default_float(1e-2))
 
     opt = gpflow.optimizers.Scipy()
     # , options=dict(maxiter=1000)
     opt.minimize(m.training_loss, m.trainable_variables)
-    # print_summary(m)
+    print_summary(m)
 
     if print_perf is True:
         # Inverse transforms
-        ytrain_inv_tr = inv_boxcox(ytrain, lmbda_bc)
-        yval_inv_tr = inv_boxcox(yval, lmbda_bc)
+        ytrain_inv_tr = inv_boxcox(yscaler.inverse_transform(ytrain), lmbda_bc)
+        yval_inv_tr = inv_boxcox(yscaler.inverse_transform(yval), lmbda_bc)
 
         y_gpr_train0, y_var_train0 = m.predict_y(xtrain)
-        y_gpr_train = inv_boxcox(y_gpr_train0, lmbda_bc)
+        y_gpr_train = inv_boxcox(yscaler.inverse_transform(y_gpr_train0), lmbda_bc)
 
         y_gpr_val0, y_var_val0 = m.predict_y(xval)
-        y_gpr_val = inv_boxcox(y_gpr_val0, lmbda_bc)
+        y_gpr_val = inv_boxcox(yscaler.inverse_transform(y_gpr_val0), lmbda_bc)
 
         x_plot = np.concatenate((xtrain, xval))
         y_gpr_plot0, y_var_val0 = m.predict_y(x_plot)
-        y_gpr_plot = inv_boxcox(y_gpr_plot0, lmbda_bc)
+        y_gpr_plot = inv_boxcox(yscaler.inverse_transform(y_gpr_plot0), lmbda_bc)
 
         print('R2 train | RMSE train | R2 val | RMSE val | mean | std |')
 
