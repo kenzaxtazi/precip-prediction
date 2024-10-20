@@ -44,11 +44,21 @@ def random_location_generator(location, N=50):
     return coord_list
 
 
-def random_location_and_time_sampler(df, length=1000, seed=42):
+def random_location_and_time_sampler(df, length=1000, by_loc=False, seed=42):
     """Return DataFrame of random locations and times."""
 
     np.random.seed(seed)
-    i = np.random.randint(len(df), size=length)
-    df_sampled = df.iloc[i]
+    df_sorted = df.sort_values(by='time')
+
+    if by_loc==False:
+        i = np.random.randint(len(df), size=length)
+        df_sampled = df_sorted.iloc[i]
+
+    if by_loc==True:
+        J = np.random.randint(len(df)-36, size=int(length/36))
+        for j in J:
+            J = np.append(J, np.arange(j+1, j+36))
+        print(J.shape)
+        df_sampled = df_sorted.iloc[J]
 
     return df_sampled
