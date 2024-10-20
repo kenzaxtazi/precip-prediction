@@ -16,7 +16,7 @@ import gp.sampling as sa
 
 class point_model():
 
-    def init(self, location: str | np.ndarray, number:int=None, EDA_average:bool=False, maxyear:str=None, seed=42, all_var=False):
+    def __init__(self, location: str | np.ndarray, number:int=None, EDA_average:bool=False, maxyear:str=None, seed=42, all_var=False):
         """
         Output training, validation and test sets for total precipitation.
 
@@ -97,7 +97,7 @@ class point_model():
    
         # Features scaling
         xscaler = StandardScaler()
-        xtrain = xscaler.fit_transformtransform(xtrain.astype(np.float64))
+        xtrain = xscaler.fit_transform(xtrain.astype(np.float64))
         xval = xscaler.transform(xval)
         xtest = xscaler.transform(xtest)
 
@@ -123,7 +123,7 @@ class point_model():
         self.xtest = xtest
         self.xval = xval
 
-        self.l = l
+        self.l = lmbda
         self.xscaler = xscaler
         self.yscaler = yscaler
 
@@ -133,10 +133,10 @@ class point_model():
 
 
 class areal_model_new():
-    """ Class for generating data """
+    """ Class for generating data for areal models"""
 
     def __init__(self, location, number=None, EDA_average=False, length=3000, seed=42,
-                maxyear=None, all_var=False):
+                maxyear=None, minyear='1970', var=False):
         """
         Inputs
             location: specify area to train model
@@ -169,12 +169,17 @@ class areal_model_new():
         mask_filepath = location_sel.find_mask(location)
         masked_ds = location_sel.apply_mask(ds, mask_filepath)
 
-        if all_var is True:
+        if var == "all":
             var_list = ["time", "lon", "lat", "tcwv", "slor", "d2m", "z", "EOF200U", "t2m", "EOF850U",  "EOF500U", "EOF500B2", "EOF200B",
-                    "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B2", "EOF500C" ,"EOF500C2", "tp"]
-        else:
-            var_list = ["time", "lon", "lat", "slor", "d2m", "z", "EOF200U", "t2m", "EOF850U", "EOF500B2", "EOF200B", "EOF850U2", "tp"]
-            #var_list = ["time", "lon", "lat", "tcwv", "d2m", "N34", "tp"] 
+                        "anor", "NAO", "EOF500U2", "N34", "EOF850U2", "EOF500B2", "EOF500C" ,"EOF500C2", "tp"]
+        elif var == "uib":
+            var_list = ["time", "lon", "lat", "slor", "d2m", "z", "EOF200U", "t2m", "EOF850U",  "EOF500U", "tp"]
+        elif var == "khyber":
+            var_list = ["time", "lon", "lat", "slor", "d2m", "z", "EOF200U", "t2m", "NAO", "tp"]
+        elif var == "ngari": 
+            var_list = ["time", "lon", "lat", "slor", "d2m", "EOF200U", "t2m", "EOF850U", "NAO", "tp"]
+        elif var == "gilgit":
+            var_list = ["time", "lon", "lat", "slor", "EOF200U", "t2m", "EOF850U", "EOF500B2", "anor", "NAO", "tp"]           
 
         ### Training and evaluation dataset
 
@@ -190,7 +195,7 @@ class areal_model_new():
         df_train['tp'].loc[df_train['tp'] <= 0.0] = 0.0001
 
         # Sample training
-        df_train_samp = sa.random_location_and_time_sampler(df_train, length=length, seed=seed)  
+        df_train_samp = sa.random_location_and_time_sampler(df_train, by_loc=False, length=length, seed=123)  
         xtrain = df_train_samp.drop(columns=["tp"]).values
         ytrain = df_train_samp['tp'].values
 
@@ -242,7 +247,7 @@ class areal_model_new():
 
         # Features scaling
         xscaler = StandardScaler()
-        xtrain = xscaler.fit_transformtransform(xtrain.astype(np.float64))
+        xtrain = xscaler.fit_transform(xtrain.astype(np.float64))
         xval = xscaler.transform(xval)
         xtest = xscaler.transform(xtest)
 
@@ -274,7 +279,7 @@ class areal_model_new():
 
     def sets(self):
         return self.xtrain, self.xval, self.xtest, self.ytrain_sc, self.yval_sc, self.ytest_sc
-
+    
 """
 
 def areal_model(location:str, number:int=None, EDA_average=False, length=3000, seed=42,
