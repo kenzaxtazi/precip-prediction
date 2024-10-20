@@ -55,8 +55,8 @@ def multi_gp(xtrain, xval, ytrain, yval, lmbda_bc, yscaler, kernel=None, save=Fa
             k2 = gpflow.kernels.Matern32(lengthscales=1e-2, variance=1, active_dims=[i])
             k += k2
 
-    else:
-        k = kernel
+    #else:
+    #k = kernel
 
     m = gpflow.models.GPR(data=(xtrain, ytrain.reshape(-1, 1)), kernel=k)
     #gpflow.set_trainable(m.kernel.kernels[0].kernels[0].kernels[0].period, False)
