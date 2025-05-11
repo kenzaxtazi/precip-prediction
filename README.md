@@ -4,7 +4,7 @@
 
 # precip-prediction
 
-Application of Gaussian Processes to predicting local precipitation over the Upper Indus Basin (Himalayas).
+Application of Gaussian Processes to predicting local precipitation over the Upper Indus Basin (HKKH).
 
 ## analysis
 
